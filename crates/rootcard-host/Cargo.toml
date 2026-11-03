@@ -1,0 +1,18 @@
+[package]
+name = "rootcard-host"
+description = "Host-side helpers for rootcard identities: challenges, identity stores and request handlers"
+keywords = ["identity", "authentication", "login", "server"]
+categories = ["authentication"]
+readme = "README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+publish.workspace = true
+
+[dependencies]
+rootcard.workspace = true
+
+[lints]
+workspace = true

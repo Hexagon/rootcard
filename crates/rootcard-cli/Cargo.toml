@@ -1,0 +1,22 @@
+[package]
+name = "rootcard-cli"
+description = "The rootcard key tool: recovery-key operations for rootcard identities"
+keywords = ["identity", "authentication", "cli", "recovery"]
+categories = ["authentication", "command-line-utilities"]
+readme = "README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "rootcard"
+path = "src/main.rs"
+
+[dependencies]
+rootcard.workspace = true
+
+[lints]
+workspace = true

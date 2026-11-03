@@ -3,7 +3,7 @@
 This is the plan for agents that set up the monorepo and build the first release. Work through the phases in order. A
 phase is done when every acceptance criterion is checked, with tests where possible. Record deviations under the phase.
 
-**Current phase: 0 (repository skeleton).**
+**Current phase: 1 (specification and threat model).** Phase 0 is done.
 
 Source design: [docs/origin/xigna-IDENTITY.sv.md](origin/xigna-IDENTITY.sv.md) (Swedish, from the Xigna game). It uses
 the working labels `xid/...` and Xigna-specific wording (world seed, primary server). In rootcard these become
@@ -24,20 +24,30 @@ the working labels `xid/...` and Xigna-specific wording (world seed, primary ser
 
 ---
 
-## Phase 0: repository skeleton
+## Phase 0: repository skeleton ✅
 
-- [ ] `Cargo.toml` workspace with `crates/rootcard`, `crates/rootcard-cli`, `crates/rootcard-host`, `crates/xtask`
+- [x] `Cargo.toml` workspace with `crates/rootcard`, `crates/rootcard-cli`, `crates/rootcard-host`, `crates/xtask`
   (`resolver = "3"`, edition 2024, shared `[workspace.package]`: version, license, repository, rust-version)
-- [ ] `[workspace.lints]`: `unsafe_code = "forbid"`, `clippy::unwrap_used = "deny"`, `missing_docs = "warn"` for the libraries
-- [ ] `rustfmt.toml` (`max_width = 120`), `deny.toml` for `cargo deny`
-- [ ] `packages/rootcard/package.json`: `"type": "module"`, `exports` map (`.`, `./keytool`), `"files"` whitelist,
+- [x] `[workspace.lints]`: `unsafe_code = "forbid"`, `clippy::unwrap_used = "deny"`, `missing_docs = "warn"` for the libraries
+- [x] `rustfmt.toml` (`max_width = 120`), `deny.toml` for `cargo deny`
+- [x] `packages/rootcard/package.json`: `"type": "module"`, `exports` map (`.`, `./keytool`), `"files"` whitelist,
   `"sideEffects": false`, `engines.node >= 20`, no dependencies, `"test": "node --test"`
-- [ ] `spec/SPEC.md` (stub), `spec/vectors/` (empty), `CHANGELOG.md` per package, `SECURITY.md` (placeholder)
-- [ ] CI (`.github/workflows/ci.yml`): fmt, clippy, test on Linux, macOS and Windows, MSRV, `cargo deny`, npm test on Node 20
+- [x] `spec/SPEC.md` (stub), `spec/vectors/` (empty), `CHANGELOG.md` per package, `SECURITY.md` (placeholder)
+- [x] CI (`.github/workflows/ci.yml`): fmt, clippy, test on Linux, macOS and Windows, MSRV, `cargo deny`, npm test on Node 20
   and 22, and a job that runs the JS tests against the Rust-generated vectors
-- [ ] Every crate and the npm package builds and tests green with empty modules
+- [x] Every crate and the npm package builds and tests green with empty modules
 
 **Acceptance:** a fresh clone passes all commands in AGENTS.md, and CI is green.
+- [x] All commands pass locally (stable 1.97 and MSRV 1.95, Node 22, `cargo deny check`)
+- [ ] CI green on GitHub (first run on the phase-0 pull request)
+
+**Deviations**
+- The `./keytool` export is left out of `package.json` until the page exists (phase 5).
+- The license (D1) is undecided, so every crate is `publish = false` and the npm package is `"private": true`. `cargo deny`
+  ignores our own unlicensed crates (`private = { ignore = true }`).
+- MSRV (D4) is set to 1.95, the stable release two versions back at the time of writing.
+- The parity mechanism is in place from the start: `xtask vectors` writes `spec/vectors/meta.json` (format version and labels),
+  and the JS tests read it. Every later phase adds its vectors the same way.
 
 ## Phase 1: specification and threat model
 
