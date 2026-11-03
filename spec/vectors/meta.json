@@ -1,0 +1,13 @@
+{
+  "format_version": 1,
+  "label_prefix": "rootcard/",
+  "labels": [
+    { "purpose": "id", "label": "rootcard/id/v1" },
+    { "purpose": "event", "label": "rootcard/event/v1" },
+    { "purpose": "vault", "label": "rootcard/vault/v1" },
+    { "purpose": "public", "label": "rootcard/public/v1" },
+    { "purpose": "login", "label": "rootcard/login/v1" },
+    { "purpose": "proof", "label": "rootcard/proof/v1" },
+    { "purpose": "receipt", "label": "rootcard/receipt/v1" }
+  ]
+}

@@ -4,9 +4,9 @@ rootcard is a portable, self-certifying identity library ("an ID card for online
 crates.io and an npm package on npmjs, from one monorepo. Security is the product. Read before changing anything:
 
 1. [docs/PLAN.md](docs/PLAN.md): the setup plan, phases, current phase and acceptance criteria
-2. [spec/SPEC.md](spec/SPEC.md) (written in phase 1): the normative format. Until it exists, the source design is
-   [docs/origin/xigna-IDENTITY.sv.md](docs/origin/xigna-IDENTITY.sv.md) (Swedish)
-3. [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) (written in phase 1)
+2. [docs/DESIGN.md](docs/DESIGN.md): the design (requirements, threat model, formats, flows)
+3. [spec/SPEC.md](spec/SPEC.md) (written in phase 1): the normative format. Until it exists, DESIGN.md is the reference
+4. [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) (written in phase 1)
 
 ## Layout (target)
 
@@ -82,6 +82,8 @@ Run all of them before every commit. CI runs them too.
 - Security-relevant fixes get a regression vector.
 
 ### 8. Language and style
-- Code, comments, docs, commits: **English**. The Swedish origin document is reference material only.
+- Code, comments, docs, commits: **English**.
+- Nothing application-specific in this repository. Applications (such as Xigna) document their own use of rootcard in their
+  own repositories.
 - `rustfmt` (`max_width = 120`), `clippy -D warnings`. Small, focused commits.
 - Public API changes are recorded in `CHANGELOG.md` (one per package).

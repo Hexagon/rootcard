@@ -1,0 +1,15 @@
+[package]
+name = "rootcard"
+description = "A portable, self-certifying identity for online logins (core library)"
+keywords = ["identity", "authentication", "login", "ed25519", "self-certifying"]
+categories = ["authentication", "cryptography"]
+readme = "README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true

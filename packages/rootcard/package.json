@@ -1,0 +1,21 @@
+{
+  "name": "rootcard",
+  "version": "0.0.0",
+  "description": "A portable, self-certifying identity for online logins (core library, zero dependencies, WebCrypto)",
+  "keywords": ["identity", "authentication", "login", "ed25519", "webcrypto", "self-certifying"],
+  "license": "MIT",
+  "homepage": "https://github.com/Hexagon/rootcard",
+  "repository": { "type": "git", "url": "git+https://github.com/Hexagon/rootcard.git", "directory": "packages/rootcard" },
+  "bugs": "https://github.com/Hexagon/rootcard/issues",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": ["src/", "README.md", "CHANGELOG.md", "LICENSE"],
+  "sideEffects": false,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test"
+  }
+}

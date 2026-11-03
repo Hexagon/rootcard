@@ -1,0 +1,13 @@
+[package]
+name = "xtask"
+description = "Repository tasks: test vectors and release checks (not published)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+rootcard.workspace = true
+
+[lints]
+workspace = true
