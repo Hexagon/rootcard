@@ -30,7 +30,11 @@ rootcard gives a user an identity that no server owns:
 The specification in [`spec/`](spec/) and its test vectors are the source of truth. Rust and JavaScript must produce the same
 bytes for the same inputs.
 
+## License
+
+[MIT](LICENSE).
+
 ## Origin
 
-rootcard is extracted from the account design of the game Xigna. The original design (Swedish) is kept for reference in
-[docs/origin/xigna-IDENTITY.sv.md](docs/origin/xigna-IDENTITY.sv.md).
+rootcard started as the account design of the game Xigna and is developed here as an application-neutral library. The
+design is [docs/DESIGN.md](docs/DESIGN.md). How Xigna uses rootcard is documented in the Xigna repository.

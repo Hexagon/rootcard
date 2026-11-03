@@ -5,9 +5,8 @@ phase is done when every acceptance criterion is checked, with tests where possi
 
 **Current phase: 1 (specification and threat model).** Phase 0 is done.
 
-Source design: [docs/origin/xigna-IDENTITY.sv.md](origin/xigna-IDENTITY.sv.md) (Swedish, from the Xigna game). It uses
-the working labels `xid/...` and Xigna-specific wording (world seed, primary server). In rootcard these become
-`rootcard/...`, `realm` and *host*.
+Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is application-neutral here (labels `rootcard/...`,
+`realm`, *host*). Xigna's own integration plan lives in the Xigna repository.
 
 ---
 
@@ -15,7 +14,7 @@ the working labels `xid/...` and Xigna-specific wording (world seed, primary ser
 
 | # | Question | Proposal |
 |---|---|---|
-| D1 | License | `MIT OR Apache-2.0` (the Rust ecosystem default, also fine for npm) |
+| D1 | License | ✅ **MIT** (decided) |
 | D2 | Reserve the names now with placeholder releases? | Yes: `rootcard`, `rootcard-cli`, `rootcard-host` on crates.io and `rootcard` on npm, version `0.0.0`, published by the owner |
 | D3 | npm scope as well (`@rootcard/*`)? | Create the `rootcard` org on npm to block look-alikes, publish the main package unscoped |
 | D4 | Minimum supported Rust version | Latest stable minus two releases, checked in CI |
@@ -43,24 +42,24 @@ the working labels `xid/...` and Xigna-specific wording (world seed, primary ser
 
 **Deviations**
 - The `./keytool` export is left out of `package.json` until the page exists (phase 5).
-- The license (D1) is undecided, so every crate is `publish = false` and the npm package is `"private": true`. `cargo deny`
-  ignores our own unlicensed crates (`private = { ignore = true }`).
+- The license is MIT (D1). The published crates and the npm package carry `license = "MIT"`, and `LICENSE` is included in
+  the npm tarball. `xtask` stays `publish = false`. Nothing is published before the release workflow (phase 6), except
+  the placeholder releases the owner may make for D2.
 - MSRV (D4) is set to 1.95, the stable release two versions back at the time of writing.
 - The parity mechanism is in place from the start: `xtask vectors` writes `spec/vectors/meta.json` (format version and labels),
   and the JS tests read it. Every later phase adds its vectors the same way.
 
 ## Phase 1: specification and threat model
 
-- [ ] `spec/SPEC.md`: port the origin design into a normative, application-neutral specification (MUST/SHOULD):
+- [ ] `spec/SPEC.md`: turn DESIGN.md into a normative, application-neutral specification (MUST/SHOULD):
   canonical JSON, base32 and the recovery-key format, inception and id, handle and extended tags, log events (`incept`,
   `instance`, `rotate_recovery`, `retire`), the total order of versions, the vault and locks, the public profile and
   namespaces, login, receipts and proofs, the account file and the recovery card, size limits, error codes
-- [ ] Every label renamed to `rootcard/<purpose>/v1`. `world` becomes `realm`. "Server" becomes *host*
-- [ ] `docs/THREAT_MODEL.md`: the threat table, the secure-and-feasible decisions and the accepted risks from the origin
-  design, rewritten for a generic host
+- [ ] `docs/THREAT_MODEL.md`: the threat table, the secure-and-feasible decisions and the accepted risks from DESIGN.md §2 and §10,
+  expanded (attacker capabilities, assets, trust boundaries)
 - [ ] `docs/HOST_PROTOCOL.md`: the HTTP endpoints as a recommended (not required) binding
 
-**Acceptance:** the spec can be implemented without reading the origin document, and every rule has a number that tests can
+**Acceptance:** the spec can be implemented without reading DESIGN.md, and every rule has a number that tests can
 refer to.
 
 ## Phase 2: primitives in both languages
@@ -124,4 +123,4 @@ a documented parameter change in the spec.
 - Witnesses and pre-rotation (`v: 2`) against a stolen recovery key
 - Post-quantum key types (ML-DSA, ML-KEM) by new type tags
 - Federation of public logs between hosts
-- Integration back into Xigna (`xg-identity` replaced by the `rootcard` crate and npm package)
+- First application: Xigna (its integration plan is in the Xigna repository)

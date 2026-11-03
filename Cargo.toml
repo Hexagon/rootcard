@@ -8,9 +8,7 @@ edition = "2024"
 rust-version = "1.95"
 repository = "https://github.com/Hexagon/rootcard"
 homepage = "https://github.com/Hexagon/rootcard"
-# License: pending decision D1 (docs/PLAN.md). Proposal: "MIT OR Apache-2.0".
-# Crates stay `publish = false` until it is decided.
-publish = false
+license = "MIT"
 
 [workspace.dependencies]
 rootcard = { path = "crates/rootcard", version = "0.0.0" }
