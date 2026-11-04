@@ -11,7 +11,7 @@ Rule identifiers (`[LOG-12]`) refer to [spec/SPEC.md](../spec/SPEC.md). Design b
 | # | Goal |
 |---|---|
 | G1 | **Unforgeable identity.** Nobody but the holder of the recovery key can create an identity with a given account id, add an event to its log, or change who can unlock its vault |
-| G2 | **Authentic login.** A host accepts a login only from someone who unlocked the current instance's vault just now, for this host, this address, this realm and this exact version |
+| G2 | **Authentic login.** A host accepts a login only from someone who unlocked the current instance's vault just now and knows a password (or the recovery key) valid now, for this host, this address, this realm and this exact version |
 | G3 | **No password exposure.** No host, peer or network attacker learns a password or anything that allows checking a password guess, except the primary host's own storage (AR1) |
 | G4 | **Confidential private data.** Private data and the account key are readable only by whoever unlocks the vault |
 | G5 | **Integrity of public data.** The log and the public profile cannot be altered by anyone but the owner, only withheld |
@@ -127,8 +127,8 @@ and side channels on the user's device beyond constant-time comparisons ([IMP-4]
 | T10 | Signature malleability and weak keys (small-order points, non-canonical encodings) | X2, X3 | Strict verification with explicit checks, identical in both languages | CRY-3, KEY-3 | – |
 | T11 | Download a vault and guess the password offline | X2, X3, X4 | The vault is released only after a lock proof or with a session; lock hints carry no verifier; fetches are rate limited; Argon2id and password rules | FET-1–FET-3, VLT-5, LCK-6, LCK-8 | Online guessing within the rate limits |
 | T12 | Steal a host's database and guess passwords offline | X5, X6 | Only the primary host stores vaults, only of its own identities; Argon2id with high memory cost | HST-2, HST-13, LCK-6 | Weak passwords fall (AR1) |
-| T13 | Use a stolen password | X7 | Low power only, only at the primary host, only in the current instance; one revocation makes a new instance and ends every session | PWR-1–PWR-5, HST-7, KT-4 | The thief can log in and read or change private data until the owner revokes |
-| T14 | A password thief adds their own password, or re-adds a revoked one, to keep access | X7 | The lock set is signed by the recovery key with a generation counter; hosts reject lock changes without it and lock sets going back | LCK-3, VLT-4, HST-12 | – |
+| T13 | Use a stolen password | X7 | Low power only, only at the primary host, only in the current instance; the owner can change it with the old password (logins stop at once) or reset with the recovery key (a new instance ends every session and copied account key) | PWR-1–PWR-5, LGN-5, CHG-3, HST-7, KT-8 | The thief can log in and read or change private data until the owner changes or resets the password |
+| T14 | A password thief adds their own password, or re-adds a revoked one, to keep access | X7 | Password slots are fixed by a recovery-signed grant with a generation counter; low power can only replace the material of an existing slot, with its old password | LCK-3, LCK-10, VLT-4, HST-12 | – |
 | T15 | Use an old account file (with a password) after revocation | X8 | A new instance invalidates the old vault, account key and sessions; hosts and clients that saw the newer version reject the old one | VER-4, VER-6, HST-7 | A party that never sees the newer version (AR4) |
 | T16 | Roll an identity back to an older version (replay an old log, profile or vault) | X3–X5 | Extension order; monotonic storage; logins bound to the exact version; revisions only increase | VER-2, VER-4, VLT-4, DAT-3, LGN-1 | Withholding (AR4) |
 | T17 | A host alters or forges a public profile | X3–X5 | Signed by the account key, bound to the instance and revision | DAT-2 | A host can withhold it or serve an older copy of the current instance until the client sees a newer one |
@@ -154,6 +154,8 @@ and side channels on the user's device beyond constant-time comparisons ([IMP-4]
 | T37 | Quantum attacks on Ed25519 and X25519 | X12 | Typed keys and versioned structures allow a migration by a later format version | EXT-1, EXT-3 | Recorded traffic and vaults could be attacked later; harvest-now attacks on X25519 wraps of stored vaults |
 | T38 | Concurrent requests on several servers of a host lose an update or move an identity backwards | – | Every change is a compare-and-swap on the stored version, `rev` or `gen`; handle claims and nonce use are atomic | HST-19 | – |
 | T39 | A retried request after a lost response fails, or creates a second receipt or session | X1 | Identical resubmissions return the original answer | HST-20 | – |
+| T40 | A password thief changes the password and locks the owner out | X7 | – (a password change needs only the old password, by design) | CHG-1 | The owner resets with the recovery card, which ends the thief's access (AR12) |
+| T41 | A stolen session (without the password) changes the password | X1, X5 | A change needs a proof by the old password's lock key, and every login a current lock proof | CHG-2, LGN-5 | – |
 
 ---
 
@@ -168,7 +170,9 @@ and side channels on the user's device beyond constant-time comparisons ([IMP-4]
 | Hash chain, extension order, forks detected | **Used** | Rollback protection without consensus; hosts only ever append |
 | Deterministic fork resolution | **Later** | A time-based rule was drafted but lets a rotated-out recovery key win and makes hosts switch instances; it belongs with witnesses (Appendix A of the spec) |
 | Vault only at the primary host, released after a lock proof | **Used** | Restricts offline guessing to the primary host's storage and account files |
-| Recovery-signed lock sets | **Used** | Makes "who can unlock" high power in the format, not by policy |
+| Recovery-signed grants | **Used** | Makes "who can unlock" high power in the format, not by policy |
+| Password change with the old password | **Used** | Users expect it in the browser; it replaces one slot's material and cannot add slots. Reset of a forgotten password stays with the recovery key |
+| Reset by e-mail or by the host (escrow) | **No** (decided) | Would give the host power over the identity |
 | OPAQUE or a server pepper | **Not now** | Needs per-host secrets and heavy client code; conflicts with portability. A primary host may add one later without a format change to the log (AR1) |
 | Passkeys (WebAuthn PRF) as a lock | **Later** | Strong against phishing but bound to a host's domain; a new lock `kind` ([EXT-3]) |
 | Witnesses and pre-rotation (KERI style) | **Later**, format version 2 | Would make rotation effective against a stolen key (AR3); more complex and two secrets to keep |
@@ -212,6 +216,13 @@ and side channels on the user's device beyond constant-time comparisons ([IMP-4]
 - **AR11: Forks are not resolved.** If a recovery-key holder forks a log (by mistake from an old account file, or as a
   thief), hosts keep whichever branch they saw first, so different hosts can disagree until the owner extends the branch
   the primary host holds. The key tool gathers every reachable log before signing to avoid this ([KT-2]).
+
+- **AR12: A password holder can change the password.** A thief who knows the password can replace it and lock the owner
+  out until the owner resets with the recovery card ([KT-8]), which also ends the thief's access. A password change by
+  the owner, in turn, does not revoke an account key someone already copied ([CHG-3]); after a suspected leak the owner
+  resets instead.
+- **AR13: A lost recovery card cannot be replaced** in format version 1: rotation needs the old key. The account keeps
+  working with its password, but can no longer be reset, moved or retired.
 
 ---
 

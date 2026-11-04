@@ -47,14 +47,39 @@ home if it wants to be sure it is current, and calls `verify_proof`. It stores a
 deals with ([VER-4]). An application that runs its own host does not need proofs for its own users: the login result
 ([LGN-1] step 6) already is the answer.
 
-A login, seen from the host:
+### 2.1 Workflows
+
+The application is a website whose server uses `rootcard-host` and whose pages use `packages/rootcard`. The user sees a
+normal account: a username and a password. rootcard shows itself only twice: the recovery card to save at registration,
+and the key tool for the rare actions that need it. Requests are listed in HOST_PROTOCOL.md §7.
+
+| Workflow | What the user does | What the browser does | What the server does |
+|---|---|---|---|
+| **Register** | Picks a username and a password; saves the recovery card (file or print) | Generates the recovery key, builds the inception, the first instance (home = this server), a vault with one password slot and an empty profile; erases the recovery key ([CLT-1]) | Checks and stores them, claims the username, adds its receipt ([HST-3]) |
+| **Log in** | Types username and password | Fetches and unlocks the vault (one Argon2id run), signs the challenge with the account key and the password's lock key ([LGN-1]) | Checks both signatures and the version, returns the login result; the application opens its session ([HST-10]) |
+| **Change password** | Types the current and the new password | Builds the new lock and vault, signs a change proof with the old password ([CHG-1]) | Checks the session and the proof, stores the vault ([CHG-2]); the old password stops working at once |
+| **Download the account** | Clicks "download" | – | Returns the account file: log, profile and vault ([FIL-2]) |
+| **Move to another server** | Opens the key tool with the account file and the recovery card, picks the new server; then logs in there with the same password | The key tool mints a new instance at the new server, carrying data, profile and passwords over ([KT-3]) | The new server receipts it and becomes home; the old one deletes the vault and answers `not_home` ([HST-7]) |
+| **Forgot password** | Opens the key tool with the recovery card, chooses a new password | The key tool mints a new instance on the same server with only the new password ([KT-8]) | Receipts it; every old password, vault copy and session stops working |
+
+Consequences an application should state plainly:
+
+- **The recovery card is the only way back.** Without it a forgotten password loses the account: no server, the
+  application's included, can reset it ([PWR-5]). An account whose card is lost keeps working with its password, but can
+  no longer be reset or moved.
+- **A password change is not a revocation.** It stops the old password at once, but someone who already unlocked the
+  vault with it keeps a copy of the account key until a new instance ([CHG-3]). After a suspected leak, the user resets
+  with the recovery card instead.
+- **The application may show just the username** inside its own realm ([CLT-7]).
+
+### 2.2 A login, seen from the host
 
 ```
 client                                   host                                       storage
   │ GET /id/{a}/log                        │──── read events, state ───────────────────►│
   │ POST /id/{a}/challenge {login} ───────►│──── put nonce (60 s, purpose, account) ───►│
   │ POST /id/{a}/login {nonce, version,    │──── take nonce (atomic) ──────────────────►│
-  │      url, sig} ───────────────────────►│     check home, url, version, signature    │
+  │      url, lock, sig, lock_sig} ───────►│     check home, url, version, signatures   │
   │ ◄──── login result + session ──────────│──── put session {account, instance} ─────►│
   │ GET /session/vault (bearer) ──────────►│──── session.instance == current? ─────────►│
 ```
@@ -125,11 +150,11 @@ the shared vectors ([CNV-4]).
 | Recovery key | `parse_recovery_key`, `format_recovery_key`, `derive_recovery_keys` | SHA-256, HKDF | always |
 | Identity | `inception`, `account_id`, `handle`, `parse_handle`, `extended_tags` | SHA-256, Ed25519 | always |
 | Log | `verify_log`, `extend_log`, `verify_pending`, `compare_logs`, `current_instance` | SHA-256, Ed25519 | always |
-| Messages | `login_message`, `fetch_message`, `receipt_message` and their verification | Ed25519 | always |
+| Messages | `login_message`, `fetch_message`, `change_message`, `receipt_message` and their verification | Ed25519 | always |
 | Proofs | `prove`, `verify_proof`, `statement_challenge` | Ed25519 | always |
 | Public data | `verify_public`, `PublicProfile::set` (namespace-checked) | Ed25519 | always |
 | Vault checks | `verify_vault` (signatures, locks, limits; no decryption) | Ed25519 | always |
-| Vault crypto | `Vault::create`, `unlock`, `add_lock`, `new_instance`, contents | X25519, HKDF, AES-GCM, Argon2id, NFC | `vault` |
+| Vault crypto | `Vault::create`, `unlock`, `change_password`, `add_slot`, `new_instance`, contents | X25519, HKDF, AES-GCM, Argon2id, NFC | `vault` |
 | Files | `AccountFile::export` / `import`, `RecoveryCard` | as above | always (vault parts with `vault`) |
 
 Hosts and relying parties use the core **without** the `vault` feature (Rust: `default-features = false`), which removes

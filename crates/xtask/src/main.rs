@@ -14,7 +14,7 @@ struct VectorFile {
 }
 
 /// The purposes of every domain-separation label of format version 1, in the order of the registry in `spec/SPEC.md` §5.
-const LABEL_PURPOSES: [&str; 18] = [
+const LABEL_PURPOSES: [&str; 19] = [
     "id",
     "event",
     "receipt",
@@ -25,6 +25,7 @@ const LABEL_PURPOSES: [&str; 18] = [
     "public",
     "login",
     "fetch",
+    "change",
     "proof",
     "statement",
     "recovery/check",

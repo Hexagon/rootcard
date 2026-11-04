@@ -24,7 +24,7 @@ complete on its own: an implementation can be written from this document and `sp
 10. [Versions](#10-versions)
 11. [The vault](#11-the-vault)
 12. [Arbitrary data: public profile and private data](#12-arbitrary-data-public-profile-and-private-data)
-13. [Vault fetch and login](#13-vault-fetch-and-login)
+13. [Vault fetch, login and password change](#13-vault-fetch-login-and-password-change)
 14. [Proofs](#14-proofs)
 15. [Account file and recovery card](#15-account-file-and-recovery-card)
 16. [Power levels](#16-power-levels)
@@ -288,13 +288,14 @@ Everything that is hashed or signed is canonical JSON. The encoding is the JSON 
   | `rootcard/id/v1` | Account id from the inception | §7.3 |
   | `rootcard/event/v1` | Hash of a log event, and the owner signatures on it | §9.2 |
   | `rootcard/receipt/v1` | The primary host's receipt on an `instance` event | §9.3 |
-  | `rootcard/locks/v1` | The recovery key's signature on a vault's lock set | §11.3 |
+  | `rootcard/locks/v1` | The recovery key's signature on a vault's grant | §11.3 |
   | `rootcard/vault/v1` | The account key's signature on a vault | §11.2 |
   | `rootcard/contents/v1` | Authenticated data of the vault contents encryption | §11.5 |
   | `rootcard/wrap/v1` | Key wrapping of the vault key to a lock | §11.4 |
   | `rootcard/public/v1` | The account key's signature on the public profile | §12.1 |
   | `rootcard/login/v1` | Answer to a login challenge | §13.3 |
-  | `rootcard/fetch/v1` | Answer to a vault fetch challenge | §13.2 |
+    | `rootcard/fetch/v1` | Answer to a vault fetch challenge | §13.2 |
+  | `rootcard/change/v1` | Old-password proof for a password change | §13.4 |
   | `rootcard/proof/v1` | Proof of identity | §14 |
   | `rootcard/statement/v1` | Challenge derived from a statement | §14.2 |
   | `rootcard/recovery/check/v1` | Checksum of the written recovery key | §6.1 |
@@ -415,6 +416,7 @@ and entered only in the key tool ([PWR-6]).
   its characters 5 to `n`. Example: `Astra#3F9C-K2`. Identities that collide with nothing keep the plain tag.
 - **[HDL-7]** A lookup by a plain handle in a realm that matches more than one identity fails and returns the candidates
   with their extended tags. → `ambiguous_handle`
+
 ---
 
 ## 9. The identity log
@@ -527,6 +529,7 @@ It performs these steps in order:
   signatures.
 - **[LOG-16]** A log state is plain data and can be stored and loaded by a host. A host MUST store it only after it was
   produced by `verify_log` or `extend_log`, and MUST treat stored states as trusted only within its own storage.
+
 ---
 
 ## 10. Versions
@@ -567,10 +570,14 @@ Vault {
   "account":  "<account id>",
   "instance": "<b64u event hash of the instance event>",
   "rev":      n,                                       1 … 2^32, increases with every change within the instance
-  "locks": {
-    "gen":  g,                                         1 … 2^32, increases with every change of the lock set
-    "list": [ Lock, ... ],                             1 … 16 locks
-    "sig":  "<recovery key signature, [LCK-3]>"
+    "locks": {
+    "grant": {                                         who may unlock: set by the recovery key only, [LCK-3]
+      "gen":      g,                                   1 … 2^32, increases with every change of the grant
+      "slots":    [ { "id": "<b64u 8 bytes>", "label": "<1–64 characters>" }, ... ],    0 … 15 password slots
+      "recovery": "x25519:<recovery lock key>",
+      "sig":      "<recovery key signature>"
+    },
+    "list": [ Lock, ... ]                              the recovery lock and one password lock per slot
   },
   "nonce": "<b64u 12 bytes>",
   "ct":    "<b64u AES-256-GCM(vault key, contents) ‖ tag>",
@@ -586,41 +593,52 @@ Vault {
 - **[VLT-3]** `verify_vault(vault, log_state)` performs, in order: schema ([CJ-11]) → `bad_field`/`unsupported_version`;
   `account` equals the log's account → `account_mismatch`; the log is not retired → `account_retired`; the log has a
   current instance → `no_instance`; `instance` equals its hash → `wrong_instance`; the lock set is valid ([LCK-1],
-  [LCK-2], [LCK-6]) → `bad_locks`, `bad_field`, `kdf_params`; `locks.sig` verifies with the log's current recovery key
+  [LCK-2], [LCK-6]) → `bad_locks`, `bad_field`, `kdf_params`; `grant.sig` verifies with the log's current recovery key
   ([LCK-3]) → `bad_signature`; `sig` verifies with the instance's `account_key` → `bad_signature`.
 - **[VLT-4]** Within an instance, a party that stores a vault replaces it only with one that has a greater `rev` →
-  `stale_rev`, a `locks.gen` not smaller than the stored one → `stale_locks`, and, if `locks.gen` is equal, a
-  byte-identical `locks` member → `stale_locks`. `rev` and `gen` start at 1 in each new instance.
+  `stale_rev`, and a `grant.gen` not smaller than the stored one → `stale_locks`. If `grant.gen` is equal, the `grant`
+  is byte-identical → `stale_locks`, and `list` is byte-identical except for password changes ([LCK-10]) that the
+  replacing party has authorized ([HST-12]) → `stale_locks`. `rev` and `gen` start at 1 in each new instance.
 - **[VLT-5]** A vault never leaves the primary host except to a party that has proven a lock ([FET-1]) or holds a
   session ([HST-10]), and in account files the user downloads (§15.1). Hosts never pass vaults to other hosts
   ([HST-13]).
 
 ### 11.3 Locks
 
+The lock set has two parts. The **grant** says who may unlock the vault: the password slots with their labels, and the
+recovery lock's key. Only the recovery key signs it. The **list** holds the key material of each lock. The material of a
+password slot changes when its password changes, which the user can do with the old password (§13.4); everything else in
+the list follows from the grant.
+
 ```
-password lock  { "id": "<b64u 8 random bytes>", "kind": "password", "label": "<1–64 characters>",
+password lock  { "id": "<slot id>", "kind": "password",
                  "kdf": { "alg": "argon2id", "m": 65536, "t": 3, "p": 1, "salt": "<b64u 16 random bytes>" },
-                 "auth": "ed25519:<fetch key>", "box": "x25519:<lock key>",
+                 "auth": "ed25519:<auth key>", "box": "x25519:<lock key>",
                  "wrap": { "epk": "x25519:<ephemeral key>", "nonce": "<b64u 12 bytes>", "ct": "<b64u 48 bytes>" } }
 recovery lock  { "id": "recovery", "kind": "recovery", "box": "x25519:<recovery lock key>",
                  "wrap": { "epk": "…", "nonce": "…", "ct": "…" } }
 ```
 
-- **[LCK-1]** `locks.list` has 1 to 16 locks, ids are unique, exactly one lock has `kind` `recovery` and its id is
-  `recovery`, and every other lock has `kind` `password` and an id of 8 bytes. → `bad_locks`
-- **[LCK-2]** A `label` is 1 to 64 Unicode scalar values with no code point below U+0020 and no U+007F. → `bad_field`.
-  Labels can be read by anyone who can look a vault's locks up at its primary host ([FET-2]); they SHOULD NOT hold
-  secrets.
-- **[LCK-3]** `locks.sig` is `Ed25519.sign(recovery signing key, frame("rootcard/locks/v1", { "account": …, "instance":
-  …, "gen": g, "list": [ … ] }))` by the recovery key **current at the verifier's newest log**. Only the recovery key
-  can change who can unlock a vault ([PWR-2]).
-- **[LCK-4]** Whoever creates a lock set MUST make the recovery lock's `box` the public key of the recovery lock key
-  ([RK-4]) of the current recovery key. Hosts cannot check this (they never see a recovery key); the recovery signature
-  ([LCK-3]) vouches for it. A `rotate_recovery` therefore requires a new lock set with a new recovery lock ([KT-5]).
-- **[LCK-5]** A vault MAY have no password lock (all were revoked). It can then be unlocked only with the recovery key.
+- **[LCK-1]** `grant.slots` has 0 to 15 entries with unique ids of 8 bytes. `list` has exactly one lock of `kind`
+  `recovery`, with id `recovery` and `box` equal to `grant.recovery`, and exactly one lock of `kind` `password` for each
+  slot, with the slot's id, and no other lock. → `bad_locks`
+- **[LCK-2]** A slot `label` is 1 to 64 Unicode scalar values with no code point below U+0020 and no U+007F. →
+  `bad_field`. Labels can be read by anyone who can look a vault's locks up at its primary host ([FET-2]); they SHOULD
+  NOT hold secrets.
+- **[LCK-3]** `grant.sig` is `Ed25519.sign(recovery signing key, frame("rootcard/locks/v1", { "account": …, "instance":
+  …, "gen": g, "slots": [ … ], "recovery": … }))` by the recovery key **current at the verifier's newest log**. Only the
+  recovery key can add or remove a password slot, rename one, or replace the recovery lock ([PWR-2]).
+- **[LCK-4]** Whoever creates a grant MUST make `grant.recovery` the public key of the recovery lock key ([RK-4]) of the
+  current recovery key. Hosts cannot check this (they never see a recovery key); the recovery signature ([LCK-3])
+  vouches for it. A `rotate_recovery` therefore requires a new grant ([KT-5]).
+- **[LCK-5]** A vault MAY have no password slot (all were revoked). It can then be unlocked only with the recovery key.
 - **[LCK-6]** Argon2id parameters: `alg` is `argon2id`; `p` = 1; `47104 ≤ m ≤ 1048576` (46 MiB to 1 GiB); `2 ≤ t ≤ 16`.
   The default for new locks is `m = 65536, t = 3, p = 1`. A lock outside these bounds is invalid, and a client MUST NOT
   run Argon2id with parameters outside them. → `kdf_params`
+- **[LCK-10]** A **password change** replaces the password lock of one slot with new material (new salt, `auth`, `box`
+  and `wrap` of the same vault key) and changes nothing else in `locks`. It needs no recovery key. A host accepts it
+  only with a session and a proof made with the old password of that slot ([CHG-1]), so a stolen session alone cannot
+  change a password, and a password holder cannot add a password slot of their own.
 
 ### 11.4 Key derivation and wrapping
 
@@ -714,15 +732,15 @@ PublicProfile { "v": 1, "account": "<account id>", "instance": "<b64u instance e
 
 ---
 
-## 13. Vault fetch and login
+## 13. Vault fetch, login and password change
 
 Both start with a **challenge** from the primary host.
 
 ### 13.1 Challenges
 
 - **[CHL-1]** A challenge is `{ "nonce": "<b64u 32 random bytes>", "host": "ed25519:<home.key of the current instance>",
-  "realm": realm, "version": { seq, hash }, "expires": t }`, issued for one account and one purpose (`fetch` or
-  `login`).
+  "realm": realm, "version": { seq, hash }, "expires": t }`, issued for one account and one purpose (`fetch`, `login` or
+  `change`).
 - **[CHL-2]** A challenge is valid **once**, for its account and purpose, and until `expires`, which is at most **60 s**
   after issue. Using an unknown, used or other-purpose nonce → `challenge_unknown`; an expired one →
   `challenge_expired`. The host consumes a nonce on its first use, whether the answer verifies or not. A host that runs
@@ -735,9 +753,9 @@ Both start with a **challenge** from the primary host.
   `url` the host address the party is connected to ([LGN-4]). The host checks `url` ([HST-18]) → `wrong_host`, verifies
   the signature against the lock's `auth` key, respectively the log's current recovery key → `bad_signature`, and
   returns the vault.
-- **[FET-2]** Before a fetch, the primary host gives anyone who asks the **lock hints**: for each password lock, `id`,
-  `label` and `kdf`, and nothing else (not `auth`, `box` or `wrap`). A client needs them to run Argon2id. Hints are not
-  signed.
+- **[FET-2]** Before a fetch, the primary host gives anyone who asks the **lock hints**: for each password slot, its
+  `id`, its `label` and its lock's `kdf`, and nothing else (not `auth`, `box` or `wrap`). A client needs them to run
+  Argon2id. Hints are not signed.
 - **[FET-3]** Fetches and lock hints are rate limited per identity and per network address ([HST-16]). Each failed fetch
   is one online password guess.
 
@@ -753,17 +771,22 @@ Both start with a **challenge** from the primary host.
    (§13.2). It unlocks it ([VLT-8]).
 4. The client requests a `login` challenge and checks `challenge.host` = `home.key`, `challenge.realm` = the log's realm
    → `wrong_host`, and `challenge.version` = its version → `stale_version` (it then fetches the newer log and restarts).
-5. The client signs the **login message** with the account key and sends `{ account, nonce, version, url, sig }`:
+5. The client signs the **login message** twice, with the account key (`sig`) and with the `auth` key of the lock it
+   unlocked (`lock_sig`; the recovery signing key for the `recovery` lock), and sends `{ account, nonce, version, url,
+   lock, sig, lock_sig }`:
    ```
-   sig = Ed25519.sign(account key, frame("rootcard/login/v1",
-           { "account": …, "host": "ed25519:<home.key>", "nonce": …, "realm": …, "url": "<address in use>",
-             "version": { seq, hash } }))
+   message  = frame("rootcard/login/v1",
+                { "account": …, "host": "ed25519:<home.key>", "lock": "<lock id>", "nonce": …, "realm": …,
+                  "url": "<address in use>", "version": { seq, hash } })
+   sig      = Ed25519.sign(account key, message)
+   lock_sig = Ed25519.sign(auth key of the lock, message)
    ```
 6. The host checks, in order: the account exists and is not retired → `unknown_account`, `account_retired`; it is the
    home of the current instance ([HST-17]) → `not_home`; `url` is one of its addresses ([HST-18]) → `wrong_host`; the
    nonce ([CHL-2]) → `challenge_unknown`, `challenge_expired`; `version` equals its current version exactly →
-   `stale_version`; the signature with the current instance's `account_key` → `bad_signature`. It then returns the
-   **login result** `{ account, handle, instance, version }` and opens a session for it ([HST-10]).
+   `stale_version`; `lock` is a lock of its stored vault → `bad_locks`; `sig` with the current instance's `account_key`
+   and `lock_sig` with the lock's `auth` key (the current recovery key for `recovery`) → `bad_signature`. It then
+   returns the **login result** `{ account, handle, instance, version }` and opens a session for it ([HST-10]).
 
 - **[LGN-2]** The account key exists only in the unlocked vault in the client's memory. Clients import it
   non-extractable where the platform allows it and erase the raw bytes ([IMP-2]).
@@ -775,6 +798,33 @@ Both start with a **challenge** from the primary host.
   they connect to), not a value received from the host. A phishing site that relays challenges to the real host gets
   signatures for its own address, which the real host rejects. This is what lets a host change or add addresses without
   a new instance ([HST-18]).
+- **[LGN-5]** **Why two signatures.** The account-key signature proves that the client unlocked the vault of the current
+  instance; the lock signature proves that it knows a password (or the recovery key) that is valid **now**. After a
+  password change ([CHG-1]) the old password no longer logs in anywhere, even for someone who kept an old copy of the
+  vault and its account key.
+
+### 13.4 Password change
+
+- **[CHG-1]** A logged-in user changes the password of one slot with the old password, in an application client, without
+  the recovery key:
+  1. The client unlocks the vault with the old password (or reuses the vault it unlocked at login) and builds a new
+     password lock for the same slot: a new salt, `auth` and `box` from the new password ([LCK-7], [LCK-8]) and a new
+     `wrap` of the vault key ([LCK-9]). It builds the new vault: `rev + 1`, the new lock in place of the old one, the
+     contents re-encrypted with a fresh nonce, signed by the account key.
+  2. It requests a `change` challenge and signs, with the **old** lock's `auth` key, `frame("rootcard/change/v1", {
+     "account": …, "host": …, "lock": "<slot id>", "new": "<b64u SHA-256(canonical(new lock))>", "nonce": …, "url": …
+     })`.
+  3. It sends the new vault, the slot id, the nonce, its `url` and the signature with its session.
+- **[CHG-2]** The host checks, in order: the session ([HST-11]) → `unauthorized`; `url` ([HST-18]) → `wrong_host`; the
+  nonce ([CHL-2]) → `challenge_unknown`, `challenge_expired`; the slot exists in the stored vault → `bad_locks`; the
+  signature with the slot's stored `auth` key → `bad_signature`; the new vault verifies ([VLT-3]) → its codes; it
+  differs from the stored vault only in `rev`, `nonce`, `ct`, `sig` and the lock of this slot, whose hash is `new` →
+  `stale_locks`; `rev` increases → `stale_rev`. It then stores the vault atomically ([HST-19]).
+- **[CHG-3]** A password change takes effect at once for logins and vault fetches ([LGN-5]). It does not end other
+  sessions, and it does not invalidate an account key someone may have copied with the old password: that needs a new
+  instance with the recovery key ([KT-4], [KT-8]). A client SHOULD offer "sign out everywhere" only together with that
+  advice.
+
 ---
 
 ## 14. Proofs
@@ -874,18 +924,20 @@ the recovery key. Everything else needs at most the password. In doubt, a new fe
 | Log in | At the primary host | (the key tool can log in with the account key it unlocks) |
 | Data | Read and change private data and the public profile in the current instance | Clear or replace them with a new instance |
 | Identity | Export the account file, give account proofs | Every log event, root proofs |
-| Locks | None, not even changing one's own password | Add, revoke and replace locks |
+| Locks | Change the password of a slot, with the old password (§13.4) | Add, revoke and rename password slots; reset a forgotten password |
 | Instances, primary host | None | Mint instances (`restore`, `fresh`, `revoke`), choose and change the primary host |
 | Root | None | Rotate the recovery key, retire |
 
 - **[PWR-1]** Every log event requires the signature of the current recovery key ([LOG-13]).
-- **[PWR-2]** Every lock set requires the signature of the current recovery key ([LCK-3]); a vault signed only by the
-  account key cannot add, change or re-add a lock ([VLT-4]).
-- **[PWR-3]** The account key can sign only: vaults (contents and `rev`, with a lock set the recovery key signed),
-  public profiles, login messages, account proofs, and its self-signature on its own `instance` event.
-- **[PWR-4]** A password lock's `auth` key can sign only vault fetches.
-- **[PWR-5]** A password cannot be changed with the old password. Changing a password is adding a lock and revoking the
-  old one, both with the recovery key ([KT-4]).
+- **[PWR-2]** Every grant requires the signature of the current recovery key ([LCK-3]); with low power, the lock set can
+  change only by a password change of an existing slot ([LCK-10], [CHG-2]).
+- **[PWR-3]** The account key can sign only: vaults (contents, `rev` and password changes, with a grant the recovery key
+  signed), public profiles, login messages, account proofs, and its self-signature on its own `instance` event.
+- **[PWR-4]** A password lock's `auth` key can sign only vault fetches, login messages (as `lock_sig`) and password
+  change proofs.
+- **[PWR-5]** A password can be changed with the old password (§13.4), but a forgotten password can be reset only with
+  the recovery key ([KT-8]), and adding or removing a password slot needs the recovery key ([KT-4]). No host can reset a
+  password: no host holds anything that could.
 - **[PWR-6]** The recovery key is entered only in the key tool. An application client MUST NOT accept a recovery key as
   input. At registration, an application client MAY generate a recovery key; it then shows it once, uses it only to sign
   the registration, and erases it ([CLT-1]).
@@ -918,7 +970,7 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
   instance (it answers as for the original request, [HST-20]), and otherwise → `stale_version` with its log (an owner
   who wants an instance here uses the key tool, [KT-3]); the instance's `home` names this host ([HST-6]) → `wrong_host`;
   the time window ([HST-6]) → `bad_time`; the handle is free in the realm ([HST-4]) → `handle_taken`; the vault
-  ([VLT-3]) and profile ([DAT-2]) verify → their codes; the vault has a password lock → `bad_locks`. It then adds the
+  ([VLT-3]) and profile ([DAT-2]) verify → their codes; the vault has a password slot → `bad_locks`. It then adds the
   receipt, stores everything atomically ([HST-19]) and answers with the account id, the handle, the version and the
   receipt.
 - **[HST-4]** **Handle uniqueness:** a host never stores two identities of one realm that collide ([HDL-4]) unless the
@@ -953,12 +1005,14 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
   s. A session also ends on logout and after at most **24 h** without use. A session that became invalid never becomes
   valid again.
 - **[HST-12]** The primary host accepts a vault replacement only if the new vault verifies ([VLT-3]) and satisfies
-  [VLT-4], and either the request carries a session of the current instance, or the new `locks.gen` is greater than the
-  stored one (a new lock set signed by the current recovery key authorizes the replacement, so the key tool needs no
-  session) → `unauthorized`. A session alone cannot change the lock set: [VLT-4] and [LCK-3] require a recovery
-  signature for it. After adopting a `rotate_recovery`, a stored vault no longer verifies ([LCK-3]) until it is replaced
-  this way; the key tool therefore submits a rotation to the primary host together with the new vault ([KT-5]).
-
+  [VLT-4], and one of these holds → otherwise `unauthorized`:
+  1. the request carries a session of the current instance and changes neither `locks` nor anything but the contents,
+     `rev`, `nonce` and `sig` (a data update);
+  2. the request carries a session and a password change proof ([CHG-2]);
+  3. the new `grant.gen` is greater than the stored one (a new grant signed by the current recovery key authorizes the
+     replacement, so the key tool needs no session).
+  After adopting a `rotate_recovery`, a stored vault no longer verifies ([LCK-3]) until it is replaced by case 3; the
+  key tool therefore submits a rotation to the primary host together with the new vault ([KT-5]).
 ### 17.4 Sharing between hosts
 
 - **[HST-13]** **Only the public log and the public profile are shared** between hosts. Vaults and anything derived from
@@ -1001,12 +1055,13 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
 
 ### 18.1 Application clients
 
-- **[CLT-1]** **Registration** in an application client: the user picks a username, a realm the host serves and a
-  password ([LCK-8]). The client generates a recovery key ([RK-3]), shows it once as text and as a recovery card
-  ([CRD-4]), SHOULD require the user to retype two groups chosen at random, builds the inception, the pending instance
-  (`reason` `register`, `home` = this host), a vault with one password lock and the recovery lock, and an empty public
-  profile (`rev` 1), submits them ([HST-3]) and erases the recovery key. The safest alternative is to register in the
-  key tool.
+- **[CLT-1]** **Registration** in an application client: the user picks a username and a password ([LCK-8]); the realm
+  is the application's. The client generates a recovery key ([RK-3]) and gives it to the user to keep, as a downloadable
+  recovery card file and as printable text ([CRD-4]); it SHOULD require the user to confirm that it was saved (for
+  example by retyping two groups chosen at random) and MUST say that the recovery key is the only way to recover a
+  forgotten password or move the account. It builds the inception, the pending instance (`reason` `register`, `home` =
+  this host), a vault with one password slot and the recovery lock, and an empty public profile (`rev` 1), submits them
+  ([HST-3]) and erases the recovery key. The safest alternative is to register in the key tool.
 - **[CLT-2]** A client stores, per identity it has seen, the newest verified log ([VER-4]) and never logs in with, or
   accepts a vault or profile of, an older version.
 - **[CLT-3]** A client logs in only at the primary host ([LGN-1] step 2) and checks every challenge ([LGN-1] step 4).
@@ -1015,34 +1070,47 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
 - **[CLT-5]** An application links to the key tool for every high-power operation and warns: "Only enter your recovery
   key in the key tool."
 
+- **[CLT-6]** An application client offers, to a logged-in user: changing the password (§13.4) and downloading the
+  account file ([FIL-2]). For everything else that concerns access (a forgotten password, adding or removing a password,
+  moving to another host, rotating the recovery key, closing the identity) it sends the user to the key tool ([CLT-5]).
+- **[CLT-7]** Within its own realm an application MAY show the username alone instead of the handle when its host
+  guarantees that the username is unique there ([HST-4]); it shows the handle wherever identities from other hosts can
+  appear ([HDL-6]).
 ### 18.2 The key tool
 
 - **[KT-1]** The key tool is the `rootcard` CLI or `keytool.html`. It makes no network request except to hosts the user
   chooses, and it works without a network for every operation that needs none.
-- **[KT-2]** **Finding the newest version:** before any operation that creates an event or a lock set, the key tool
-  gathers the logs it can reach (the chosen hosts, account files, the card) and uses the newest ([VER-2]). If two of
-  them fork, it stops and reports the fork ([KT-7]) instead of building on either. If it found none, it builds on the
-  inception derived from the card.
+- **[KT-2]** **Finding the newest version:** before any operation that creates an event or a grant, the key tool gathers
+  the logs it can reach (the chosen hosts, account files, the card) and uses the newest ([VER-2]). If two of them fork,
+  it stops and reports the fork ([KT-7]) instead of building on either. If it found none, it builds on the inception
+  derived from the card.
 - **[KT-3]** **Restore and fresh** (a new instance, on the same or another host): generate a new account key and a new
   vault key, build a pending instance on top of the newest version ([KT-2]) with `home` = the chosen host, and submit it
   with the new vault and profile ([HST-5]). `restore`: unlock the current vault with the recovery lock (fetched with a
   recovery-key fetch, [FET-1], or taken from an account file), copy `data` and `known` into new contents with the new
-  `account_seed`, and build a new vault (`rev` 1, `gen` 1) whose locks are the old password locks with new wraps
-  ([LCK-9]) and a new recovery lock; re-sign the public profile's `data` for the new instance (`rev` 1). `fresh`: a new
-  empty vault with the recovery lock and a password lock chosen now, and an empty profile. If the host answers
-  `stale_version`, rebuild on top of the events it returns.
-- **[KT-4]** **Add a password:** unlock with the recovery lock, add a lock with a new id and salt, sign the lock set
-  with `gen + 1`, increase `rev`, re-encrypt, sign with the account key, replace the vault at the primary host
-  ([HST-12]). The log does not change. **Revoke a password:** a new instance with `reason` `revoke`, as `restore` but
-  without the revoked locks. Revocation takes effect as soon as the primary host receipts it ([HST-7]).
+  `account_seed`, and build a new vault (`rev` 1) whose grant (`gen` 1, signed by the current recovery key) keeps the
+  old slots and whose locks are the old password locks with new wraps ([LCK-9]) and a new recovery lock; re-sign the
+  public profile's `data` for the new instance (`rev` 1). `fresh`: a new empty vault with the recovery lock and one
+  password slot chosen now, and an empty profile. If the host answers `stale_version`, rebuild on top of the events it
+  returns.
+- **[KT-4]** **Add a password:** unlock with the recovery lock, add a slot with a new id and label to the grant (`gen +
+  1`, signed by the recovery key) and its lock, increase `rev`, re-encrypt, sign with the account key, replace the vault
+  at the primary host ([HST-12] case 3). The log does not change. **Revoke a password:** a new instance with `reason`
+  `revoke`, as `restore` but without the revoked slots. Revocation takes effect as soon as the primary host receipts it
+  ([HST-7]), and also invalidates any account key copied with the revoked password.
 - **[KT-5]** **Rotate the recovery key:** a `rotate_recovery` event signed by the old and the new key, and in the same
-  submission a vault whose lock set (`gen + 1`) has a new recovery lock for the new key and is signed by it ([LCK-4]);
-  then a new recovery card with `log` ([CRD-2]). The old card SHOULD be destroyed. *Note:* in format version 1, a
-  rotation does not protect against someone who already holds the old key (THREAT_MODEL.md AR3).
+  submission a vault whose grant (`gen + 1`) names the new recovery lock key and is signed by the new key, with the new
+  recovery lock in `list` ([LCK-4]); then a new recovery card with `log` ([CRD-2]). The old card SHOULD be destroyed.
+  *Note:* in format version 1, a rotation does not protect against someone who already holds the old key
+  (THREAT_MODEL.md AR3).
 - **[KT-6]** **Retire:** a `retire` event, after the user confirms that the identity is closed forever.
 - **[KT-7]** The key tool shows the result of every operation as the newest version and the current instance. When it
   detects a fork ([VER-3]) it shows both branches, which hosts hold which, and offers to extend the branch held by the
   primary host.
+- **[KT-8]** **Reset a forgotten password:** a new instance with `reason` `revoke` on the current primary host, as
+  `restore` ([KT-3]), whose grant has one slot with a password chosen now and no other password slot. Every old
+  password, vault copy and session stops working; the data and the public profile carry over. This is the only way to
+  recover from a forgotten password; there is no reset by e-mail or by the host ([PWR-5]).
 ### 18.3 Implementation requirements
 
 - **[IMP-1]** The cores (`crates/rootcard`, `packages/rootcard`) do no I/O, read no clock and draw no randomness
@@ -1067,7 +1135,7 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
 | Vault | 96 KiB | [VLT-1] |
 | Vault contents | 64 KiB | [VLT-7] |
 | Private data | 48 KiB | [DAT-6] |
-| Locks per vault | 16 | [LCK-1] |
+| Password slots per vault | 15 (plus the recovery lock) | [LCK-1] |
 | Public profile | 16 KiB | [DAT-1] |
 | Data key | 64 characters | [DAT-4] |
 | Account file | 5 MiB | [FIL-1] |
@@ -1125,8 +1193,8 @@ its code ([CNV-4]).
 | `fork` | Two logs of the identity fork; format version 1 does not resolve forks | VER-3, VER-4, LGN-1, HST-5, HST-14 |
 | `wrong_instance` | A vault or profile of another instance | VLT-3, DAT-2 |
 | `stale_rev` | `rev` does not increase | VLT-4, DAT-3 |
-| `stale_locks` | The lock set goes backwards or changes without a new `gen` | VLT-4 |
-| `bad_locks` | The lock set is malformed or lacks a required lock | LCK-1, VLT-8, HST-3 |
+| `stale_locks` | The grant goes backwards, or the locks change without a new `gen` or a password change proof | VLT-4, CHG-2 |
+| `bad_locks` | The lock set is malformed, or names a lock or slot that does not exist | LCK-1, VLT-8, LGN-1, CHG-2, HST-3 |
 | `kdf_params` | Argon2id parameters out of bounds | LCK-6 |
 | `weak_password` | The password breaks the password rules | LCK-8 |
 | `unlock_failed` | Wrong password or recovery key, or a corrupted wrap or ciphertext | LCK-9, VLT-8 |
@@ -1211,9 +1279,9 @@ Each change keeps the design's intent.
 5. **Vault fetch needs a lock proof** ([FET-1]). The design served vaults to anyone at `GET /id/<account>/vault`, which
    would let anyone run an offline password search, contrary to its own accepted risk (DESIGN §10.1). Each password lock
    now has an `auth` key derived from the same Argon2id output, and only the lock hints are public.
-6. **The lock set is signed by the recovery key** ([LCK-3]) with a generation counter `gen`. The design said locks were
-   high power but had the vault signed only by the account key, which would have let a password thief add a password of
-   their own. The vault's `revoked` list is dropped: revocation is a new instance.
+6. **Who may unlock is set by the recovery key** ([LCK-3]): a recovery-signed grant fixes the password slots and the
+   recovery lock. The design had the vault signed only by the account key, which would have let a password thief add a
+   password of their own. The vault's `revoked` list is dropped: revocation is a new instance.
 7. **`rev` instead of `version`** for vault and profile revisions, so that "version" always means the log version (`{
    seq, hash }`).
 8. **Versions are ordered by extension only; forks are detected, not resolved** ([VER-2], [VER-3]). The design's branch
@@ -1236,3 +1304,7 @@ Each change keeps the design's intent.
     sessions are checked against the current instance on every use instead of being revoked one by one, storage updates
     are compare-and-swap, retries are idempotent, and logs are verified incrementally ([LOG-15]).
 17. **Handles are unique per realm** ([HDL-4]), not per host.
+18. **Password change with the old password** (§13.4). The design allowed no password change without the recovery key.
+    Changing a slot's password is low power, proven with the old password; adding slots and resetting a forgotten
+    password stay high power ([KT-4], [KT-8]).
+19. **Logins also prove a current lock** ([LGN-5]), so a changed password stops logging in even with an old vault copy.

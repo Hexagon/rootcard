@@ -159,7 +159,7 @@ Only password locks are listed.
 ### `POST /id/{account}/challenge`
 
 ```
-{ "purpose": "fetch" | "login" }
+{ "purpose": "fetch" | "login" | "change" }
 200 { "nonce", "host", "realm", "version", "expires" }
 ```
 The challenge ([CHL-1]) is bound to the account and the purpose and is valid once, for 60 s ([CHL-2]).
@@ -174,19 +174,19 @@ The vault after a lock proof ([FET-1]).
 
 ### `PUT /id/{account}/vault`
 
-A vault replacement without a session, authorized by a new lock set: the new `locks.gen` must be greater than the stored
-one ([HST-12]). The key tool uses it to add a password ([KT-4]) and after a rotation ([KT-5]).
+A vault replacement without a session, authorized by a new grant: the new `locks.grant.gen` must be greater than the
+stored one ([HST-12]). The key tool uses it to add a password ([KT-4]) and after a rotation ([KT-5]).
 ```
 { "vault": Vault }
 200 { "rev" }
 ```
-Errors: `unauthorized` if `locks.gen` does not increase, `stale_rev`, and the codes of [VLT-3].
+Errors: `unauthorized` if `locks.grant.gen` does not increase, `stale_rev`, and the codes of [VLT-3].
 
 ### `POST /id/{account}/login`
 
 The login ([LGN-1] step 6).
 ```
-{ "nonce", "version", "url", "sig" }
+{ "nonce", "version", "url", "lock": "<lock id or recovery>", "sig", "lock_sig" }
 200 { "token": "<b64u>", "handle", "instance": "<b64u>", "idle_timeout": 86400 }
 ```
 The answer carries the login result ([LGN-1] step 6). A host that issues its own session instead returns that session in
@@ -202,7 +202,8 @@ All take `Authorization: Bearer <token>` and answer `401 unauthorized` without a
 |---|---|---|---|
 | `POST /session/logout` | – | `204` | HST-11 |
 | `GET /session/vault` | – | `200 { "vault" }` | HST-10 |
-| `PUT /session/vault` | `{ "vault" }` | `200 { "rev" }` | VLT-3, VLT-4, HST-12 |
+| `PUT /session/vault` | `{ "vault" }` | `200 { "rev" }`; data updates only | VLT-3, VLT-4, HST-12 |
+| `POST /session/password` | `{ "lock", "nonce", "url", "proof", "vault" }` | `200 { "rev" }` | CHG-1, CHG-2 |
 | `PUT /session/public` | `{ "public" }` | `200 { "rev" }` | DAT-2, DAT-3 |
 | `GET /session/export` | – | `200` the account file, `Content-Disposition: attachment; filename="<username>-<tag>.rootcard.json"` | FIL-2 |
 
@@ -255,6 +256,7 @@ verifies ([DAT-2]) and is newer ([DAT-3]). Vaults are never pushed ([HST-13]).
 | `POST /id/{account}/challenge` | 10 per minute | 30 per hour |
 | `POST /id/{account}/fetch` | 30 per hour | 10 per hour |
 | `POST /id/{account}/login` | 10 per minute | 30 per hour |
+| `POST /session/password` | 10 per hour | 10 per hour |
 | `POST /id/{account}/events`, `/instance` | 30 per hour | 10 instances per day |
 | Session endpoints | 120 per minute | 120 per minute |
 
@@ -266,8 +268,14 @@ exempt clients that present a valid session.
 
 ## 7. Flows *(informative)*
 
-**Registration** (application client, [CLT-1]): `GET /host` → build the inception and the pending instance with `home =
-{ key, url }` → `POST /id/register` → log in.
+The workflows from the user's and the server's point of view are in docs/ARCHITECTURE.md §2.1. These are the requests.
+
+**Registration** (application client, [CLT-1]):
+```
+GET  /host                                   → key, urls, realms
+     build inception + pending instance (home = this host) + vault + empty profile; hand the recovery card to the user
+POST /id/register                            → account, handle, version, receipt
+```
 
 **Login** ([LGN-1]):
 ```
@@ -276,15 +284,24 @@ GET  /id/{account}/log?from=<n>              → extend; POST /id/{account}/even
 GET  /id/{account}/locks                     → lock hints               (skipped with a cached vault)
 POST /id/{account}/challenge {fetch}         → sign the fetch message with the lock's auth key
 POST /id/{account}/fetch                     → vault; unlock it
-POST /id/{account}/challenge {login}         → sign the login message with the account key
+POST /id/{account}/challenge {login}         → sign the login message with the account key and the lock's auth key
 POST /id/{account}/login                     → token
 ```
 
-**New instance on another host** (key tool, [KT-3]):
+**Change password** (logged in, [CHG-1]):
+```
+     build the new lock for the slot and the new vault (rev + 1)
+POST /id/{account}/challenge {change}        → sign the change proof with the old lock's auth key
+POST /session/password                       → rev
+```
+
+**Download the identity** ([FIL-2]): `GET /session/export` → the account file.
+
+**Move to another host, or reset a forgotten password** (key tool, [KT-3], [KT-8]):
 ```
 GET  /id/{account}/log at every reachable host, and read account files → the newest version
-POST /id/{account}/challenge {fetch} and /fetch with the recovery key at the old primary host (restore only)
-GET  /host at the new host
+POST /id/{account}/challenge {fetch} and /fetch with the recovery key at the old primary host (or use the account file)
+GET  /host at the new host (the same host for a reset)
 POST /id/{account}/instance at the new host   → receipt; the new host pushes to the old one, which answers not_home
 ```
 

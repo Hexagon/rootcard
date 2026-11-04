@@ -22,6 +22,7 @@ Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is applica
 | D6 | Security contact and disclosure policy | `SECURITY.md` with a private advisory address on GitHub |
 | D7 | Unicode dependency for passwords (NFC) | ✅ **`unicode-normalization`** in Rust, behind the core's `vault` feature so hosts do not build it; JS uses `String.prototype.normalize` (decided) |
 | D8 | Scope of v1 | ✅ **Good for servers first** (decided): hosts are simple, multi-server safe and need no password handling; forks are detected, not resolved, and fork resolution waits for a later format version |
+| D9 | Recovery key and passwords | ✅ **The user keeps the recovery key**, generated at registration (decided). No escrow and no reset by the host. Passwords can be changed in the browser with the old password; a forgotten password is reset with the recovery key in the key tool |
 
 ---
 
@@ -73,8 +74,8 @@ refer to.
   - every hashed or signed input is `label ‖ 0x00 ‖ canonical JSON` (login and proof messages are JSON objects);
   - the vault is released only after a **lock proof** (`rootcard/fetch/v1`, signed by a per-lock `auth` key derived from the
     same Argon2id output), because the design's public `GET /id/<account>/vault` allowed offline guessing by anyone;
-  - the **lock set is signed by the recovery key** with a generation counter, because the design let the account key (low
-    power) sign locks;
+  - **who may unlock is set by the recovery key** (a signed grant of password slots), because the design let the account
+    key (low power) sign locks;
   - recovery key derivation is bound to realm and username, so identities from one key are unlinkable;
   - versions are ordered by extension only; forks are detected (`fork`) and not resolved in v1 (D8, SPEC Appendix A);
   - hosts can rotate keys and change addresses without new instances, login and fetch messages are bound to the address
@@ -111,7 +112,7 @@ logs the same way.
 ## Phase 4: vault, public profile, login and proofs
 
 - [ ] Vault: create, unlock with a password or the recovery key, add a lock, revoke (new instance, rewrap to remaining
-  locks by their public keys), `restore` and `fresh` instances, private data, recovery-signed lock sets (`gen`), lock
+  locks by their public keys), `restore` and `fresh` instances, private data, recovery-signed grants (`gen`), password change with the old password, login lock proofs, lock
   `auth` keys and fetch messages
 - [ ] Public profile: key and value rules, namespaces, versions, signing
 - [ ] Login message, receipts, proofs (`prove`, `verify_proof`), account file and recovery card (text and QR payload)
@@ -122,8 +123,8 @@ logs the same way.
 
 ## Phase 5: key tool and host helpers
 
-- [ ] `rootcard-cli`: `new`, `card`, `add-password`, `revoke-password`, `restore`, `fresh`, `rotate-recovery`, `retire`,
-  `inspect`, `verify`, `prove`. Reads and writes account files and cards, talks to a host only when asked
+- [ ] `rootcard-cli`: `new`, `card`, `add-password`, `revoke-password`, `reset-password`, `restore`, `fresh`,
+  `rotate-recovery`, `retire`, `inspect`, `verify`, `prove`. Reads and writes account files and cards, talks to a host only when asked
 - [ ] `packages/rootcard/keytool.html`: the same operations as one standalone page with no network access unless the user picks
   a host. Works from `file://`
 - [ ] `rootcard-host` (design in [ARCHITECTURE.md](ARCHITECTURE.md) §3): `ChallengeStore` (atomic take, 60 s),

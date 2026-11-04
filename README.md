@@ -21,8 +21,11 @@ are you, but they can never become you, never learn your password, and never kee
 3. **Log in.** Your device proves the password to get the vault, unlocks it locally, and signs the home server's
    one-time challenge with the account key. The password never leaves your device, and the server has nothing it could replay.
 4. **Prove.** Anyone, on any server, can ask you to sign a challenge and check the signature against your public log.
-5. **Recover.** Lost a password, a device or a whole server? The recovery key signs a new instance, on the same server or
-   another one. Every old password, vault and session stops working at once. Your id and handle stay.
+5. **Change, download, move.** Change your password in the browser with the old one. Download your whole account as one
+   file at any time, and move it to another server with the recovery card; your password comes along.
+6. **Recover.** Forgot the password, or lost a device or a whole server? The recovery card signs a new instance, on the
+   same server or another one. Every old password, vault and session stops working at once. Your id and handle stay.
+   No server can do this for you, so keep the card.
 
 ## The map
 
