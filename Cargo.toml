@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/rootcard", "crates/rootcard-cli", "crates/rootcard-host", "crates/xtask"]
 
 [workspace.package]
-version = "0.0.0"
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.95"
 repository = "https://github.com/Hexagon/rootcard"
@@ -11,7 +11,7 @@ homepage = "https://github.com/Hexagon/rootcard"
 license = "MIT"
 
 [workspace.dependencies]
-rootcard = { path = "crates/rootcard", version = "0.0.0" }
+rootcard = { path = "crates/rootcard", version = "0.1.0" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

@@ -4,25 +4,25 @@ version = 4
 
 [[package]]
 name = "rootcard"
-version = "0.0.0"
+version = "0.1.0"
 
 [[package]]
 name = "rootcard-cli"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "rootcard",
 ]
 
 [[package]]
 name = "rootcard-host"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "rootcard",
 ]
 
 [[package]]
 name = "xtask"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "rootcard",
 ]
