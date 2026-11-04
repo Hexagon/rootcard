@@ -17,6 +17,7 @@ rootcard = { workspace = true }
 zeroize = { version = "1.9.1", default-features = false }
 
 [dev-dependencies]
+getrandom = "0.4.3"
 rootcard = { workspace = true, features = ["vault"] }
 
 [lints]
