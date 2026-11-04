@@ -1,0 +1,5312 @@
+{
+  "description": "Identities, handles, logs, incremental verification and comparison (SPEC §7–§10)",
+  "vectors": [
+    {
+      "input": {
+        "key": "e61f773247f8e0aaa9495a772bc972e00e7064490341072e94b13cae18c54954",
+        "realm": "global",
+        "username": "Astra"
+      },
+      "name": "inception of the scenario",
+      "op": "inception",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "handle": "Astra#52WW",
+        "inception": {
+          "body": {
+            "realm": "global",
+            "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+            "username": "Astra"
+          },
+          "kind": "incept",
+          "seq": 0,
+          "sigs": [
+            {
+              "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+            }
+          ],
+          "v": 1
+        }
+      },
+      "rules": ["ID-1","ID-2","ID-3","HDL-1"]
+    },
+    {
+      "input": {
+        "key": "e61f773247f8e0aaa9495a772bc972e00e7064490341072e94b13cae18c54954",
+        "realm": "xigna",
+        "username": "Astra"
+      },
+      "name": "inception of another realm",
+      "op": "inception",
+      "output": {
+        "account": "3G7BZMYNHGS3S4WE5HWVM5Z5VR8J28D0E2800RSG6SBZE5SSJ7YG",
+        "handle": "Astra#3G7B",
+        "inception": {
+          "body": {
+            "realm": "xigna",
+            "recovery": "ed25519:i-spPn6v0Q2CwwDQjr3tcabfSjhbEJgO-_-eTNxQY8Q",
+            "username": "Astra"
+          },
+          "kind": "incept",
+          "seq": 0,
+          "sigs": [
+            {
+              "key": "ed25519:i-spPn6v0Q2CwwDQjr3tcabfSjhbEJgO-_-eTNxQY8Q",
+              "sig": "NXgDYa0DsYuRp2aw7c74N2KvxGWs3MVtOiUCMKz1m2xmluA708kMVJUhYQEx1yef3AR5zRszCQRUAwiHgI3JCg"
+            }
+          ],
+          "v": 1
+        }
+      },
+      "rules": ["ID-1","RK-4"]
+    },
+    {
+      "error": "bad_username",
+      "input": {
+        "key": "e61f773247f8e0aaa9495a772bc972e00e7064490341072e94b13cae18c54954",
+        "realm": "global",
+        "username": "-x"
+      },
+      "name": "inception with a bad username",
+      "op": "inception",
+      "rules": ["USR-1"]
+    },
+    {
+      "input": {
+        "text": "global"
+      },
+      "name": "realm \"global\"",
+      "op": "check_realm",
+      "output": true,
+      "rules": ["RLM-1"]
+    },
+    {
+      "input": {
+        "text": "a.b_c-9"
+      },
+      "name": "realm \"a.b_c-9\"",
+      "op": "check_realm",
+      "output": true,
+      "rules": ["RLM-1"]
+    },
+    {
+      "error": "bad_realm",
+      "input": {
+        "text": "Global"
+      },
+      "name": "realm \"Global\"",
+      "op": "check_realm",
+      "rules": ["RLM-1"]
+    },
+    {
+      "error": "bad_realm",
+      "input": {
+        "text": "-a"
+      },
+      "name": "realm \"-a\"",
+      "op": "check_realm",
+      "rules": ["RLM-1"]
+    },
+    {
+      "error": "bad_realm",
+      "input": {
+        "text": "a-"
+      },
+      "name": "realm \"a-\"",
+      "op": "check_realm",
+      "rules": ["RLM-1"]
+    },
+    {
+      "error": "bad_realm",
+      "input": {
+        "text": ""
+      },
+      "name": "realm \"\"",
+      "op": "check_realm",
+      "rules": ["RLM-1"]
+    },
+    {
+      "error": "bad_realm",
+      "input": {
+        "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "name": "realm of 65 characters",
+      "op": "check_realm",
+      "rules": ["RLM-1"]
+    },
+    {
+      "input": {
+        "text": "Astra"
+      },
+      "name": "username \"Astra\"",
+      "op": "check_username",
+      "output": true,
+      "rules": ["USR-1"]
+    },
+    {
+      "input": {
+        "text": "a"
+      },
+      "name": "username \"a\"",
+      "op": "check_username",
+      "output": true,
+      "rules": ["USR-1"]
+    },
+    {
+      "input": {
+        "text": "9lives"
+      },
+      "name": "username \"9lives\"",
+      "op": "check_username",
+      "output": true,
+      "rules": ["USR-1"]
+    },
+    {
+      "input": {
+        "text": "a-b_c"
+      },
+      "name": "username \"a-b_c\"",
+      "op": "check_username",
+      "output": true,
+      "rules": ["USR-1"]
+    },
+    {
+      "error": "bad_username",
+      "input": {
+        "text": "_a"
+      },
+      "name": "username \"_a\"",
+      "op": "check_username",
+      "rules": ["USR-1"]
+    },
+    {
+      "error": "bad_username",
+      "input": {
+        "text": "-a"
+      },
+      "name": "username \"-a\"",
+      "op": "check_username",
+      "rules": ["USR-1"]
+    },
+    {
+      "error": "bad_username",
+      "input": {
+        "text": "a b"
+      },
+      "name": "username \"a b\"",
+      "op": "check_username",
+      "rules": ["USR-1"]
+    },
+    {
+      "error": "bad_username",
+      "input": {
+        "text": "å"
+      },
+      "name": "username \"å\"",
+      "op": "check_username",
+      "rules": ["USR-1"]
+    },
+    {
+      "error": "bad_username",
+      "input": {
+        "text": ""
+      },
+      "name": "username \"\"",
+      "op": "check_username",
+      "rules": ["USR-1"]
+    },
+    {
+      "error": "bad_username",
+      "input": {
+        "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "name": "username of 33 characters",
+      "op": "check_username",
+      "rules": ["USR-1"]
+    },
+    {
+      "input": {
+        "text": "Astra"
+      },
+      "name": "default policy \"Astra\"",
+      "op": "default_username_policy",
+      "output": true,
+      "rules": ["USR-3"]
+    },
+    {
+      "input": {
+        "text": "ab"
+      },
+      "name": "default policy \"ab\"",
+      "op": "default_username_policy",
+      "output": false,
+      "rules": ["USR-3"]
+    },
+    {
+      "input": {
+        "text": "9lives"
+      },
+      "name": "default policy \"9lives\"",
+      "op": "default_username_policy",
+      "output": false,
+      "rules": ["USR-3"]
+    },
+    {
+      "input": {
+        "text": "Abcdefghijklmnopqrst"
+      },
+      "name": "default policy \"Abcdefghijklmnopqrst\"",
+      "op": "default_username_policy",
+      "output": true,
+      "rules": ["USR-3"]
+    },
+    {
+      "input": {
+        "text": "Abcdefghijklmnopqrstu"
+      },
+      "name": "default policy \"Abcdefghijklmnopqrstu\"",
+      "op": "default_username_policy",
+      "output": false,
+      "rules": ["USR-3"]
+    },
+    {
+      "input": {
+        "text": "Astra#3F9C"
+      },
+      "name": "handle \"Astra#3F9C\"",
+      "op": "parse_handle",
+      "output": {
+        "tag": "3F9C",
+        "username": "Astra"
+      },
+      "rules": ["HDL-3"]
+    },
+    {
+      "input": {
+        "text": "Astra#3f9c"
+      },
+      "name": "handle \"Astra#3f9c\"",
+      "op": "parse_handle",
+      "output": {
+        "tag": "3F9C",
+        "username": "Astra"
+      },
+      "rules": ["HDL-3"]
+    },
+    {
+      "input": {
+        "text": "Astra#oilk-k2"
+      },
+      "name": "handle \"Astra#oilk-k2\"",
+      "op": "parse_handle",
+      "output": {
+        "extension": "K2",
+        "tag": "011K",
+        "username": "Astra"
+      },
+      "rules": ["HDL-3"]
+    },
+    {
+      "error": "bad_handle",
+      "input": {
+        "text": "Astra#3F9C-"
+      },
+      "name": "handle \"Astra#3F9C-\"",
+      "op": "parse_handle",
+      "rules": ["HDL-3"]
+    },
+    {
+      "error": "bad_handle",
+      "input": {
+        "text": "Astra#3F9"
+      },
+      "name": "handle \"Astra#3F9\"",
+      "op": "parse_handle",
+      "rules": ["HDL-3"]
+    },
+    {
+      "error": "bad_handle",
+      "input": {
+        "text": "Astra"
+      },
+      "name": "handle \"Astra\"",
+      "op": "parse_handle",
+      "rules": ["HDL-3"]
+    },
+    {
+      "error": "bad_handle",
+      "input": {
+        "text": "a#b#3F9C"
+      },
+      "name": "handle \"a#b#3F9C\"",
+      "op": "parse_handle",
+      "rules": ["HDL-3"]
+    },
+    {
+      "error": "bad_handle",
+      "input": {
+        "text": "Astra#3F9U"
+      },
+      "name": "handle \"Astra#3F9U\"",
+      "op": "parse_handle",
+      "rules": ["HDL-3"]
+    },
+    {
+      "error": "bad_handle",
+      "input": {
+        "text": "Astra#3F9C-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "name": "handle \"Astra#3F9C-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"",
+      "op": "parse_handle",
+      "rules": ["HDL-3"]
+    },
+    {
+      "input": {
+        "ids": ["3F9CK2AAAA","3F9CK7AAAA"]
+      },
+      "name": "extended tags of two ids",
+      "op": "extended_tags",
+      "output": ["3F9C-K2","3F9C-K7"],
+      "rules": ["HDL-6"]
+    },
+    {
+      "input": {
+        "ids": ["3F9CKAA","3F9CKBA","3F9CXAA"]
+      },
+      "name": "extended tags need two characters",
+      "op": "extended_tags",
+      "output": ["3F9C-KA","3F9C-KB","3F9C-XA"],
+      "rules": ["HDL-6"]
+    },
+    {
+      "input": {
+        "ids": ["3F9CKAA"]
+      },
+      "name": "one identity keeps the plain tag",
+      "op": "extended_tags",
+      "output": ["3F9C"],
+      "rules": ["HDL-6"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          }
+        ]
+      },
+      "name": "log of the inception only",
+      "op": "verify_log",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "handle": "Astra#52WW",
+        "homes": [],
+        "keys": ["ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I"],
+        "realm": "global",
+        "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+        "retired": false,
+        "time": 0,
+        "username": "Astra",
+        "version": {
+          "hash": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+          "seq": 0
+        }
+      },
+      "rules": ["LOG-12"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "registered log",
+      "op": "verify_log",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "handle": "Astra#52WW",
+        "homes": ["ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU"],
+        "instance": {
+          "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+          "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "home": {
+            "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+            "url": "https://a.example"
+          },
+          "reason": "register",
+          "seq": 1
+        },
+        "keys": [
+          "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+          "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA"
+        ],
+        "realm": "global",
+        "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+        "retired": false,
+        "time": 1800000000,
+        "username": "Astra",
+        "version": {
+          "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "seq": 1
+        }
+      },
+      "rules": ["LOG-12","LOG-8","LOG-10"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ]
+      },
+      "name": "restored at another host",
+      "op": "verify_log",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "handle": "Astra#52WW",
+        "homes": [
+          "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+          "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc"
+        ],
+        "instance": {
+          "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+          "hash": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "home": {
+            "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+            "url": "https://b.example"
+          },
+          "reason": "restore",
+          "seq": 2
+        },
+        "keys": [
+          "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+          "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+          "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80"
+        ],
+        "realm": "global",
+        "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+        "retired": false,
+        "time": 1800000100,
+        "username": "Astra",
+        "version": {
+          "hash": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "seq": 2
+        }
+      },
+      "rules": ["LOG-12","LOG-11"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          }
+        ]
+      },
+      "name": "after a recovery rotation",
+      "op": "verify_log",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "handle": "Astra#52WW",
+        "homes": [
+          "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+          "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc"
+        ],
+        "instance": {
+          "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+          "hash": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "home": {
+            "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+            "url": "https://b.example"
+          },
+          "reason": "restore",
+          "seq": 2
+        },
+        "keys": [
+          "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+          "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+          "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+          "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+        ],
+        "realm": "global",
+        "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+        "retired": false,
+        "time": 1800000200,
+        "username": "Astra",
+        "version": {
+          "hash": "0AY6upO5pdWlJpnpdhimN1q5makU38LSRAGMycYcTdY",
+          "seq": 3
+        }
+      },
+      "rules": ["LOG-12","LOG-7"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {},
+            "kind": "retire",
+            "prev": "0AY6upO5pdWlJpnpdhimN1q5makU38LSRAGMycYcTdY",
+            "seq": 4,
+            "sigs": [
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "blh2d4Sx8l6MVRe1oTAA2B9NLx08NHddNyReo5rYkXOKbrysYhkkoryTQV3q4aGzhM6NG6suePbLUa1SrO9WCw"
+              }
+            ],
+            "time": 1800000300,
+            "v": 1
+          }
+        ]
+      },
+      "name": "retired",
+      "op": "verify_log",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "handle": "Astra#52WW",
+        "homes": [
+          "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+          "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc"
+        ],
+        "keys": [
+          "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+          "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+          "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+          "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+        ],
+        "realm": "global",
+        "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+        "retired": true,
+        "time": 1800000300,
+        "username": "Astra",
+        "version": {
+          "hash": "Xqnhb0UMUV4CI7SZQfYzXdzkZk0YZkccLIGz4ZFYAeo",
+          "seq": 4
+        }
+      },
+      "rules": ["LOG-12","LOG-14"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "now": 1799999400
+      },
+      "name": "time within the window",
+      "op": "verify_log",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "handle": "Astra#52WW",
+        "homes": ["ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU"],
+        "instance": {
+          "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+          "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "home": {
+            "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+            "url": "https://a.example"
+          },
+          "reason": "register",
+          "seq": 1
+        },
+        "keys": [
+          "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+          "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA"
+        ],
+        "realm": "global",
+        "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+        "retired": false,
+        "time": 1800000000,
+        "username": "Astra",
+        "version": {
+          "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "seq": 1
+        }
+      },
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "events": []
+      },
+      "name": "empty log",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "too_many_events",
+      "input": {
+        "events": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "name": "1001 events",
+      "op": "verify_log",
+      "rules": ["LOG-1"]
+    },
+    {
+      "error": "bad_kind",
+      "input": {
+        "events": [
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "first event is not an inception",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "bad_kind",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          }
+        ]
+      },
+      "name": "inception after event 0",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "bad_kind",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "merge",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "unknown kind",
+      "op": "verify_log",
+      "rules": ["LOG-12","EXT-4"]
+    },
+    {
+      "error": "unsupported_version",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 2
+          }
+        ]
+      },
+      "name": "unsupported version",
+      "op": "verify_log",
+      "rules": ["CJ-12"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ]
+          }
+        ]
+      },
+      "name": "missing version",
+      "op": "verify_log",
+      "rules": ["CJ-12"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "time": 0,
+            "v": 1
+          }
+        ]
+      },
+      "name": "unknown member",
+      "op": "verify_log",
+      "rules": ["CJ-11"]
+    },
+    {
+      "error": "too_large",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "pad": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          }
+        ]
+      },
+      "name": "event too large",
+      "op": "verify_log",
+      "rules": ["LOG-2"]
+    },
+    {
+      "error": "bad_seq",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          }
+        ]
+      },
+      "name": "inception seq is not 0",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "bad_realm",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "Global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          }
+        ]
+      },
+      "name": "bad realm",
+      "op": "verify_log",
+      "rules": ["RLM-1"]
+    },
+    {
+      "error": "bad_username",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "_x"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          }
+        ]
+      },
+      "name": "bad username",
+      "op": "verify_log",
+      "rules": ["USR-1"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astrb"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          }
+        ]
+      },
+      "name": "forged inception",
+      "op": "verify_log",
+      "rules": ["LOG-12","CRY-3"]
+    },
+    {
+      "error": "wrong_signer",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:4glodcJooJk_IPpLZuFf9lHp5VzSwI37sk4fQHnBRbo",
+                "sig": "ByJlaL9i63659-tGQ9lvPwA7l7513mnsZv0-or-upKVRWef1CN56MjZ6sOalM-Pe53z9c_lnvbNd0xbViMHaBg"
+              }
+            ],
+            "v": 1
+          }
+        ]
+      },
+      "name": "inception signed by another key",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "bad_key",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          }
+        ]
+      },
+      "name": "bad key in the inception",
+      "op": "verify_log",
+      "rules": ["KEY-3"]
+    },
+    {
+      "error": "account_mismatch",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "0000000000000000000000000000000000000000000000000000",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "account mismatch",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "bad_seq",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "wrong seq",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "bad_prev",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "wrong prev",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "wrong_signer",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "signers in the wrong order",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "wrong_signer",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "instance without a receipt",
+      "op": "verify_log",
+      "rules": ["LOG-8","LOG-12"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fLvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "bad owner signature",
+      "op": "verify_log",
+      "rules": ["LOG-12","CRY-3"]
+    },
+    {
+      "error": "bad_receipt",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0dpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "bad receipt",
+      "op": "verify_log",
+      "rules": ["LOG-8"]
+    },
+    {
+      "error": "key_reuse",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "d9yxRSPvOGEGcz6hSeGSzOjS6jw2HlN5Q9zLTAxYAq6sma9O4Cnml1p-YleBeM11mjvUUm-PuShyHYWWRYjSDA"
+              },
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "d9yxRSPvOGEGcz6hSeGSzOjS6jw2HlN5Q9zLTAxYAq6sma9O4Cnml1p-YleBeM11mjvUUm-PuShyHYWWRYjSDA"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "vhGiAK41BsvlABoR8V0lNjCinO1StN_owHX9akjy2MVpsGdSJE3OWHdoQ6xvf6m0OSqzc8qgL3ku-YI55GvGDw"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "account key equals the recovery key",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "key_reuse",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "aLnKCRhYmxJBgeEYADEZneN3fdWdi6xdqeeWjJ-XZA1UaWZQ-_LcUc2QRg11OV7HwbkILYVmbVHhINfe-IFjBQ"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "1X20zmnUgVpc-k9QK-2fUHiBkpSDnWYhn5DnUahb_h_HJlpOjvdEYbDaW53IjPt2fVhAbAR4X1nRt2TRalj1AA"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "zjOEDZcTHVkEdMCrWfeFdMA7aZ5e2AQ1Utr0V9PsN-sJiSOUYKE1aJn92GCT4ZZWlLCA65zOIDqxSsoFNZTtAA"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "home key equals the account key",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "bad_reason",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "6fmnlO82RpudaevxySREsPcE3qzp_qMACYIV-9ZOQoNulZtYG8s0w4bylRhbdjPsBpQeKHlaSpTQBLjAOShZDw"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "WbZvdO8cDy3GzpdFH_RlPoJlD0yzlrGjFNX_DBhHPb0KQXCAPayKhsqtceEoijuF9ZfZtNXDWxl5o_uOcMaNAA"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "gFeCewvsDXd-Yx4UMXTclNyXFcHw6PMwNvwyyq0sJJOs8lTYusYF0gRxC4PMHbZvCIUI7w6zDDcJ2JSX6Z9aBQ"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "first instance with reason restore",
+      "op": "verify_log",
+      "rules": ["LOG-11"]
+    },
+    {
+      "error": "bad_reason",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "move"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "unknown reason",
+      "op": "verify_log",
+      "rules": ["LOG-4"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "url with a space",
+      "op": "verify_log",
+      "rules": ["LOG-4"]
+    },
+    {
+      "error": "time_backwards",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "MmkED4rLX-CTKmWMCtVQJ_MhbneKCj16F1cSAMcJqYC3lvmoO55QU_P4NkQyBEr_EpbkzJFdbiCrqIsPshHwCw"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "G-dQQdfKlJkmmfm5sON9aQNJp098Ac2CsnMLjayNHMLmS9VUs6masfGyKxGSowEXV51IGR9Xgl6LMpOHU5YlAQ"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "yLMbSzQGHGUcKKopkzvg6-Lv9HRkR0F5yvmm21iYaP5rmBZgv-SbdOvx2mla64pxbswwM9IGXdzG6xBfxrIWAg"
+              }
+            ],
+            "time": 1799999999,
+            "v": 1
+          }
+        ]
+      },
+      "name": "time goes backwards",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "future_time",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "now": 1799999399
+      },
+      "name": "time too far in the future",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "realm_not_accepted",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "realms": ["xigna"]
+      },
+      "name": "realm not accepted",
+      "op": "verify_log",
+      "rules": ["RLM-3"]
+    },
+    {
+      "error": "key_reuse",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "vqugHVhxTZ9nBkY2-D5rafiZFhRtqhEuDExH5u2LHrPvDtgp340cM97pTo9mf55zuzbCD4gJ36kZoRewGZdKCQ"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "1Hb-m5PXVXlfbu-j0ADav5kqgPX2D-YPwYPgG-8MfvSYM10Eg__qLuI8YGgdGc2eJjtO7SvzykK4o4zW4XEpBg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "uAvkA8LZ83Uc-UigN8yHZHTKRFkF1QG0oTt4kRFL5ldWQ5WqJ9ZdA7TnXLo3A7rowSj4HlFp7gGeZxTIwveVDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ]
+      },
+      "name": "earlier account key reused",
+      "op": "verify_log",
+      "rules": ["LOG-12"]
+    },
+    {
+      "error": "account_retired",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {},
+            "kind": "retire",
+            "prev": "0AY6upO5pdWlJpnpdhimN1q5makU38LSRAGMycYcTdY",
+            "seq": 4,
+            "sigs": [
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "blh2d4Sx8l6MVRe1oTAA2B9NLx08NHddNyReo5rYkXOKbrysYhkkoryTQV3q4aGzhM6NG6suePbLUa1SrO9WCw"
+              }
+            ],
+            "time": 1800000300,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {},
+            "kind": "retire",
+            "prev": "Xqnhb0UMUV4CI7SZQfYzXdzkZk0YZkccLIGz4ZFYAeo",
+            "seq": 5,
+            "sigs": [
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "uRxkZyK2M38iwWZC_eqCHGanxsRbzD5rsCGuc_7BnLCMYjNRoG48rPs7-ftqZSgUwjBD1rDC9Y5JTluHzzIRAQ"
+              }
+            ],
+            "time": 1800000400,
+            "v": 1
+          }
+        ]
+      },
+      "name": "event after retire",
+      "op": "verify_log",
+      "rules": ["LOG-14"]
+    },
+    {
+      "error": "wrong_signer",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {},
+            "kind": "retire",
+            "prev": "0AY6upO5pdWlJpnpdhimN1q5makU38LSRAGMycYcTdY",
+            "seq": 4,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "onfagd_K0nGjgN9Am8RWu1ulnX1USkIGK_7p2abbb6e5-6tP4DT3AfZbhy5pQzcuPn9PutmMTuHn7B9uNFWgBQ"
+              }
+            ],
+            "time": 1800000400,
+            "v": 1
+          }
+        ]
+      },
+      "name": "retire signed by the rotated-out key",
+      "op": "verify_log",
+      "rules": ["LOG-13","LOG-12"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "new": [
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ]
+      },
+      "name": "extend the registered log",
+      "op": "extend_log",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "handle": "Astra#52WW",
+        "homes": [
+          "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+          "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc"
+        ],
+        "instance": {
+          "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+          "hash": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "home": {
+            "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+            "url": "https://b.example"
+          },
+          "reason": "restore",
+          "seq": 2
+        },
+        "keys": [
+          "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+          "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+          "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80"
+        ],
+        "realm": "global",
+        "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+        "retired": false,
+        "time": 1800000100,
+        "username": "Astra",
+        "version": {
+          "hash": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "seq": 2
+        }
+      },
+      "rules": ["LOG-15"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "new": [
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          }
+        ]
+      },
+      "name": "extend by two events",
+      "op": "extend_log",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "handle": "Astra#52WW",
+        "homes": [
+          "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+          "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc"
+        ],
+        "instance": {
+          "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+          "hash": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "home": {
+            "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+            "url": "https://b.example"
+          },
+          "reason": "restore",
+          "seq": 2
+        },
+        "keys": [
+          "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+          "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+          "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+          "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+        ],
+        "realm": "global",
+        "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+        "retired": false,
+        "time": 1800000200,
+        "username": "Astra",
+        "version": {
+          "hash": "0AY6upO5pdWlJpnpdhimN1q5makU38LSRAGMycYcTdY",
+          "seq": 3
+        }
+      },
+      "rules": ["LOG-15"]
+    },
+    {
+      "error": "bad_seq",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "new": [
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          }
+        ]
+      },
+      "name": "extend with a gap",
+      "op": "extend_log",
+      "rules": ["LOG-15"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "new": []
+      },
+      "name": "extend by nothing",
+      "op": "extend_log",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "handle": "Astra#52WW",
+        "homes": ["ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU"],
+        "instance": {
+          "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+          "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "home": {
+            "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+            "url": "https://a.example"
+          },
+          "reason": "register",
+          "seq": 1
+        },
+        "keys": [
+          "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+          "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA"
+        ],
+        "realm": "global",
+        "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+        "retired": false,
+        "time": 1800000000,
+        "username": "Astra",
+        "version": {
+          "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "seq": 1
+        }
+      },
+      "rules": ["LOG-15"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "now": 1800000100,
+        "pending": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "body": {
+            "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+            "home": {
+              "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+              "url": "https://b.example"
+            },
+            "reason": "restore"
+          },
+          "kind": "instance",
+          "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "seq": 2,
+          "sigs": [
+            {
+              "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+            },
+            {
+              "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+            }
+          ],
+          "time": 1800000100,
+          "v": 1
+        }
+      },
+      "name": "pending instance",
+      "op": "verify_pending",
+      "output": true,
+      "rules": ["LOG-9"]
+    },
+    {
+      "error": "wrong_signer",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "now": 1800000100,
+        "pending": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "body": {
+            "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+            "home": {
+              "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+              "url": "https://b.example"
+            },
+            "reason": "restore"
+          },
+          "kind": "instance",
+          "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "seq": 2,
+          "sigs": [
+            {
+              "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+            },
+            {
+              "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+            },
+            {
+              "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+              "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+            }
+          ],
+          "time": 1800000100,
+          "v": 1
+        }
+      },
+      "name": "pending instance with a receipt",
+      "op": "verify_pending",
+      "rules": ["LOG-9"]
+    },
+    {
+      "error": "future_time",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "now": 1799999400,
+        "pending": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "body": {
+            "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+            "home": {
+              "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+              "url": "https://b.example"
+            },
+            "reason": "restore"
+          },
+          "kind": "instance",
+          "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "seq": 2,
+          "sigs": [
+            {
+              "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+            },
+            {
+              "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+            }
+          ],
+          "time": 1800000100,
+          "v": 1
+        }
+      },
+      "name": "pending instance from the future",
+      "op": "verify_pending",
+      "rules": ["LOG-9"]
+    },
+    {
+      "error": "bad_kind",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "now": 1800000300,
+        "pending": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "body": {
+            "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+          },
+          "kind": "rotate_recovery",
+          "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "seq": 3,
+          "sigs": [
+            {
+              "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+            },
+            {
+              "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+              "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+            }
+          ],
+          "time": 1800000200,
+          "v": 1
+        }
+      },
+      "name": "pending event that is not an instance",
+      "op": "verify_pending",
+      "rules": ["LOG-9"]
+    },
+    {
+      "input": {
+        "a": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "b": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ]
+      },
+      "name": "same log",
+      "op": "compare_logs",
+      "output": "same",
+      "rules": ["VER-2"]
+    },
+    {
+      "input": {
+        "a": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "b": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          }
+        ]
+      },
+      "name": "newer log",
+      "op": "compare_logs",
+      "output": "newer",
+      "rules": ["VER-2"]
+    },
+    {
+      "input": {
+        "a": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          }
+        ],
+        "b": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ]
+      },
+      "name": "older log",
+      "op": "compare_logs",
+      "output": "older",
+      "rules": ["VER-2"]
+    },
+    {
+      "input": {
+        "a": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          }
+        ],
+        "b": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "_Ee38cPpqFC55ksyT-atcNWlQ-BQuK-Sm1C6g0c09G7hVwfvW2VvSH32AuffLnNPueYYbxjVFanXzy7k1-cmBA"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "odT316lLBMnroX28NvCauVKKykur5ooBRzoGHfNwj1V7UYOTIuiOC57JvB7FsWhxTYd4dmhOKS_1TU-OSc54DQ"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "_TpxdYRvRRJYgens1MTbYkUPrXuPVQVQs91f-X1oUKlroK9kUEITkVH4uT3iNodq-mtDYjp7YD3QesDnj1SxCg"
+              }
+            ],
+            "time": 1800000101,
+            "v": 1
+          }
+        ]
+      },
+      "name": "fork",
+      "op": "compare_logs",
+      "output": "fork",
+      "rules": ["VER-2","VER-3"]
+    },
+    {
+      "input": {
+        "a": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "b": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "_Ee38cPpqFC55ksyT-atcNWlQ-BQuK-Sm1C6g0c09G7hVwfvW2VvSH32AuffLnNPueYYbxjVFanXzy7k1-cmBA"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "odT316lLBMnroX28NvCauVKKykur5ooBRzoGHfNwj1V7UYOTIuiOC57JvB7FsWhxTYd4dmhOKS_1TU-OSc54DQ"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "_TpxdYRvRRJYgens1MTbYkUPrXuPVQVQs91f-X1oUKlroK9kUEITkVH4uT3iNodq-mtDYjp7YD3QesDnj1SxCg"
+              }
+            ],
+            "time": 1800000101,
+            "v": 1
+          }
+        ]
+      },
+      "name": "fork of equal length",
+      "op": "compare_logs",
+      "output": "fork",
+      "rules": ["VER-2","VER-3"]
+    },
+    {
+      "error": "account_mismatch",
+      "input": {
+        "a": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "b": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:U4Yz2GJdQTR6qZcZrJMz9g66EMrhgg8XkyPACO56y38",
+              "username": "Other"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:U4Yz2GJdQTR6qZcZrJMz9g66EMrhgg8XkyPACO56y38",
+                "sig": "AQKklVHNm1sV_Oh17YDVDNFKNw5Ixfn1eD6dTvrYX921holdVgIxBngoNbjnYXiewfe5_4ll8GsGk4o38KiODg"
+              }
+            ],
+            "v": 1
+          }
+        ]
+      },
+      "name": "other account",
+      "op": "compare_logs",
+      "rules": ["VER-2"]
+    }
+  ]
+}

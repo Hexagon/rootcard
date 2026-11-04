@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https: http://127.0.0.1:* http://localhost:*; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>rootcard key tool</title>
+<style>
+  :root { --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6a66; --line: #dcd9d2; --accent: #2d5b8a; --warn: #8a3b2d; --panel: #fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #161615; --fg: #ecebe7; --muted: #a3a19b; --line: #3a3936; --accent: #8db6e0; --warn: #e09a8d; --panel: #1f1f1d; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  p.lead { color: var(--muted); margin: 0 0 20px; }
+  .warn { border-left: 3px solid var(--warn); padding: 8px 12px; margin: 0 0 20px; background: var(--panel); }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin: 0 0 16px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 8px 0 2px; }
+  input, textarea, select { width: 100%; font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  textarea { min-height: 64px; font-family: ui-monospace, monospace; font-size: 13px; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 12px; }
+  button { font: inherit; padding: 6px 14px; margin: 12px 8px 0 0; border: 1px solid var(--accent); border-radius: 6px; background: transparent; color: var(--accent); cursor: pointer; }
+  button.danger { border-color: var(--warn); color: var(--warn); }
+  button:disabled { opacity: .4; cursor: default; }
+  pre { white-space: pre-wrap; word-break: break-all; font: 13px/1.45 ui-monospace, monospace; margin: 0; }
+  #status { min-height: 1.5em; }
+  .ok { color: var(--accent); } .err { color: var(--warn); }
+  details > summary { cursor: pointer; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>rootcard key tool</h1>
+  <p class="lead">The tool for everything that needs your recovery card: moving an identity, resetting or adding a password, rotating the recovery key and closing the identity. It runs entirely in this page and talks only to the hosts you enter.</p>
+  <div class="warn">Only enter your recovery key in the rootcard key tool, never in an application. Save this page and open it from your own disk.</div>
+
+  <section>
+    <h2>Your identity</h2>
+    <label for="cardFile">Recovery card (file)</label>
+    <input id="cardFile" type="file" accept=".json,application/json">
+    <details><summary>or type the card</summary>
+      <div class="row">
+        <div><label for="realm">Realm</label><input id="realm" value="global" autocomplete="off"></div>
+        <div><label for="username">Username</label><input id="username" autocomplete="off"></div>
+      </div>
+      <label for="rkey">Recovery key (RCR-…)</label><input id="rkey" autocomplete="off" spellcheck="false">
+    </details>
+    <label for="accountFile">Account file (optional)</label>
+    <input id="accountFile" type="file" accept=".json,application/json">
+    <label for="hosts">Hosts to ask for the newest version (comma separated base URLs, optional)</label>
+    <input id="hosts" placeholder="https://id.example.com" autocomplete="off">
+    <button id="load">Load identity</button>
+    <pre id="identity"></pre>
+  </section>
+
+  <section id="actions" hidden>
+    <h2>Actions</h2>
+    <div class="row">
+      <div><label for="newPassword">New password (for restore with a new host, fresh, reset, add)</label><input id="newPassword" type="password" autocomplete="new-password"></div>
+      <div><label for="label">Label of the new password</label><input id="label" value="Password"></div>
+    </div>
+    <label for="targetHost">Host for a new instance (restore, fresh)</label>
+    <input id="targetHost" placeholder="https://id.example.com" autocomplete="off">
+    <button data-op="restore">Restore at host</button>
+    <button data-op="fresh">Fresh instance at host</button>
+    <button data-op="reset">Reset forgotten password</button>
+    <button data-op="add">Add password</button>
+    <label for="slot">Password to revoke</label><select id="slot"></select>
+    <button data-op="revoke" class="danger">Revoke password</button>
+    <button data-op="rotate">Rotate recovery key</button>
+    <button data-op="card">Print card</button>
+    <label for="retireConfirm">To close the identity forever, type its username</label>
+    <input id="retireConfirm" autocomplete="off">
+    <button data-op="retire" class="danger">Retire identity</button>
+    <details><summary>Root proof</summary>
+      <label for="proofStatement">Statement (JSON) or challenge (64 hex)</label><input id="proofStatement" value='"I own this identity"'>
+      <label for="proofRecipient">Recipient</label><input id="proofRecipient">
+      <button data-op="prove">Make root proof</button>
+    </details>
+  </section>
+
+  <section>
+    <details><summary>Create a new identity</summary>
+      <div class="row">
+        <div><label for="nRealm">Realm</label><input id="nRealm" value="global"></div>
+        <div><label for="nUser">Username</label><input id="nUser"></div>
+      </div>
+      <label for="nHost">Host (optional: without one, the identity has no instance until you restore or start fresh)</label>
+      <input id="nHost" placeholder="https://id.example.com">
+      <label for="nPassword">Password</label><input id="nPassword" type="password" autocomplete="new-password">
+      <button id="create">Create</button>
+    </details>
+  </section>
+
+  <section>
+    <details><summary>Verify a proof</summary>
+      <label for="vLog">Account file or log (JSON)</label><textarea id="vLog"></textarea>
+      <label for="vProof">Proof (JSON)</label><textarea id="vProof"></textarea>
+      <label for="vStatement">Statement (JSON) or challenge (64 hex)</label><input id="vStatement">
+      <label for="vRecipient">Recipient</label><input id="vRecipient">
+      <button id="verify">Verify</button>
+    </details>
+  </section>
+
+  <section><h2>Result</h2><div id="status"></div><pre id="out"></pre></section>
+  <p class="lead">rootcard <span id="version"></span>. The format is specified in spec/SPEC.md of the rootcard repository.</p>
+</main>
+<!-- SCRIPT -->
+</body>
+</html>

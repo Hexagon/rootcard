@@ -16,6 +16,8 @@ confidence-threshold = 0.9
 unused-allowed-license = "allow"
 # Unpublished workspace crates (xtask) need no license of their own.
 private = { ignore = true }
+# The CLI's TLS root certificates (Mozilla's list as data, through ureq and rustls).
+exceptions = [{ crate = "webpki-roots", allow = ["CDLA-Permissive-2.0"] }]
 
 [bans]
 multiple-versions = "warn"

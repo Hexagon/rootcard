@@ -91,35 +91,36 @@ client                                   host                                   
 A library, not a server: it owns the rules of SPEC §17 and leaves HTTP, storage and secrets to the application.
 
 ```rust
-// Sketch; the real API is settled in phase 5.
-pub struct Host<S: IdentityStore, C: ChallengeStore> { config: HostConfig, store: S, challenges: C }
+pub struct Host<S: IdentityStore, C: ChallengeStore, T: SessionStore> { pub config: HostConfig, pub store: S, pub challenges: C, pub sessions: T }
 
 pub struct HostConfig {
-    keys: HostKeys,                 // current signing key + retired public keys       [HST-17]
-    urls: Vec<String>,              // accepted base URLs                              [HST-18]
-    realms: Vec<RealmConfig>,       // realm + UsernamePolicy                          [RLM-3], [USR-3]
+    pub key_seed: Zeroizing<[u8; 32]>,   // current host key                                 [HST-17]
+    pub retired_keys: Vec<[u8; 32]>,     // public parts of earlier host keys
+    pub urls: Vec<String>,               // accepted base URLs                               [HST-18]
+    pub realms: Vec<RealmConfig>,        // realm + UsernamePolicy                           [RLM-3], [USR-3]
+    pub peers: Vec<[u8; 32]>,            // peer host keys                                   [HST-15]
 }
 
-pub trait IdentityStore {           // shared by all servers of the host
-    fn load(&self, account: &AccountId) -> Result<Option<Stored>, StoreError>;     // events, state, vault, profile
-    fn compare_and_swap(&self, account: &AccountId, expected: &Expected, new: &Update)
-        -> Result<Swap, StoreError>;                                                // [HST-19]
-    fn register(&self, new: &Stored, handle_key: &HandleKey) -> Result<Register, StoreError>;  // atomic claim
-    fn by_handle(&self, realm: &str, handle_key: &HandleKey) -> Result<Vec<AccountId>, StoreError>;
+pub trait IdentityStore {               // shared by all servers of the host
+    fn load(&self, account: &str) -> Result<Option<Stored>, StoreError>;          // events, state, vault, profile
+    fn insert(&self, new: &Stored, claim: bool) -> Result<Insert, StoreError>;    // atomic handle claim   [HST-3]
+    fn swap(&self, account: &str, expected: &Expected, new: &Stored) -> Result<bool, StoreError>;  //     [HST-19]
+    fn by_handle(&self, key: &HandleKey) -> Result<Vec<String>, StoreError>;      // (realm, lower username, tag)
+    fn changes(&self, since: u64, limit: usize) -> Result<(u64, Vec<String>), StoreError>;          // peers
 }
+pub trait ChallengeStore { fn put(..); fn take(..) }      // atomic get-and-delete, 60 s       [CHL-2]
+pub trait SessionStore { fn put(..); fn get(..); fn touch(..); fn remove(..) }   // SHA-256 of tokens [HST-10]
 
-pub trait ChallengeStore {          // TTL 60 s
-    fn put(&self, nonce: &Nonce, issued: &Issued) -> Result<(), StoreError>;
-    fn take(&self, nonce: &Nonce) -> Result<Option<Issued>, StoreError>;           // atomic get-and-delete
+impl Host<S, C, T> {
+    pub fn register(&self, body: &Value, now: i64) -> HostResult<Value>;
+    pub fn instance(&self, account: &str, body: &Value, now: i64) -> HostResult<Value>;
+    pub fn events(&self, account: &str, body: &Value, now: i64) -> HostResult<Value>;
+    pub fn challenge(&self, account: &str, purpose: Purpose, now: i64, nonce: [u8; 32]) -> HostResult<Value>;
+    pub fn login_result(&self, req: &LoginRequest, now: i64) -> HostResult<LoginResult>;   // own sessions
+    pub fn session_valid(&self, session: &Session, now: i64) -> HostResult<bool>;          // [HST-11]
+    // lookup, log, public, locks, fetch, login (opaque tokens), session endpoints, put_vault, peer_push ...
 }
-
-impl<S, C> Host<S, C> {
-    pub fn register(&self, req: RegisterRequest, now: u64) -> Result<RegisterAnswer, HostError>;
-    pub fn challenge(&self, account: &AccountId, purpose: Purpose, now: u64, nonce: [u8; 32]) -> ...;
-    pub fn login(&self, account: &AccountId, req: LoginRequest, now: u64) -> Result<LoginResult, HostError>;
-    pub fn session_valid(&self, session: &SessionInfo) -> Result<bool, HostError>;  // [HST-11]
-    // fetch, locks, events, instance, vault and profile updates, export, peer sync ...
-}
+pub fn http::route(host, &Request, now, random) -> Response;       // the binding of HOST_PROTOCOL.md
 ```
 
 - **Time and randomness are parameters**, like in the core, so handlers are deterministic in tests. The host application
@@ -132,10 +133,43 @@ impl<S, C> Host<S, C> {
   application creates a session in whatever form it uses and calls `session_valid` (one indexed read, cacheable for 10
   s) on every use. Optional helpers create and check opaque tokens stored as SHA-256 hashes ([HST-10]).
 - **Retries** are recognized by the handlers ([HST-20]); the store only needs compare-and-swap.
-- **In-memory implementations** of both traits ship with the crate for tests and the example host. A SQL schema for one
-  table per structure (identities, events, vaults, profiles, challenges, sessions) is documented with phase 5.
-- **No framework, no async runtime.** Handlers are plain functions over request structs; `examples/host` wires them into
-  axum. Async storage can wrap the traits; whether the traits themselves become async is decided in phase 5.
+- **In-memory implementations** of the traits ship with the crate for tests and the example host; §3.1 is a SQL schema.
+- **No framework, no async runtime.** Handlers are plain functions over JSON values; `http::route` maps the binding onto
+  them and `examples/host.rs` serves it with `std::net` for development. The traits are synchronous; async storage can
+  wrap them.
+
+### 3.1 A SQL schema for the store
+
+One row per identity is enough, because every change of an identity is one compare-and-swap ([HST-19]):
+
+```sql
+CREATE TABLE identities (
+  account     TEXT PRIMARY KEY,               -- 52-character id
+  realm       TEXT NOT NULL,
+  username_lc TEXT NOT NULL,                  -- ASCII lower case
+  tag         TEXT NOT NULL,                  -- first 4 characters of the id
+  claimed     BOOLEAN NOT NULL,               -- registered here (false: arrived by propagation, [HST-15])
+  events      JSONB NOT NULL,                 -- the newest valid log
+  state       JSONB NOT NULL,                 -- LogState::to_value, only ever written after verify/extend_log [LOG-16]
+  version_seq INTEGER NOT NULL,               -- the compare-and-swap columns of Expected
+  version     TEXT NOT NULL,
+  vault       JSONB, vault_rev BIGINT,        -- only while this host is home [VLT-5]
+  public      JSONB, public_rev BIGINT,
+  changed     BIGSERIAL                       -- cursor for GET /peer/changes
+);
+CREATE UNIQUE INDEX identities_handle ON identities (realm, username_lc, tag) WHERE claimed;   -- [HST-4]
+CREATE INDEX identities_lookup ON identities (realm, username_lc, tag);
+
+-- swap: UPDATE identities SET ... WHERE account = $1 AND version = $2 AND vault_rev IS NOT DISTINCT FROM $3
+--       AND public_rev IS NOT DISTINCT FROM $4   (one row updated = success)
+
+CREATE TABLE challenges (nonce BYTEA PRIMARY KEY, account TEXT NOT NULL, purpose TEXT NOT NULL, expires BIGINT NOT NULL);
+-- take: DELETE FROM challenges WHERE nonce = $1 RETURNING account, purpose, expires
+CREATE TABLE sessions (token_hash BYTEA PRIMARY KEY, account TEXT NOT NULL, instance BYTEA NOT NULL, last_used BIGINT NOT NULL);
+```
+
+A session check reads the session and the identity's `state` (or a 10 s cache of the current instance hash, [HST-11]);
+challenges and sessions past their expiry can be deleted by a periodic job.
 
 ---
 
@@ -170,14 +204,16 @@ Few dependencies, each justified (AGENTS.md rule 6). The budget:
 
 | Package | Runtime dependencies |
 |---|---|
-| `rootcard` (always) | `ed25519-dalek`, `sha2`, `zeroize` |
-| `rootcard` (`vault`) | + `x25519-dalek`, `hkdf`, `aes-gcm`, `argon2`, `unicode-normalization` (passwords only, SPEC [LCK-7]) |
-| `rootcard-host` | `rootcard` without `vault`, `getrandom` |
-| `rootcard-cli` | `rootcard`, `getrandom`, `zeroize`; an HTTP client is chosen and justified in phase 5 |
+| `rootcard` (always) | `ed25519-dalek`, `sha2`, `hkdf` (for `derive_recovery_keys`), `zeroize` |
+| `rootcard` (`vault`) | + `x25519-dalek`, `aes-gcm`, `argon2`, `unicode-normalization` (passwords only, SPEC [LCK-7]) |
+| `rootcard-host` | `rootcard` without `vault`, `zeroize`; random bytes and time come from the application |
+| `rootcard-cli` | `rootcard`, `getrandom`, `zeroize`, `ureq` with `rustls` (HTTPS to hosts), `rpassword` (no-echo input) |
 | `packages/rootcard` | none (WebCrypto, `String.prototype.normalize`; own Argon2id and BLAKE2b) |
-| `examples/host` (not published) | `axum`, `tokio` |
+| `crates/rootcard-host/examples/host.rs` (not published) | `getrandom` (development dependency) |
+| `xtask` (not published) | `curve25519-dalek`, `sha2`: only to construct the rejected signature classes of the vectors |
 
-`hkdf` is also needed without `vault` for `derive_recovery_keys`; the final split is settled in phase 2. Canonical JSON,
+None of the core's dependencies is built with its `getrandom` or `rand_core` features: the core draws no randomness.
+Canonical JSON,
 base64url and base32 are implemented in the cores themselves: they are small, they must be strict in ways general
 libraries are not (duplicate members, number forms, canonical padding), and they are covered by reject vectors. No
 `serde_json` in the core.

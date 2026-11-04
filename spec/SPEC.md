@@ -523,7 +523,7 @@ It performs these steps in order:
 
 - **[LOG-15]** **Incremental verification.** `extend_log(state, events, options)` takes a log state returned by
   `verify_log` or `extend_log`, and events whose first `prev` is the hash of `state.version`, and performs step 4 for
-  each of them starting at index `state.version.seq + 1`, followed by step 1's length check and step 5. Its result MUST
+  each of them starting at index `state.version.seq + 1`, after step 1's length check on the whole log, followed by step 5. Its result MUST
   equal that of `verify_log` on the whole log. A host stores the log state next to the events, so accepting new events
   costs time proportional to the new events only, and an `extend_log` on a stored state never re-verifies old
   signatures.

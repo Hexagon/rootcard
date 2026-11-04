@@ -4,6 +4,7 @@ description = "Host-side helpers for rootcard identities: challenges, identity s
 keywords = ["identity", "authentication", "login", "server"]
 categories = ["authentication"]
 readme = "README.md"
+include = ["src/**/*.rs", "README.md", "CHANGELOG.md", "LICENSE"]
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -12,7 +13,13 @@ homepage.workspace = true
 license.workspace = true
 
 [dependencies]
-rootcard.workspace = true
+# The verification core only: no Argon2id, X25519, AES-GCM or Unicode normalization (ARCHITECTURE.md §4).
+rootcard = { workspace = true }
+zeroize = { version = "1.9.1", default-features = false }
+
+[dev-dependencies]
+getrandom = "0.4.3"
+rootcard = { workspace = true, features = ["vault"] }
 
 [lints]
 workspace = true

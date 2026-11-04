@@ -1,0 +1,1825 @@
+{
+  "description": "Login, fetch and change messages, and proofs (SPEC §13, §14)",
+  "vectors": [
+    {
+      "input": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "host": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+        "lock": "HdQYNrFMhPc",
+        "nonce": "9f36abd810092d151d084aef61a290eb98d33347fb571af3d8afbbb80d161051",
+        "realm": "global",
+        "url": "https://a.example",
+        "version": {
+          "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "seq": 1
+        }
+      },
+      "name": "login message",
+      "op": "login_message",
+      "output": "726f6f74636172642f6c6f67696e2f7631007b226163636f756e74223a2235325757475646563952574b484b484e395434355331433952525658384d5243525759323932504747364634484b515945314230222c22686f7374223a22656432353531393a7648793874574e6a64666f64676b4e4e526d636b32534e33395475594270586453644a74444f4569426155222c226c6f636b223a22486451594e72464d685063222c226e6f6e6365223a226e7a61723242414a4c5255644345727659614b5136356a544d3066375678727a324b2d3775413057454645222c227265616c6d223a22676c6f62616c222c2275726c223a2268747470733a2f2f612e6578616d706c65222c2276657273696f6e223a7b2268617368223a226f68396b6a72516b3148376b51534270724a41337432715a386e48656971526a5061476e68375f684c676b222c22736571223a317d7d",
+      "rules": ["LGN-1","DS-1"]
+    },
+    {
+      "input": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "host": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+        "lock": "recovery",
+        "nonce": "9f36abd810092d151d084aef61a290eb98d33347fb571af3d8afbbb80d161051",
+        "url": "https://a.example"
+      },
+      "name": "fetch message",
+      "op": "fetch_message",
+      "output": "726f6f74636172642f66657463682f7631007b226163636f756e74223a2235325757475646563952574b484b484e395434355331433952525658384d5243525759323932504747364634484b515945314230222c22686f7374223a22656432353531393a7648793874574e6a64666f64676b4e4e526d636b32534e33395475594270586453644a74444f4569426155222c226c6f636b223a227265636f76657279222c226e6f6e6365223a226e7a61723242414a4c5255644345727659614b5136356a544d3066375678727a324b2d3775413057454645222c2275726c223a2268747470733a2f2f612e6578616d706c65227d",
+      "rules": ["FET-1"]
+    },
+    {
+      "input": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "host": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+        "lock": "HdQYNrFMhPc",
+        "new": "f30d368ddde8ffe1aec28dfd122085ed9f08362f816dd0cb43352ab76092001b",
+        "nonce": "9f36abd810092d151d084aef61a290eb98d33347fb571af3d8afbbb80d161051",
+        "url": "https://a.example"
+      },
+      "name": "change message",
+      "op": "change_message",
+      "output": "726f6f74636172642f6368616e67652f7631007b226163636f756e74223a2235325757475646563952574b484b484e395434355331433952525658384d5243525759323932504747364634484b515945314230222c22686f7374223a22656432353531393a7648793874574e6a64666f64676b4e4e526d636b32534e33395475594270586453644a74444f4569426155222c226c6f636b223a22486451594e72464d685063222c226e6577223a22387730326a64336f5f2d4775776f333945694346375a38494e692d426264444c517a557174324353414273222c226e6f6e6365223a226e7a61723242414a4c5255644345727659614b5136356a544d3066375678727a324b2d3775413057454645222c2275726c223a2268747470733a2f2f612e6578616d706c65227d",
+      "rules": ["CHG-1"]
+    },
+    {
+      "input": {
+        "account_seed": "aed799c366b97d492e5d1334a832b2ac1e46e6a836b057bc76c4d145e01596a5",
+        "challenge": {
+          "expires": 1800000060,
+          "host": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+          "nonce": "nzar2BAJLRUdCErvYaKQ65jTM0f7Vxrz2K-7uA0WEFE",
+          "realm": "global",
+          "version": {
+            "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 1
+          }
+        },
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "lock": "recovery",
+        "lock_seed": "5f34e9b93231fb6455520925fb220ec95ce2a5773d231b07cd112e3f90352a98",
+        "url": "https://a.example"
+      },
+      "name": "login request",
+      "op": "login_sign",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "lock": "recovery",
+        "lock_sig": "oz7Pl8qwtxRGsqjmwZIgbQqCUgdUReQL5sLweVjJbYU5npTge7_X3FF_cvIReBphpOKkiK4U6qzpzAypvUo6Cg",
+        "nonce": "nzar2BAJLRUdCErvYaKQ65jTM0f7Vxrz2K-7uA0WEFE",
+        "sig": "TS0U8BQr1AkPUMePE2CVJEiAniiH9yqnShXaeRpN-mRvNgChpsnJhuZV2irLKOE9JTm0PeREizsMd_wSzlHhBg",
+        "url": "https://a.example",
+        "version": {
+          "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "seq": 1
+        }
+      },
+      "rules": ["LGN-1"]
+    },
+    {
+      "error": "wrong_host",
+      "input": {
+        "account_seed": "aed799c366b97d492e5d1334a832b2ac1e46e6a836b057bc76c4d145e01596a5",
+        "challenge": {
+          "expires": 1800000060,
+          "host": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+          "nonce": "nzar2BAJLRUdCErvYaKQ65jTM0f7Vxrz2K-7uA0WEFE",
+          "realm": "global",
+          "version": {
+            "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 1
+          }
+        },
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "lock": "recovery",
+        "lock_seed": "5f34e9b93231fb6455520925fb220ec95ce2a5773d231b07cd112e3f90352a98",
+        "url": "https://a.example"
+      },
+      "name": "login challenge from another host",
+      "op": "login_sign",
+      "rules": ["LGN-1","CLT-3"]
+    },
+    {
+      "error": "stale_version",
+      "input": {
+        "account_seed": "aed799c366b97d492e5d1334a832b2ac1e46e6a836b057bc76c4d145e01596a5",
+        "challenge": {
+          "expires": 1800000060,
+          "host": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+          "nonce": "nzar2BAJLRUdCErvYaKQ65jTM0f7Vxrz2K-7uA0WEFE",
+          "realm": "global",
+          "version": {
+            "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 0
+          }
+        },
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "lock": "recovery",
+        "lock_seed": "5f34e9b93231fb6455520925fb220ec95ce2a5773d231b07cd112e3f90352a98",
+        "url": "https://a.example"
+      },
+      "name": "login challenge for another version",
+      "op": "login_sign",
+      "rules": ["LGN-1"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "lock_key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+        "request": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "lock": "recovery",
+          "lock_sig": "oz7Pl8qwtxRGsqjmwZIgbQqCUgdUReQL5sLweVjJbYU5npTge7_X3FF_cvIReBphpOKkiK4U6qzpzAypvUo6Cg",
+          "nonce": "nzar2BAJLRUdCErvYaKQ65jTM0f7Vxrz2K-7uA0WEFE",
+          "sig": "TS0U8BQr1AkPUMePE2CVJEiAniiH9yqnShXaeRpN-mRvNgChpsnJhuZV2irLKOE9JTm0PeREizsMd_wSzlHhBg",
+          "url": "https://a.example",
+          "version": {
+            "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 1
+          }
+        }
+      },
+      "name": "login request verifies",
+      "op": "login_verify",
+      "output": true,
+      "rules": ["LGN-1","LGN-5"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "lock_key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+        "request": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "lock": "recovery",
+          "lock_sig": "oz7Pl8qwtxRGsqjmwZIgbQqCUgdUReQL5sLweVjJbYU5npTge7_X3FF_cvIReBphpOKkiK4U6qzpzAypvUo6Cg",
+          "nonce": "nzar2BAJLRUdCErvYaKQ65jTM0f7Vxrz2K-7uA0WEFE",
+          "sig": "TS0U8BQr1AkPUMePE2CVJEiAniiH9yqnShXaeRpN-mRvNgChpsnJhuZV2irLKOE9JTm0PeREizsMd_wSzlHhBg",
+          "url": "https://a.example",
+          "version": {
+            "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 1
+          }
+        }
+      },
+      "name": "login request with the wrong lock key",
+      "op": "login_verify",
+      "rules": ["LGN-5"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "lock_key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+        "request": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "lock": "recovery",
+          "lock_sig": "oz7Pl8qwtxRGsqjmwZIgbQqCUgdUReQL5sLweVjJbYU5npTge7_X3FF_cvIReBphpOKkiK4U6qzpzAypvUo6Cg",
+          "nonce": "nzar2BAJLRUdCErvYaKQ65jTM0f7Vxrz2K-7uA0WEFE",
+          "sig": "TS0U8BQr1AkPUMePE2CVJEiAniiH9yqnShXaeRpN-mRvNgChpsnJhuZV2irLKOE9JTm0PeREizsMd_wSzlHhBg",
+          "url": "https://evil.example",
+          "version": {
+            "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 1
+          }
+        }
+      },
+      "name": "login request for another address",
+      "op": "login_verify",
+      "rules": ["LGN-4"]
+    },
+    {
+      "input": {
+        "by": "account",
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "recipient": "example.org",
+        "seed": "ee4bcc6a922754a005cdd1fca0d06c68c4ef4397e1d763ea858bbb2bc1d77c14"
+      },
+      "name": "account proof",
+      "op": "prove",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "by": "account",
+        "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+        "instance": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+        "recipient": "example.org",
+        "sig": "qiL0SNoXe9dZqFfE4pWHQMptAC4_afH5ZAEOeVsbbwA7FEsBgcfui5G8qow13vBLRI2tc2FV6b3wSuTPxD2tAA",
+        "v": 1
+      },
+      "rules": ["PRF-1","PRF-3"]
+    },
+    {
+      "input": {
+        "by": "recovery",
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "recipient": "example.org",
+        "seed": "5f34e9b93231fb6455520925fb220ec95ce2a5773d231b07cd112e3f90352a98"
+      },
+      "name": "root proof",
+      "op": "prove",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "by": "recovery",
+        "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+        "recipient": "example.org",
+        "sig": "Tpeq_X0pCzveAcgqQnyFBTMHVzMxAhY4clnih90hzMDwQE0RlpHPq02OZ5YCw8QHiyv5ZH7Sh83Nr61UwE43Cg",
+        "v": 1
+      },
+      "rules": ["PRF-2"]
+    },
+    {
+      "error": "wrong_account_key",
+      "input": {
+        "by": "account",
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "recipient": "example.org",
+        "seed": "aed799c366b97d492e5d1334a832b2ac1e46e6a836b057bc76c4d145e01596a5"
+      },
+      "name": "account proof with an old account key",
+      "op": "prove",
+      "rules": ["PRF-1"]
+    },
+    {
+      "input": {
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "log": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "proof": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "by": "account",
+          "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+          "instance": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "recipient": "example.org",
+          "sig": "qiL0SNoXe9dZqFfE4pWHQMptAC4_afH5ZAEOeVsbbwA7FEsBgcfui5G8qow13vBLRI2tc2FV6b3wSuTPxD2tAA",
+          "v": 1
+        },
+        "recipient": "example.org"
+      },
+      "name": "account proof verifies",
+      "op": "verify_proof",
+      "output": {
+        "hash": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+        "seq": 2
+      },
+      "rules": ["PRF-4"]
+    },
+    {
+      "input": {
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "log": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          }
+        ],
+        "proof": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "by": "account",
+          "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+          "instance": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "recipient": "example.org",
+          "sig": "qiL0SNoXe9dZqFfE4pWHQMptAC4_afH5ZAEOeVsbbwA7FEsBgcfui5G8qow13vBLRI2tc2FV6b3wSuTPxD2tAA",
+          "v": 1
+        },
+        "recipient": "example.org"
+      },
+      "name": "account proof survives a rotation",
+      "op": "verify_proof",
+      "output": {
+        "hash": "0AY6upO5pdWlJpnpdhimN1q5makU38LSRAGMycYcTdY",
+        "seq": 3
+      },
+      "rules": ["PRF-1"]
+    },
+    {
+      "error": "stale_version",
+      "input": {
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "log": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "proof": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "by": "account",
+          "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+          "instance": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "recipient": "example.org",
+          "sig": "7bI6Mv7xD3t9c5zhfg17tbUcAc2NkBSojRzfO81n1qqmHJyTW0Xkh-Hwb1Bv8vRAdPkUfmWcji0bhbtMsgOFAg",
+          "v": 1
+        },
+        "recipient": "example.org"
+      },
+      "name": "account proof of an old instance",
+      "op": "verify_proof",
+      "rules": ["PRF-1","PRF-4"]
+    },
+    {
+      "error": "account_retired",
+      "input": {
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "log": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {},
+            "kind": "retire",
+            "prev": "0AY6upO5pdWlJpnpdhimN1q5makU38LSRAGMycYcTdY",
+            "seq": 4,
+            "sigs": [
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "blh2d4Sx8l6MVRe1oTAA2B9NLx08NHddNyReo5rYkXOKbrysYhkkoryTQV3q4aGzhM6NG6suePbLUa1SrO9WCw"
+              }
+            ],
+            "time": 1800000300,
+            "v": 1
+          }
+        ],
+        "proof": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "by": "account",
+          "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+          "instance": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "recipient": "example.org",
+          "sig": "qiL0SNoXe9dZqFfE4pWHQMptAC4_afH5ZAEOeVsbbwA7FEsBgcfui5G8qow13vBLRI2tc2FV6b3wSuTPxD2tAA",
+          "v": 1
+        },
+        "recipient": "example.org"
+      },
+      "name": "account proof after retire",
+      "op": "verify_proof",
+      "rules": ["PRF-4"]
+    },
+    {
+      "input": {
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "log": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "proof": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "by": "recovery",
+          "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+          "recipient": "example.org",
+          "sig": "Tpeq_X0pCzveAcgqQnyFBTMHVzMxAhY4clnih90hzMDwQE0RlpHPq02OZ5YCw8QHiyv5ZH7Sh83Nr61UwE43Cg",
+          "v": 1
+        },
+        "recipient": "example.org"
+      },
+      "name": "root proof verifies",
+      "op": "verify_proof",
+      "output": {
+        "hash": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+        "seq": 2
+      },
+      "rules": ["PRF-2","PRF-4"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "log": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          }
+        ],
+        "proof": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "by": "recovery",
+          "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+          "recipient": "example.org",
+          "sig": "Tpeq_X0pCzveAcgqQnyFBTMHVzMxAhY4clnih90hzMDwQE0RlpHPq02OZ5YCw8QHiyv5ZH7Sh83Nr61UwE43Cg",
+          "v": 1
+        },
+        "recipient": "example.org"
+      },
+      "name": "root proof after a rotation",
+      "op": "verify_proof",
+      "rules": ["PRF-2"]
+    },
+    {
+      "error": "wrong_recipient",
+      "input": {
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "log": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "proof": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "by": "account",
+          "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+          "instance": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "recipient": "example.org",
+          "sig": "qiL0SNoXe9dZqFfE4pWHQMptAC4_afH5ZAEOeVsbbwA7FEsBgcfui5G8qow13vBLRI2tc2FV6b3wSuTPxD2tAA",
+          "v": 1
+        },
+        "recipient": "evil.org"
+      },
+      "name": "proof for another recipient",
+      "op": "verify_proof",
+      "rules": ["PRF-3","PRF-4"]
+    },
+    {
+      "error": "wrong_challenge",
+      "input": {
+        "challenge": "0000000000000000000000000000000000000000000000000000000000000000",
+        "log": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "proof": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "by": "account",
+          "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+          "instance": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "recipient": "example.org",
+          "sig": "qiL0SNoXe9dZqFfE4pWHQMptAC4_afH5ZAEOeVsbbwA7FEsBgcfui5G8qow13vBLRI2tc2FV6b3wSuTPxD2tAA",
+          "v": 1
+        },
+        "recipient": "example.org"
+      },
+      "name": "proof for another challenge",
+      "op": "verify_proof",
+      "rules": ["PRF-4"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "log": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fLvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "proof": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "by": "account",
+          "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+          "instance": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "recipient": "example.org",
+          "sig": "qiL0SNoXe9dZqFfE4pWHQMptAC4_afH5ZAEOeVsbbwA7FEsBgcfui5G8qow13vBLRI2tc2FV6b3wSuTPxD2tAA",
+          "v": 1
+        },
+        "recipient": "example.org"
+      },
+      "name": "proof with a forged log",
+      "op": "verify_proof",
+      "rules": ["PRF-4"]
+    },
+    {
+      "error": "account_mismatch",
+      "input": {
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "log": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:U4Yz2GJdQTR6qZcZrJMz9g66EMrhgg8XkyPACO56y38",
+              "username": "Other"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:U4Yz2GJdQTR6qZcZrJMz9g66EMrhgg8XkyPACO56y38",
+                "sig": "AQKklVHNm1sV_Oh17YDVDNFKNw5Ixfn1eD6dTvrYX921holdVgIxBngoNbjnYXiewfe5_4ll8GsGk4o38KiODg"
+              }
+            ],
+            "v": 1
+          }
+        ],
+        "proof": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "by": "account",
+          "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+          "instance": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "recipient": "example.org",
+          "sig": "qiL0SNoXe9dZqFfE4pWHQMptAC4_afH5ZAEOeVsbbwA7FEsBgcfui5G8qow13vBLRI2tc2FV6b3wSuTPxD2tAA",
+          "v": 1
+        },
+        "recipient": "example.org"
+      },
+      "name": "proof against another identity",
+      "op": "verify_proof",
+      "rules": ["PRF-4"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",
+        "log": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "proof": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "by": "account",
+          "challenge": "fiahtXYgEqz6c5F-51Vo4oOhxttP4uF6jagMLEOWU0A",
+          "instance": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "recipient": "example.org ",
+          "sig": "qiL0SNoXe9dZqFfE4pWHQMptAC4_afH5ZAEOeVsbbwA7FEsBgcfui5G8qow13vBLRI2tc2FV6b3wSuTPxD2tAA",
+          "v": 1
+        },
+        "recipient": "example.org "
+      },
+      "name": "tampered proof",
+      "op": "verify_proof",
+      "rules": ["PRF-4"]
+    }
+  ]
+}

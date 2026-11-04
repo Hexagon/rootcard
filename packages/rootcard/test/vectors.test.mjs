@@ -30,3 +30,27 @@ test("labels are unique and never contain a zero byte (SPEC DS-1, DS-2)", () => 
   assert.equal(new Set(labels).size, labels.length);
   for (const l of labels) assert.match(l, /^rootcard\/[a-z]+(\/[a-z]+)*\/v[0-9]+$/);
 });
+
+// Every generated vector file (SPEC §21): run the operation and compare the output, or the error code, exactly.
+import { ops } from "./ops.mjs";
+import { canonicalString, RootcardError } from "../src/index.js";
+
+for (const file of ["primitives.json", "log.json", "vault.json", "profile.json", "proof.json", "file.json"]) {
+  const { vectors: list } = vectors(file);
+  for (const v of list) {
+    test(`${file}: ${v.name} [${v.rules.join(", ")}]`, async () => {
+      const op = ops[v.op];
+      assert.ok(op, `no operation ${v.op}`);
+      let out;
+      try {
+        out = await op(v.input);
+      } catch (e) {
+        if (!(e instanceof RootcardError)) throw e;
+        assert.equal(e.code, v.error ?? "(no error)", `unexpected error ${e.code}`);
+        return;
+      }
+      assert.equal(v.error, undefined, `expected ${v.error}, got output`);
+      assert.equal(canonicalString(out), canonicalString(v.output));
+    });
+  }
+}

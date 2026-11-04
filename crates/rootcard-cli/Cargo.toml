@@ -4,6 +4,7 @@ description = "The rootcard key tool: recovery-key operations for rootcard ident
 keywords = ["identity", "authentication", "cli", "recovery"]
 categories = ["authentication", "command-line-utilities"]
 readme = "README.md"
+include = ["src/**/*.rs", "README.md", "CHANGELOG.md", "LICENSE"]
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -16,7 +17,11 @@ name = "rootcard"
 path = "src/main.rs"
 
 [dependencies]
-rootcard.workspace = true
+getrandom = "0.4.3"
+rootcard = { workspace = true, features = ["vault"] }
+rpassword = "7"
+ureq = { version = "3.5.1", default-features = false, features = ["rustls"] }
+zeroize = "1.9.1"
 
 [lints]
 workspace = true
