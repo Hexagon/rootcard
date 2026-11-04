@@ -196,7 +196,8 @@ lifetime and refresh of [SIN-14]. The RP checks the proof exactly as in [SIN-12]
    calls `start`, signs the proof with the recipient from [SIN-16], calls `finish` and hands the token to the user
    (stdout or a credential file chosen by the user). Only the password is used: this is low power. The strongest
    variant, since the client knows the real origin, and nothing but the trusted key tool sees the password.
-2. **An agent for other programs** (`rootcard agent`, like `ssh-agent`). It keeps the account key unlocked in memory,
+2. **An agent for other programs** (`rootcard agent`, like `ssh-agent`). *Later, not in the first version (owner's
+   decision).* It keeps the account key unlocked in memory,
    non-extractable where possible, for a time the user chooses. An RP's own CLI asks it over a local socket to "sign
    in to `https://shop.example`"; the agent runs the whole flow of 1 itself, so the recipient is the origin the agent
    connects to, and the RP's CLI receives only the token. The agent asks for confirmation per sign-in or per RP, as
@@ -284,14 +285,16 @@ for sign-in ([SIN-2]); `rootcard signin` would be the only sign-in command.
    risks. HOST_PROTOCOL: descriptor member, §6 endpoints, §7 flow. ARCHITECTURE: the relying-party workflow.
 2. `xtask`: `LABEL_PURPOSES` and vectors for `signin_challenge` (accept and reject cases).
 3. Both cores: `signin_challenge` / `signinChallenge`. `rootcard-host`: the `RelyingParty` helper and its tests,
-   including the JSON API of §6.5. `rootcard-cli`: `signin` and, later, `agent`.
+   including the JSON API of §6.5. `rootcard-cli`: `signin` (the agent is left for later).
 4. CHANGELOGs under `## Unreleased`.
 
 ## 10. Open questions for the owner
 
+Decided: the agent (§6.6, 2) is not part of the first version.
+
+
 1. Is the redirect flow acceptable for a first version, with the extension/wallet flow later?
 2. Should `/host` advertise the sign-in page, or should it be fixed at `<home.url>/signin`?
 3. Is 300 s for an RP flow and 10 minutes for session refresh the right balance?
-4. Is the agent (§6.6, 2) wanted in the first version, or only `rootcard signin`?
-5. Should RPs be able to request public profile keys (for example a display name) in the same flow, or read them from
+4. Should RPs be able to request public profile keys (for example a display name) in the same flow, or read them from
    `GET /id/{account}/public` afterwards (recommended, since the profile is public and signed)?
