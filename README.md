@@ -111,6 +111,20 @@ For the user it stays simple: a username and a password every day, and a card in
 libraries and one HTTP binding. The cryptography is standard (Ed25519, X25519, SHA-256, HKDF, AES-GCM, Argon2id) and comes
 from audited crates and WebCrypto.
 
+## Built to last
+
+- **Versioned from the start.** Every structure has a `v`, every key a type tag and every signature a versioned label
+  (SPEC §22). New formats are added beside the old ones, and ids, logs and signatures made with `v: 1` stay valid
+  forever.
+- **New algorithms without a new identity.** Post-quantum keys (for example ML-DSA, ML-KEM) and passkeys arrive as new
+  key types and lock kinds, adopted by a recovery-key rotation or a new instance. The account id stays the same.
+- **Not tied to a company or a transport.** The HTTP binding is a recommendation, any host can be your home, and the
+  key tool works offline from a file on your own disk.
+- **Known limits.** Ed25519 and X25519 are not quantum-safe: the move to post-quantum keys has to happen before a
+  quantum attacker exists, and stored vaults could be attacked later (THREAT_MODEL T37). Forks of a log are detected but
+  not resolved in format version 1, and a stolen recovery key gives control until witnesses and pre-rotation arrive in
+  a later format version (AR3, AR11). Before `1.0.0` the format can still change; every change follows §22.
+
 ## How it works
 
 1. **Create.** Pick a username, a realm (`global` or an application) and a password. You get a recovery key, printed as a
