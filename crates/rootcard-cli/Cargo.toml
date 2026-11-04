@@ -16,7 +16,7 @@ name = "rootcard"
 path = "src/main.rs"
 
 [dependencies]
-rootcard.workspace = true
+rootcard = { workspace = true, features = ["vault"] }
 
 [lints]
 workspace = true

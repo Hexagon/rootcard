@@ -11,7 +11,7 @@ homepage = "https://github.com/Hexagon/rootcard"
 license = "MIT"
 
 [workspace.dependencies]
-rootcard = { path = "crates/rootcard", version = "0.1.0" }
+rootcard = { path = "crates/rootcard", version = "0.1.0", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

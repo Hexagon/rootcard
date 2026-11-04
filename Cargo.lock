@@ -340,6 +340,7 @@ name = "rootcard-host"
 version = "0.1.0"
 dependencies = [
  "rootcard",
+ "zeroize",
 ]
 
 [[package]]

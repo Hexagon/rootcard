@@ -12,7 +12,12 @@ homepage.workspace = true
 license.workspace = true
 
 [dependencies]
-rootcard.workspace = true
+# The verification core only: no Argon2id, X25519, AES-GCM or Unicode normalization (ARCHITECTURE.md §4).
+rootcard = { workspace = true }
+zeroize = { version = "1.9.1", default-features = false }
+
+[dev-dependencies]
+rootcard = { workspace = true, features = ["vault"] }
 
 [lints]
 workspace = true
