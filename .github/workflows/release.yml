@@ -1,0 +1,129 @@
+# Publishes a release when the owner publishes a GitHub release with tag vX.Y.Z (docs/RELEASING.md).
+# Crates go to crates.io and the npm package to npmjs, both with trusted publishing (OIDC): there are no registry tokens
+# in this repository or its secrets. The publishing jobs run in the `release` environment, which the owner protects.
+
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+  TAG: ${{ github.event.release.tag_name }}
+  PRERELEASE: ${{ github.event.release.prerelease }}
+
+jobs:
+  verify:
+    name: Verify the release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      npm_tag: ${{ steps.check.outputs.npm_tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Format
+        run: cargo fmt --all --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Test
+        run: cargo test --workspace --locked
+      - name: JS tests
+        working-directory: packages/rootcard
+        run: npm test
+      - name: Release check (versions, changelogs, tag, vectors)
+        id: check
+        run: |
+          version="$(cargo run --locked -q -p xtask -- release-check --tag "$TAG")"
+          case "$version" in
+            *-*) npm_tag=next;   expected_prerelease=true ;;
+            *)   npm_tag=latest; expected_prerelease=false ;;
+          esac
+          if [ "$PRERELEASE" != "$expected_prerelease" ]; then
+            echo "version $version needs the GitHub release's pre-release flag set to $expected_prerelease" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "npm_tag=$npm_tag" >> "$GITHUB_OUTPUT"
+      - name: Crates package and build from their tarballs
+        run: cargo publish --workspace --locked --dry-run
+      - name: npm package
+        working-directory: packages/rootcard
+        run: npm publish --dry-run --tag "${{ steps.check.outputs.npm_tag }}"
+
+  crates:
+    name: Publish crates
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: crates.io trusted publishing token
+        id: auth
+        uses: rust-lang/crates-io-auth-action@v1
+      - name: Publish in dependency order (rootcard, then rootcard-cli and rootcard-host)
+        run: cargo publish --workspace --locked
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+
+  npm:
+    name: Publish npm package
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: npm with trusted publishing support (>= 11.5.1)
+        run: npm install -g npm@^11.5.1
+      - name: Publish with provenance
+        working-directory: packages/rootcard
+        run: npm publish --provenance --access public --tag "${{ needs.verify.outputs.npm_tag }}"
+
+  assets:
+    name: Attach packages and checksums
+    needs: [verify, crates, npm]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the packages from the tag
+        run: |
+          mkdir dist
+          cargo package --workspace --exclude xtask --locked --no-verify
+          cp target/package/*-"${{ needs.verify.outputs.version }}".crate dist/
+          (cd packages/rootcard && npm pack --pack-destination ../../dist)
+          (cd dist && sha256sum -- * > SHA256SUMS && cat SHA256SUMS)
+      - name: Upload to the GitHub release
+        run: gh release upload "$TAG" dist/* --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}

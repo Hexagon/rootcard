@@ -196,6 +196,7 @@ libraries are not (duplicate members, number forms, canonical padding), and they
 | [docs/THREAT_MODEL.md](THREAT_MODEL.md) | Security | Goals, attackers, threats, accepted risks |
 | [docs/HOST_PROTOCOL.md](HOST_PROTOCOL.md) | Binding | Recommended HTTP endpoints for hosts |
 | docs/ARCHITECTURE.md | Overview | This document: components, server usage, dependencies |
+| [docs/RELEASING.md](RELEASING.md) | Process | Preparing and publishing releases |
 
 A change to the format updates SPEC (and vectors), then THREAT_MODEL if a threat changes, HOST_PROTOCOL if an endpoint
 changes, and this document if a component or dependency changes, in the same commit.

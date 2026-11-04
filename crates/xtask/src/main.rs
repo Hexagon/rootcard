@@ -138,12 +138,143 @@ fn vectors(update: bool) -> Result<(), String> {
     }
 }
 
+/// The packages that are published together, each with its changelog (relative to the repository root).
+const RELEASED: [(&str, &str); 4] = [
+    ("rootcard (crate)", "crates/rootcard/CHANGELOG.md"),
+    ("rootcard-host (crate)", "crates/rootcard-host/CHANGELOG.md"),
+    ("rootcard-cli (crate)", "crates/rootcard-cli/CHANGELOG.md"),
+    ("rootcard (npm)", "packages/rootcard/CHANGELOG.md"),
+];
+
+fn read(rel: &str) -> Result<String, String> {
+    let path = repo_dir().join(rel);
+    std::fs::read_to_string(&path).map_err(|e| format!("reading {}: {e}", path.display()))
+}
+
+/// The value of the first `key = "value"` line inside the TOML table `[table]` (enough for the workspace manifest).
+fn toml_value(text: &str, table: &str, key: &str) -> Option<String> {
+    let mut inside = false;
+    for line in text.lines().map(str::trim) {
+        if line.starts_with('[') {
+            inside = line == format!("[{table}]");
+            continue;
+        }
+        if !inside {
+            continue;
+        }
+        if let Some(rest) = line.strip_prefix(key) {
+            let rest = rest.trim_start().strip_prefix('=')?.trim();
+            return quoted(rest);
+        }
+    }
+    None
+}
+
+/// The first double-quoted string in `text`.
+fn quoted(text: &str) -> Option<String> {
+    let start = text.find('"')? + 1;
+    let len = text[start..].find('"')?;
+    Some(text[start..start + len].to_string())
+}
+
+/// The version of the workspace dependency on `rootcard` (`rootcard = { path = ..., version = "x" }`).
+fn rootcard_dependency_version(manifest: &str) -> Option<String> {
+    let mut inside = false;
+    for line in manifest.lines().map(str::trim) {
+        if line.starts_with('[') {
+            inside = line == "[workspace.dependencies]";
+            continue;
+        }
+        if inside && (line.starts_with("rootcard ") || line.starts_with("rootcard=")) {
+            let at = line.find("version")?;
+            return quoted(&line[at..]);
+        }
+    }
+    None
+}
+
+/// `MAJOR.MINOR.PATCH` with an optional `-prerelease` of ASCII alphanumerics, `.` and `-`.
+fn is_semver(version: &str) -> bool {
+    let (core, pre) = match version.split_once('-') {
+        Some((core, pre)) => (core, Some(pre)),
+        None => (version, None),
+    };
+    let parts: Vec<&str> = core.split('.').collect();
+    let numeric =
+        |p: &&str| !p.is_empty() && p.bytes().all(|b| b.is_ascii_digit()) && (p.len() == 1 || !p.starts_with('0'));
+    parts.len() == 3
+        && parts.iter().all(numeric)
+        && pre.is_none_or(|p| !p.is_empty() && p.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'.' || b == b'-'))
+}
+
+/// Whether `changelog` has a section heading for `version` (`## 1.2.3` or `## 1.2.3 - 2026-01-31`).
+fn has_changelog_section(changelog: &str, version: &str) -> bool {
+    changelog.lines().any(|line| {
+        line.strip_prefix("## ")
+            .and_then(|rest| rest.strip_prefix(version))
+            .is_some_and(|rest| rest.is_empty() || rest.starts_with(' '))
+    })
+}
+
+/// Every check a release must pass before anything is published (docs/RELEASING.md). Returns the version.
+fn release_check(tag: Option<&str>) -> Result<String, String> {
+    let mut problems = Vec::new();
+    let manifest = read("Cargo.toml")?;
+    let version =
+        toml_value(&manifest, "workspace.package", "version").ok_or("Cargo.toml: no version in [workspace.package]")?;
+    if !is_semver(&version) {
+        problems.push(format!("workspace version {version:?} is not MAJOR.MINOR.PATCH[-pre]"));
+    }
+    if version == "0.0.0" {
+        problems.push("version 0.0.0 is the name placeholder (PLAN D2); bump it first".to_string());
+    }
+    match rootcard_dependency_version(&manifest) {
+        Some(v) if v == version => {}
+        other => problems.push(format!(
+            "[workspace.dependencies] rootcard version is {other:?}, expected {version:?}"
+        )),
+    }
+    let package = read("packages/rootcard/package.json")?;
+    let npm_version = package
+        .find("\"version\"")
+        .and_then(|at| quoted(package[at + 9..].trim_start_matches([' ', ':'])));
+    if npm_version.as_deref() != Some(version.as_str()) {
+        problems.push(format!(
+            "packages/rootcard/package.json version is {npm_version:?}, expected {version:?}"
+        ));
+    }
+    for (name, changelog) in RELEASED {
+        if !has_changelog_section(&read(changelog)?, &version) {
+            problems.push(format!("{changelog}: no `## {version}` section for {name}"));
+        }
+    }
+    if let Some(tag) = tag
+        && tag != format!("v{version}")
+    {
+        problems.push(format!(
+            "tag {tag:?} does not match the version (expected \"v{version}\")"
+        ));
+    }
+    if let Err(e) = vectors(false) {
+        problems.push(e);
+    }
+    if problems.is_empty() {
+        Ok(version)
+    } else {
+        Err(format!("release check failed:\n  - {}", problems.join("\n  - ")))
+    }
+}
+
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let result = match args.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
         ["vectors", "--check"] | ["vectors"] => vectors(false),
         ["vectors", "--update"] => vectors(true),
-        _ => Err("usage: cargo run -p xtask -- vectors [--check | --update]".into()),
+        ["release-check"] => release_check(None).map(|v| println!("{v}")),
+        ["release-check", "--tag", tag] => release_check(Some(tag)).map(|v| println!("{v}")),
+        _ => Err("usage: cargo run -p xtask -- vectors [--check | --update]\n       \
+                  cargo run -p xtask -- release-check [--tag vX.Y.Z]"
+            .into()),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
@@ -174,5 +305,35 @@ mod tests {
     #[test]
     fn spec_registry_matches() {
         assert_eq!(check_spec_labels(), Ok(()));
+    }
+
+    #[test]
+    fn semver() {
+        for ok in ["0.1.0", "1.2.3", "10.0.1", "0.1.0-rc.1", "1.0.0-alpha-2"] {
+            assert!(is_semver(ok), "{ok}");
+        }
+        for bad in ["1.2", "1.2.3.4", "01.2.3", "1.2.x", "1.2.3-", "v1.2.3", "1.2.3+build"] {
+            assert!(!is_semver(bad), "{bad}");
+        }
+    }
+
+    #[test]
+    fn changelog_sections() {
+        let log = "# Changelog\n\n## Unreleased\n\n## 0.1.0 - 2026-11-20\n\n## 0.1.0-rc.1\n";
+        assert!(has_changelog_section(log, "0.1.0"));
+        assert!(has_changelog_section(log, "0.1.0-rc.1"));
+        assert!(!has_changelog_section(log, "0.1"));
+        assert!(!has_changelog_section(log, "0.2.0"));
+    }
+
+    #[test]
+    fn reads_the_workspace_manifest() {
+        let manifest = "[workspace]\n[workspace.package]\nversion = \"0.3.1\"\n\n[workspace.dependencies]\n\
+                        rootcard = { path = \"crates/rootcard\", version = \"0.3.1\" }\n";
+        assert_eq!(
+            toml_value(manifest, "workspace.package", "version").as_deref(),
+            Some("0.3.1")
+        );
+        assert_eq!(rootcard_dependency_version(manifest).as_deref(), Some("0.3.1"));
     }
 }

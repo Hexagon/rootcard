@@ -10,6 +10,7 @@ crates.io and an npm package on npmjs, from one monorepo. Security is the produc
 5. [docs/HOST_PROTOCOL.md](docs/HOST_PROTOCOL.md): the recommended HTTP binding for hosts
 6. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): components, server usage, the `rootcard-host` design and the dependency
    budget. Keep it, SPEC, THREAT_MODEL and HOST_PROTOCOL consistent in the same commit
+7. [docs/RELEASING.md](docs/RELEASING.md): how a release is prepared (by agents) and published (by the owner, through CI)
 
 ## Layout (target)
 
@@ -23,7 +24,8 @@ packages/rootcard       npm package: plain ES modules, zero dependencies, WebCry
 packages/rootcard/keytool.html   standalone key tool page (works from file://)
 spec/SPEC.md            normative specification
 spec/vectors/*.json     shared test vectors (the facit for every implementation)
-docs/                   plan, design, architecture, threat model, host protocol
+docs/                   plan, design, architecture, threat model, host protocol, releasing
+.github/workflows       ci.yml (every push and PR), release.yml (publishes on a GitHub release)
 ```
 
 ## Commands
@@ -35,6 +37,9 @@ cargo test --workspace
 cargo run -p xtask -- vectors --check     # Rust output matches spec/vectors
 (cd packages/rootcard && npm test)        # node --test, Node >= 20, no dependencies
 ```
+
+For a release pull request, also `cargo run -p xtask -- release-check --tag vX.Y.Z` and the dry runs in
+[docs/RELEASING.md](docs/RELEASING.md) §3.
 
 Run all of them before every commit. CI runs them too.
 
@@ -92,4 +97,11 @@ Run all of them before every commit. CI runs them too.
 - Nothing application-specific in this repository. Applications (such as Xigna) document their own use of rootcard in their
   own repositories.
 - `rustfmt` (`max_width = 120`), `clippy -D warnings`. Small, focused commits.
-- Public API changes are recorded in `CHANGELOG.md` (one per package).
+- Public API changes are recorded in `CHANGELOG.md` (one per package), under `## Unreleased` until a release.
+
+### 9. Releases
+- All packages are released together with one version and a tag `vX.Y.Z`. Follow [docs/RELEASING.md](docs/RELEASING.md)
+  exactly, and only when the owner asks for a release.
+- Agents prepare the release pull request and stop. They never tag, create a GitHub release, publish (`cargo publish`
+  or `npm publish` without `--dry-run`), handle registry tokens, or yank. Publishing happens only in
+  `.github/workflows/release.yml` when the owner publishes a GitHub release.

@@ -36,6 +36,22 @@ jobs:
       - name: Vectors are up to date
         run: cargo run -p xtask -- vectors --check
 
+  package:
+    name: Packages build from their tarballs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Crates (dry run)
+        run: cargo publish --workspace --locked --dry-run
+      - name: npm (dry run)
+        working-directory: packages/rootcard
+        run: npm publish --dry-run
+
   msrv:
     name: Rust MSRV
     runs-on: ubuntu-latest

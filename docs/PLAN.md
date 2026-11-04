@@ -142,8 +142,11 @@ logs the same way.
 
 - [ ] Fuzz targets for every parser and verifier, run in CI for a fixed time
 - [ ] `cargo deny`, `cargo audit`, `npm audit` (empty tree), reproducible npm tarball check
-- [ ] Release workflow: tag `vX.Y.Z` → crates published in dependency order with crates.io trusted publishing, npm published
-  with trusted publishing and `--provenance`, GitHub release with checksums
+- [x] Release workflow: tag `vX.Y.Z` → crates published in dependency order with crates.io trusted publishing, npm published
+  with trusted publishing and `--provenance`, GitHub release with checksums (`.github/workflows/release.yml`, prepared
+  ahead of phase 6; the owner's one-time setup is docs/RELEASING.md §2)
+- [x] Release preparation for agents (docs/RELEASING.md, AGENTS.md rule 9) and `xtask release-check` (versions,
+  changelogs, tag, vectors); CI packages every crate and the npm package on each pull request (dry run)
 - [ ] Documentation: crate docs, `README` per package, a "getting started" for apps and for hosts
 - [ ] External review of the spec and the crypto use before `1.0.0`
 
