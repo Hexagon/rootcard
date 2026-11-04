@@ -5,8 +5,11 @@ crates.io and an npm package on npmjs, from one monorepo. Security is the produc
 
 1. [docs/PLAN.md](docs/PLAN.md): the setup plan, phases, current phase and acceptance criteria
 2. [docs/DESIGN.md](docs/DESIGN.md): the design (requirements, threat model, formats, flows)
-3. [spec/SPEC.md](spec/SPEC.md) (written in phase 1): the normative format. Until it exists, DESIGN.md is the reference
-4. [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) (written in phase 1)
+3. [spec/SPEC.md](spec/SPEC.md): the normative format. Where it differs from DESIGN.md, the spec wins (Appendix B)
+4. [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md): goals, attackers, trust boundaries, threats and accepted risks
+5. [docs/HOST_PROTOCOL.md](docs/HOST_PROTOCOL.md): the recommended HTTP binding for hosts
+6. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): components, server usage, the `rootcard-host` design and the dependency
+   budget. Keep it, SPEC, THREAT_MODEL and HOST_PROTOCOL consistent in the same commit
 
 ## Layout (target)
 
@@ -20,7 +23,7 @@ packages/rootcard       npm package: plain ES modules, zero dependencies, WebCry
 packages/rootcard/keytool.html   standalone key tool page (works from file://)
 spec/SPEC.md            normative specification
 spec/vectors/*.json     shared test vectors (the facit for every implementation)
-docs/                   plan, threat model, design notes
+docs/                   plan, design, architecture, threat model, host protocol
 ```
 
 ## Commands
@@ -42,7 +45,9 @@ Run all of them before every commit. CI runs them too.
 - A change to anything that is hashed or signed is a **format change**: bump the structure's `v`, keep reading the old
   version forever, add vectors, and say so in the commit message. Ids and signatures made with `v: 1` must stay valid.
 - Domain-separation labels start with `rootcard/` and end with a version (`rootcard/id/v1`). Never reuse a label for
-  another purpose.
+  another purpose. A new label goes into the registry (SPEC §5) and `xtask`'s `LABEL_PURPOSES` in the same commit; the
+  vector check fails otherwise.
+- Rules have stable identifiers (`[LOG-12]`). Tests and vectors name the rules they exercise; a removed rule leaves a gap.
 
 ### 2. Rust and JS must agree byte for byte
 - `crates/rootcard` and `packages/rootcard` implement the same functions with the same names (snake_case / camelCase).
@@ -53,7 +58,8 @@ Run all of them before every commit. CI runs them too.
 - **No home-made cryptography**, with one exception: Argon2id (and BLAKE2b inside it) in JS, because WebCrypto lacks it. It
   must pass the RFC 9106 vectors and the shared vectors.
 - Rust uses audited crates only: `ed25519-dalek` (with `verify_strict`), `x25519-dalek`, `sha2`, `hkdf`, `aes-gcm`, `argon2`,
-  `getrandom`, `zeroize`. JS uses WebCrypto (`Ed25519`, `X25519`, `SHA-256`, `HKDF`, `AES-GCM`, `getRandomValues`).
+  `getrandom`, `zeroize`, plus `unicode-normalization` for password NFC. Password and vault cryptography sits behind the
+  core's `vault` feature, so hosts build without it (ARCHITECTURE.md §4–5). JS uses WebCrypto (`Ed25519`, `X25519`, `SHA-256`, `HKDF`, `AES-GCM`, `getRandomValues`).
 - Strict verification everywhere: reject small-order keys and non-canonical signatures.
 - Secrets are zeroized (Rust `zeroize`, JS overwrite buffers) and JS keys are imported non-extractable.
 - `#![forbid(unsafe_code)]` in every crate. No `unwrap()`/`expect()` outside tests (`clippy::unwrap_used`).

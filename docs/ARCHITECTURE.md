@@ -1,0 +1,176 @@
+# rootcard: architecture
+
+How the packages fit together, what runs where, and how a server uses rootcard. The format is
+[spec/SPEC.md](../spec/SPEC.md); the HTTP binding is [HOST_PROTOCOL.md](HOST_PROTOCOL.md); the threat model is
+[THREAT_MODEL.md](THREAT_MODEL.md). This document is informative and describes the target of [PLAN.md](PLAN.md).
+
+---
+
+## 1. Components
+
+```
+                 ┌──────────────────────────── one monorepo ────────────────────────────┐
+ spec/SPEC.md ──►│ crates/rootcard        core (Rust)    pure: formats, verification, crypto │
+ spec/vectors ──►│ packages/rootcard      core (JS)      the same functions, byte for byte   │
+                 │ crates/rootcard-host   host library   storage traits + handlers (Rust)    │
+                 │ crates/rootcard-cli    key tool       binary `rootcard`                   │
+                 │ packages/rootcard/keytool.html        key tool page, works from file://   │
+                 │ crates/xtask           vectors, label registry check, release checks      │
+                 └────────────────────────────────────────────────────────────────────────┘
+```
+
+| Component | Runs on | Holds | Power |
+|---|---|---|---|
+| Application client (uses `packages/rootcard`) | Browser, app | Password, unlocked account key | Low |
+| Key tool (`rootcard-cli`, `keytool.html`) | The user's machine | Recovery key | High |
+| Host (uses `rootcard-host` or the core directly) | Server | Logs, its identities' vaults, sessions, host key | None over identities |
+| Relying party (uses the core) | Any server or client | Logs it fetched | None |
+
+Both cores are **pure** ([IMP-1]): no I/O, no clock, no randomness. Everything around them (HTTP, storage, time, random
+bytes, user interaction) belongs to the host library, the key tool or the application.
+
+---
+
+## 2. What a server does with rootcard
+
+A server meets rootcard in one of two roles.
+
+**Host** (stores identities and accepts logins, SPEC §17). Per request it parses strict JSON, checks sizes, verifies a
+few Ed25519 signatures, compares hashes and does one atomic storage update. It never sees a password, never runs
+Argon2id and never decrypts a vault, so it needs only the verification half of the core (§4). It can run on many servers
+in front of one shared store ([HST-19]), and it can rotate its key and change its address without touching any identity
+([HST-17], [HST-18]).
+
+**Relying party** (any server that wants to know "is this rootcard user who they say?", SPEC §14). It gives the user a
+fresh challenge and its own `recipient`, receives a proof and the user's log, fetches the newest log from the identity's
+home if it wants to be sure it is current, and calls `verify_proof`. It stores at most the newest log per identity it
+deals with ([VER-4]). An application that runs its own host does not need proofs for its own users: the login result
+([LGN-1] step 6) already is the answer.
+
+A login, seen from the host:
+
+```
+client                                   host                                       storage
+  │ GET /id/{a}/log                        │──── read events, state ───────────────────►│
+  │ POST /id/{a}/challenge {login} ───────►│──── put nonce (60 s, purpose, account) ───►│
+  │ POST /id/{a}/login {nonce, version,    │──── take nonce (atomic) ──────────────────►│
+  │      url, sig} ───────────────────────►│     check home, url, version, signature    │
+  │ ◄──── login result + session ──────────│──── put session {account, instance} ─────►│
+  │ GET /session/vault (bearer) ──────────►│──── session.instance == current? ─────────►│
+```
+
+---
+
+## 3. `rootcard-host`
+
+A library, not a server: it owns the rules of SPEC §17 and leaves HTTP, storage and secrets to the application.
+
+```rust
+// Sketch; the real API is settled in phase 5.
+pub struct Host<S: IdentityStore, C: ChallengeStore> { config: HostConfig, store: S, challenges: C }
+
+pub struct HostConfig {
+    keys: HostKeys,                 // current signing key + retired public keys       [HST-17]
+    urls: Vec<String>,              // accepted base URLs                              [HST-18]
+    realms: Vec<RealmConfig>,       // realm + UsernamePolicy                          [RLM-3], [USR-3]
+}
+
+pub trait IdentityStore {           // shared by all servers of the host
+    fn load(&self, account: &AccountId) -> Result<Option<Stored>, StoreError>;     // events, state, vault, profile
+    fn compare_and_swap(&self, account: &AccountId, expected: &Expected, new: &Update)
+        -> Result<Swap, StoreError>;                                                // [HST-19]
+    fn register(&self, new: &Stored, handle_key: &HandleKey) -> Result<Register, StoreError>;  // atomic claim
+    fn by_handle(&self, realm: &str, handle_key: &HandleKey) -> Result<Vec<AccountId>, StoreError>;
+}
+
+pub trait ChallengeStore {          // TTL 60 s
+    fn put(&self, nonce: &Nonce, issued: &Issued) -> Result<(), StoreError>;
+    fn take(&self, nonce: &Nonce) -> Result<Option<Issued>, StoreError>;           // atomic get-and-delete
+}
+
+impl<S, C> Host<S, C> {
+    pub fn register(&self, req: RegisterRequest, now: u64) -> Result<RegisterAnswer, HostError>;
+    pub fn challenge(&self, account: &AccountId, purpose: Purpose, now: u64, nonce: [u8; 32]) -> ...;
+    pub fn login(&self, account: &AccountId, req: LoginRequest, now: u64) -> Result<LoginResult, HostError>;
+    pub fn session_valid(&self, session: &SessionInfo) -> Result<bool, HostError>;  // [HST-11]
+    // fetch, locks, events, instance, vault and profile updates, export, peer sync ...
+}
+```
+
+- **Time and randomness are parameters**, like in the core, so handlers are deterministic in tests. The host application
+  passes its clock ([HST-21]) and random bytes from `getrandom`.
+- **Errors are the spec's codes** ([SPEC §20]); the HTTP mapping is in HOST_PROTOCOL.md §1.1. Each error that needs
+  extra data (`not_home`, `stale_version`, `fork`) carries it.
+- **Storage holds the verified log state** next to the events ([LOG-16]), so a request with new events runs `extend_log`
+  on the stored state and verifies only the new events ([LOG-15]).
+- **Sessions are the application's.** `login` returns a `LoginResult { account, handle, instance, version }`; the
+  application creates a session in whatever form it uses and calls `session_valid` (one indexed read, cacheable for 10
+  s) on every use. Optional helpers create and check opaque tokens stored as SHA-256 hashes ([HST-10]).
+- **Retries** are recognized by the handlers ([HST-20]); the store only needs compare-and-swap.
+- **In-memory implementations** of both traits ship with the crate for tests and the example host. A SQL schema for one
+  table per structure (identities, events, vaults, profiles, challenges, sessions) is documented with phase 5.
+- **No framework, no async runtime.** Handlers are plain functions over request structs; `examples/host` wires them into
+  axum. Async storage can wrap the traits; whether the traits themselves become async is decided in phase 5.
+
+---
+
+## 4. The cores
+
+The same functions exist in both languages with the same names (snake_case in Rust, camelCase in JS) and are checked by
+the shared vectors ([CNV-4]).
+
+| Area | Functions | Needs | Feature |
+|---|---|---|---|
+| Encodings | `canonical`, `parse_json`, `base64url_*`, `base32_*`, key and signature parsing | – | always |
+| Recovery key | `parse_recovery_key`, `format_recovery_key`, `derive_recovery_keys` | SHA-256, HKDF | always |
+| Identity | `inception`, `account_id`, `handle`, `parse_handle`, `extended_tags` | SHA-256, Ed25519 | always |
+| Log | `verify_log`, `extend_log`, `verify_pending`, `compare_logs`, `current_instance` | SHA-256, Ed25519 | always |
+| Messages | `login_message`, `fetch_message`, `receipt_message` and their verification | Ed25519 | always |
+| Proofs | `prove`, `verify_proof`, `statement_challenge` | Ed25519 | always |
+| Public data | `verify_public`, `PublicProfile::set` (namespace-checked) | Ed25519 | always |
+| Vault checks | `verify_vault` (signatures, locks, limits; no decryption) | Ed25519 | always |
+| Vault crypto | `Vault::create`, `unlock`, `add_lock`, `new_instance`, contents | X25519, HKDF, AES-GCM, Argon2id, NFC | `vault` |
+| Files | `AccountFile::export` / `import`, `RecoveryCard` | as above | always (vault parts with `vault`) |
+
+Hosts and relying parties use the core **without** the `vault` feature (Rust: `default-features = false`), which removes
+Argon2id, X25519, AES-GCM and Unicode normalization from their build. Clients and the key tool use the default features.
+In JavaScript, the vault functions live in their own module, so a server bundle that does not import it never loads
+them.
+
+---
+
+## 5. Dependencies
+
+Few dependencies, each justified (AGENTS.md rule 6). The budget:
+
+| Package | Runtime dependencies |
+|---|---|
+| `rootcard` (always) | `ed25519-dalek`, `sha2`, `zeroize` |
+| `rootcard` (`vault`) | + `x25519-dalek`, `hkdf`, `aes-gcm`, `argon2`, `unicode-normalization` (passwords only, SPEC [LCK-7]) |
+| `rootcard-host` | `rootcard` without `vault`, `getrandom` |
+| `rootcard-cli` | `rootcard`, `getrandom`, `zeroize`; an HTTP client is chosen and justified in phase 5 |
+| `packages/rootcard` | none (WebCrypto, `String.prototype.normalize`; own Argon2id and BLAKE2b) |
+| `examples/host` (not published) | `axum`, `tokio` |
+
+`hkdf` is also needed without `vault` for `derive_recovery_keys`; the final split is settled in phase 2. Canonical JSON,
+base64url and base32 are implemented in the cores themselves: they are small, they must be strict in ways general
+libraries are not (duplicate members, number forms, canonical padding), and they are covered by reject vectors. No
+`serde_json` in the core.
+
+---
+
+## 6. Documentation map
+
+| Document | Kind | Content |
+|---|---|---|
+| [AGENTS.md](../AGENTS.md) | Rules | How to work in this repository |
+| [docs/PLAN.md](PLAN.md) | Plan | Phases, acceptance criteria, decisions, deviations |
+| [docs/DESIGN.md](DESIGN.md) | Motivation | Requirements and the original design (superseded where SPEC differs) |
+| [spec/SPEC.md](../spec/SPEC.md) | **Normative** | The format and the rules for every party |
+| [spec/vectors/](../spec/vectors/) | **Normative** | Shared test vectors |
+| [docs/THREAT_MODEL.md](THREAT_MODEL.md) | Security | Goals, attackers, threats, accepted risks |
+| [docs/HOST_PROTOCOL.md](HOST_PROTOCOL.md) | Binding | Recommended HTTP endpoints for hosts |
+| docs/ARCHITECTURE.md | Overview | This document: components, server usage, dependencies |
+
+A change to the format updates SPEC (and vectors), then THREAT_MODEL if a threat changes, HOST_PROTOCOL if an endpoint
+changes, and this document if a component or dependency changes, in the same commit.

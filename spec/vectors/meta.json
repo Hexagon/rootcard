@@ -4,10 +4,21 @@
   "labels": [
     { "purpose": "id", "label": "rootcard/id/v1" },
     { "purpose": "event", "label": "rootcard/event/v1" },
+    { "purpose": "receipt", "label": "rootcard/receipt/v1" },
+    { "purpose": "locks", "label": "rootcard/locks/v1" },
     { "purpose": "vault", "label": "rootcard/vault/v1" },
+    { "purpose": "contents", "label": "rootcard/contents/v1" },
+    { "purpose": "wrap", "label": "rootcard/wrap/v1" },
     { "purpose": "public", "label": "rootcard/public/v1" },
     { "purpose": "login", "label": "rootcard/login/v1" },
+    { "purpose": "fetch", "label": "rootcard/fetch/v1" },
     { "purpose": "proof", "label": "rootcard/proof/v1" },
-    { "purpose": "receipt", "label": "rootcard/receipt/v1" }
+    { "purpose": "statement", "label": "rootcard/statement/v1" },
+    { "purpose": "recovery/check", "label": "rootcard/recovery/check/v1" },
+    { "purpose": "recovery/sign", "label": "rootcard/recovery/sign/v1" },
+    { "purpose": "recovery/box", "label": "rootcard/recovery/box/v1" },
+    { "purpose": "password/auth", "label": "rootcard/password/auth/v1" },
+    { "purpose": "password/box", "label": "rootcard/password/box/v1" },
+    { "purpose": "peer", "label": "rootcard/peer/v1" }
   ]
 }

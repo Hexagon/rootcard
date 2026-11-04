@@ -2,8 +2,9 @@
 
 This document is the design of rootcard: what an identity is, how it is verified, which version is current, how passwords
 are added and revoked, how arbitrary data is stored, how an identity is exported, and how the recovery key can always mint
-a fresh, complete instance. Phase 1 of [PLAN.md](PLAN.md) turns it into the normative [spec/SPEC.md](../spec/SPEC.md).
-Until then this document is the reference. Section numbers are stable.
+a fresh, complete instance. It is the motivation; the normative format is [spec/SPEC.md](../spec/SPEC.md), which corrects
+this design in several places (listed in its Appendix B: framing, vault fetch, recovery-signed locks, extension-only versions, host operation,
+sizes and more). Where they differ, the specification wins. Section numbers are stable.
 
 Terms: an **application** uses rootcard (a game, a web service). A **host** is a server that stores identities and accepts
 logins for an application. A **realm** is the string an identity is bound to (an application, a world, or `global`).
