@@ -9,21 +9,28 @@ refer to the specification.
 
 ## 1. General
 
-- **Base URL.** A host is reached at its base URL, the `home.url` of the instances it receipts: `https://` followed by a
-  host name, an optional port and an optional path without a trailing slash (`https://id.example.com`,
-  `https://example.com/rootcard`). Every path below is relative to it. Plain `http://` is allowed only for loopback
-  addresses during development.
+- **Addresses.** A host is reached at one or more base URLs ([HST-18]): `https://` followed by a host name, an optional
+  port and an optional path without a trailing slash (`https://id.example.com`, `https://example.com/rootcard`). Every
+  path below is relative to a base URL. The `home.url` of an instance is the address the host had when it receipted it;
+  a host that moves keeps answering `GET /host` at old addresses with its current ones. Plain `http://` is allowed only
+  for loopback addresses during development.
+- **Address binding.** The `url` in login and fetch messages ([LGN-4]) is the base URL the client sent the request to,
+  exactly as configured in the client (for a browser client served by the host, derived from `location`). The host
+  compares it with its list of base URLs.
 - **Encoding.** Request and response bodies are JSON (`Content-Type: application/json`, UTF-8). Clients SHOULD send
   canonical JSON; hosts parse strictly ([CJ-6]) and always verify over canonical bytes ([CJ-7]). Hosts send canonical
   JSON for every rootcard structure.
 - **Body size.** A host rejects request bodies over 6 MiB with `413 too_large` before parsing, and applies the limits of
   spec §19 per structure.
-- **Authentication.** Session endpoints take `Authorization: Bearer <token>`, where the token is `b64u` of at least 32
-  random bytes ([HST-10]). Hosts MUST NOT use cookies for rootcard sessions, so that no endpoint acts on ambient
-  credentials.
+- **Authentication.** The session endpoints of §4 take `Authorization: Bearer <token>` ([HST-10]). They never accept
+  cookies, so that no rootcard endpoint acts on ambient credentials. An application that wants a cookie session for its
+  own endpoints creates it from the login result on its own server, with its own CSRF protection; that session follows
+  [HST-11] like any other.
 - **CORS.** Every endpoint except `/peer/*` answers with `Access-Control-Allow-Origin: *` and allows the `Authorization`
   and `Content-Type` request headers, so that `keytool.html` (served from `file://`, origin `null`) and application
-  clients on other origins can reach the host. This is safe because no endpoint relies on cookies.
+  clients on other origins can reach the host. This is safe because no rootcard endpoint relies on cookies.
+- **Retries.** Every `POST` and `PUT` is safe to retry ([HST-20]): resubmitting exactly what was already stored returns
+  the original answer, including the original receipt. Clients retry on network errors and `5xx` with backoff.
 - **Caching.** Responses that contain a vault, a session token, lock hints or a challenge carry `Cache-Control:
   no-store`.
 - **Host-served clients** SHOULD be served with a strict Content Security Policy (no inline script, no third-party
@@ -44,6 +51,7 @@ Every error is a JSON object with the specification's error code (spec §20):
 | 403 | `realm_not_accepted` | `realms`: the realms the host serves |
 | 404 | `unknown_account` | – |
 | 409 | `stale_version` | `version` and `events` (see §1.2) |
+| 409 | `fork` | `version` and `events` (see §1.2) |
 | 409 | `handle_taken` | – |
 | 409 | `ambiguous_handle` | `candidates`: `[ { account, handle } ]` with extended tags |
 | 409 | `stale_rev`, `stale_locks` | `rev` and `gen` the host has |
@@ -54,9 +62,9 @@ Every error is a JSON object with the specification's error code (spec §20):
 
 ### 1.2 Versions in responses
 
-Wherever a response carries `version`, it is the host's newest version for the account ([VER-4]). A `stale_version`
-answer carries `events`: the host's events from the first `seq` the request did not share with the host (the fork point
-or the end of the shorter log), so the client can merge them ([VER-4]) and retry.
+Wherever a response carries `version`, it is the host's newest version for the account ([VER-4]). A `stale_version` or
+`fork` answer carries `events`: the host's events from the first `seq` the request did not share with the host (the end
+of the shorter log, or the fork point), so the client can extend its log and retry, or show the fork ([KT-7]).
 
 ---
 
@@ -64,21 +72,28 @@ or the end of the shorter log), so the client can merge them ([VER-4]) and retry
 
 ### `GET /host`
 
-The host descriptor. Not signed; it is trusted as far as the TLS connection to the base URL.
+The host descriptor. Not signed; it is trusted as far as the TLS connection to the base URL, and only used to find keys
+and addresses: every signature a client relies on is checked against keys in a verified log.
 ```
-{ "v": 1, "key": "ed25519:<host key>", "url": "<base URL>",
+{ "v": 1,
+  "key": "ed25519:<current host key>",
+  "retired_keys"?: [ "ed25519:<earlier host key>", ... ],
+  "urls": [ "<base URL>", ... ],                       the first is preferred
   "realms": [ { "realm": "global", "username_policy"?: { "min": 3, "max": 20, "first": "letter" } } ],
   "peers"?: [ "ed25519:<host key>", ... ] }
 ```
-A client registering an identity uses `key` and `url` as the new instance's `home` ([CLT-1]).
+A client registering an identity uses `key` and the base URL it is talking to as the new instance's `home` ([CLT-1]).
+The host is the home of an instance whose `home.key` is `key` or one of `retired_keys` ([HST-17]).
 
-### `GET /id/lookup?handle=<handle>`
+### `GET /id/lookup?realm=<realm>&handle=<handle>`
 
-Resolves a handle ([HDL-3]) or an extended handle. Any host that knows the identity answers.
+Resolves a handle ([HDL-3]) or an extended handle in a realm (`realm` may be omitted on a host that serves one realm).
+Any host that knows the identity answers.
 ```
 200 { "account", "handle", "version", "home": { "key", "url" }?, "retired": false }
 ```
-`home` is absent for a log with no current instance. Errors: `bad_handle`, `unknown_account`, `ambiguous_handle`.
+`home` is absent for a log with no current instance. Errors: `bad_handle`, `unknown_account`, `ambiguous_handle`,
+`realm_not_accepted`.
 
 ### `GET /id/{account}/log?from=<seq>`
 
@@ -153,7 +168,7 @@ The challenge ([CHL-1]) is bound to the account and the purpose and is valid onc
 
 The vault after a lock proof ([FET-1]).
 ```
-{ "lock": "<lock id or recovery>", "nonce", "sig" }
+{ "lock": "<lock id or recovery>", "nonce", "url", "sig" }
 200 { "vault": Vault }
 ```
 
@@ -171,9 +186,11 @@ Errors: `unauthorized` if `locks.gen` does not increase, `stale_rev`, and the co
 
 The login ([LGN-1] step 6).
 ```
-{ "nonce", "version", "sig" }
+{ "nonce", "version", "url", "sig" }
 200 { "token": "<b64u>", "handle", "instance": "<b64u>", "idle_timeout": 86400 }
 ```
+The answer carries the login result ([LGN-1] step 6). A host that issues its own session instead returns that session in
+the same members.
 
 ---
 
@@ -189,8 +206,8 @@ All take `Authorization: Bearer <token>` and answer `401 unauthorized` without a
 | `PUT /session/public` | `{ "public" }` | `200 { "rev" }` | DAT-2, DAT-3 |
 | `GET /session/export` | – | `200` the account file, `Content-Disposition: attachment; filename="<username>-<tag>.rootcard.json"` | FIL-2 |
 
-A session belongs to one instance: after a new instance or retirement every request with an old token answers `401
-unauthorized`.
+A session belongs to one instance: the host checks on every request that the instance is still current ([HST-11]), so
+after a new instance or retirement every request with an old token answers `401 unauthorized`.
 
 ---
 
@@ -254,8 +271,8 @@ exempt clients that present a valid session.
 
 **Login** ([LGN-1]):
 ```
-GET  /id/lookup?handle=Astra%233F9C          → account, version, home   (any host; then go to home.url)
-GET  /id/{account}/log?from=<n>              → merge; POST /id/{account}/events if the client's log is newer
+GET  /id/lookup?realm=global&handle=Astra%233F9C → account, version, home (any host; then go to home.url)
+GET  /id/{account}/log?from=<n>              → extend; POST /id/{account}/events if the client's log is newer
 GET  /id/{account}/locks                     → lock hints               (skipped with a cached vault)
 POST /id/{account}/challenge {fetch}         → sign the fetch message with the lock's auth key
 POST /id/{account}/fetch                     → vault; unlock it
@@ -270,3 +287,18 @@ POST /id/{account}/challenge {fetch} and /fetch with the recovery key at the old
 GET  /host at the new host
 POST /id/{account}/instance at the new host   → receipt; the new host pushes to the old one, which answers not_home
 ```
+
+---
+
+## 8. Running a host *(informative)*
+
+`rootcard-host` implements these endpoints as framework-independent handlers over two storage traits;
+docs/ARCHITECTURE.md describes them. Whatever the implementation, a production host needs:
+
+- **Shared storage** for all its servers with compare-and-swap updates ([HST-19]): per identity the events, the log
+  state, the vault and the profile; a unique index on `(realm, lower-case username, tag)`; challenges with a 60 s expiry
+  and an atomic take; sessions (or the host's own session mechanism) keyed by account and instance.
+- **The host key** loaded from the host's secret store, plus retired keys ([HST-17]). Only receipts and peer requests
+  use it, so it can live in a signing service.
+- **A synchronized clock** ([HST-21]) and the rate limits of §6, keyed by network address and by account.
+- **No password handling at all.** Hosts never run Argon2id; a request costs a few signature checks.

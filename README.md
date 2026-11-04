@@ -14,7 +14,10 @@ rootcard gives a user an identity that no server owns:
   access the account, where it lives or whether it exists needs the **recovery key**, kept offline.
 - **The recovery key is the root.** It can always mint a fresh, complete instance of the account, even if every host and
   backup is gone.
-- **One latest version.** Versions are totally ordered. Anyone who has seen a newer verified version rejects the old one.
+- **One latest version.** A log only grows. Anyone who has seen a newer verified version rejects the old one, and forks are
+  detected and refused.
+- **Built for servers.** Hosts never see a password or run Argon2id, verify logs incrementally, run on many servers over
+  one compare-and-swap store, and can rotate keys and change addresses without touching identities.
 - **Arbitrary data.** A signed public profile and private data inside the vault, with per-application namespaces.
 - **Realms.** An identity is bound to a realm string (an app, a world, or `global`).
 
@@ -29,6 +32,16 @@ rootcard gives a user an identity that no server owns:
 
 The specification in [`spec/`](spec/) and its test vectors are the source of truth. Rust and JavaScript must produce the same
 bytes for the same inputs.
+
+## Documentation
+
+| | |
+|---|---|
+| [spec/SPEC.md](spec/SPEC.md) | The normative specification, with [test vectors](spec/vectors/) |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, server usage, dependencies |
+| [docs/HOST_PROTOCOL.md](docs/HOST_PROTOCOL.md) | Recommended HTTP binding for hosts |
+| [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | Goals, attackers, threats, accepted risks |
+| [docs/DESIGN.md](docs/DESIGN.md) · [docs/PLAN.md](docs/PLAN.md) | Motivation · setup plan |
 
 ## License
 

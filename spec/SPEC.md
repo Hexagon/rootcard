@@ -34,7 +34,7 @@ complete on its own: an implementation can be written from this document and `sp
 20. [Error codes](#20-error-codes)
 21. [Test vectors](#21-test-vectors)
 22. [Versioning and extension](#22-versioning-and-extension)
-- [Appendix A: the version order is total](#appendix-a-the-version-order-is-total)
+- [Appendix A: forks](#appendix-a-forks)
 - [Appendix B: changes from DESIGN.md](#appendix-b-changes-from-designmd)
 
 ---
@@ -80,6 +80,7 @@ complete on its own: an implementation can be written from this document and `sp
 | **verifier** | Any party checking rootcard data: a host, a client, the key tool, another user |
 | **instance** | One generation of the identity: an account key, a primary host, a vault. Created by an `instance` event |
 | **version** | The last event of a valid log, written `{ seq, hash }` (§10) |
+| **fork** | Two valid logs of one identity where neither extends the other. Format version 1 detects forks and does not resolve them (§10) |
 | **low power**, **high power** | What the password, respectively the recovery key, can do (§16) |
 
 ---
@@ -405,16 +406,15 @@ and entered only in the key tool ([PWR-6]).
 
 ### 8.2 Collisions and extended tags
 
-- **[HDL-4]** Two identities **collide** when their usernames are similar ([USR-2]) and their tags are equal.
-- **[HDL-5]** A host never registers an identity that collides with one it already stores, retired identities included
-  ([HST-4]). → `handle_taken`
+- **[HDL-4]** Two identities **collide** when they have the same realm, similar usernames ([USR-2]) and equal tags.
+- **[HDL-5]** A host never registers an identity that collides with one it already stores in that realm, retired
+  identities included ([HST-4]). → `handle_taken`
 - **[HDL-6]** When a verifier knows a set `C` of two or more colliding identities (collisions can arrive by propagation,
   [HST-15]), it displays each of them with an **extended tag**: let `n` be the smallest integer ≥ 5 such that the first
   `n` characters of the ids in `C` are pairwise distinct; the extended tag of an id is its first 4 characters, `-`, and
   its characters 5 to `n`. Example: `Astra#3F9C-K2`. Identities that collide with nothing keep the plain tag.
-- **[HDL-7]** A lookup by a plain handle that matches more than one identity fails and returns the candidates with their
-  extended tags. → `ambiguous_handle`
-
+- **[HDL-7]** A lookup by a plain handle in a realm that matches more than one identity fails and returns the candidates
+  with their extended tags. → `ambiguous_handle`
 ---
 
 ## 9. The identity log
@@ -511,32 +511,41 @@ It performs these steps in order:
    ```
    { account, realm, username, handle, recovery,          the current recovery key
      instance?: { hash, seq, account_key, home, reason },  absent if none or retired
-     retired, version: { seq, hash }, time }              the last event; time is 0 for a log of only the inception
+     retired, version: { seq, hash }, time,               the last event; time is 0 for a log of only the inception
+     keys, homes }                                         the key sets of step 3, needed to extend the state
    ```
 
 - **[LOG-13]** Only the recovery key current after event `n − 1` can create event `n` (step 4.7). Nothing reachable with
   a password or an account key can change the log ([PWR-1]).
 - **[LOG-14]** After `retire` no event is valid (step 4.1), no instance is current and nobody can log in.
 
+- **[LOG-15]** **Incremental verification.** `extend_log(state, events, options)` takes a log state returned by
+  `verify_log` or `extend_log`, and events whose first `prev` is the hash of `state.version`, and performs step 4 for
+  each of them starting at index `state.version.seq + 1`, followed by step 1's length check and step 5. Its result MUST
+  equal that of `verify_log` on the whole log. A host stores the log state next to the events, so accepting new events
+  costs time proportional to the new events only, and an `extend_log` on a stored state never re-verifies old
+  signatures.
+- **[LOG-16]** A log state is plain data and can be stored and loaded by a host. A host MUST store it only after it was
+  produced by `verify_log` or `extend_log`, and MUST treat stored states as trusted only within its own storage.
 ---
 
 ## 10. Versions
 
 - **[VER-1]** The **version** of a valid log is `{ "seq": s, "hash": "<b64u>" }` of its last event. Two logs of the same
   account with the same version are the same log (the hash chain covers every earlier event).
-- **[VER-2]** **Total order.** For two valid logs `a` and `b` of the same account, `newer(a, b)` is true if and only if
-  the key `(retired, time, seq)` of `a`'s log state is greater than that of `b` in lexicographic order (`retired` counts
-  as 1 and not retired as 0; `time` is the log state's `time`), or the keys are equal and `a`'s version hash is
-  **smaller** than `b`'s as unsigned bytes. Logs of different accounts are not ordered. → `account_mismatch`
-- **[VER-3]** Consequences (Appendix A proves them):
-  1. If `b` extends `a` (`a` is a proper prefix of `b`), `b` is newer.
-  2. A retired log is newer than every log that is not retired: retiring is final.
-  3. Of two branches (logs that share a prefix and then differ, which only a recovery-key holder can create), the one
-     whose last event has the later `time` wins; on equal time the longer, then the lower hash. Every party applies the
-     same rule and converges.
-  4. The order is total and transitive, so "the latest version" is well defined among any set of valid logs.
+- **[VER-2]** **Extension order.** For two valid logs `a` and `b` of the same account, `b` is **newer** than `a` if and
+  only if `a` is a proper prefix of `b` (equivalently: `b` is longer and its event at `a.version.seq` has hash
+  `a.version.hash`). `compare_logs(a, b)` returns `same`, `newer`, `older` or `fork`. Logs of different accounts are not
+  compared. → `account_mismatch`
+- **[VER-3]** **Forks are detected, not resolved, in format version 1.** Only a holder of the recovery key can create a
+  fork (every event needs its signature, [PWR-1]). A party that holds a log and receives one that forks from it keeps
+  the log it has and rejects the other with `fork`, returning its own version. The key tool reports forks to the user
+  ([KT-7]), who resolves them by extending the branch the primary host holds. A deterministic choice between branches is
+  left to a later format version (Appendix A). Consequences: nothing follows a `retire`, so retirement is final; and a
+  rotated-out recovery key cannot undo a rotation at a party that has seen it.
 - **[VER-4]** **Monotonicity.** Every host, client and key tool keeps, per identity, the newest valid log it has seen
-  and replaces it only with a newer one ([VER-2]). It never moves back to an older version. → `stale_version`
+  and replaces it only with a newer one ([VER-2]). It never moves back to an older version → `stale_version`, and never
+  switches to a fork → `fork`.
 - **[VER-5]** **Carrying forward.** A party that holds a newer log than a host it talks to SHOULD send it the missing
   events ([HST-14]). A host that holds a newer log than a request refers to answers `stale_version` with its version and
   events.
@@ -711,18 +720,21 @@ Both start with a **challenge** from the primary host.
 
 ### 13.1 Challenges
 
-- **[CHL-1]** A challenge is `{ "nonce": "<b64u 32 random bytes>", "host": "ed25519:<host key>", "realm": realm,
-  "version": { seq, hash }, "expires": t }`, issued for one account and one purpose (`fetch` or `login`).
+- **[CHL-1]** A challenge is `{ "nonce": "<b64u 32 random bytes>", "host": "ed25519:<home.key of the current instance>",
+  "realm": realm, "version": { seq, hash }, "expires": t }`, issued for one account and one purpose (`fetch` or
+  `login`).
 - **[CHL-2]** A challenge is valid **once**, for its account and purpose, and until `expires`, which is at most **60 s**
   after issue. Using an unknown, used or other-purpose nonce → `challenge_unknown`; an expired one →
-  `challenge_expired`. The host consumes a nonce on its first use, whether the answer verifies or not.
-
+  `challenge_expired`. The host consumes a nonce on its first use, whether the answer verifies or not. A host that runs
+  on several servers enforces single use across all of them ([HST-19]).
 ### 13.2 Vault fetch
 
 - **[FET-1]** To obtain the vault without a session, a party proves a lock: it signs `frame("rootcard/fetch/v1", {
-  "account": …, "host": …, "lock": "<lock id>", "nonce": … })` with the lock's `auth` key (a password lock, [LCK-7]) or
-  with the current recovery signing key (the `recovery` lock). The host verifies the signature against the lock's `auth`
-  key, respectively the log's current recovery key, and returns the vault. → `bad_signature`
+  "account": …, "host": …, "lock": "<lock id>", "nonce": …, "url": … })` with the lock's `auth` key (a password lock,
+  [LCK-7]) or with the current recovery signing key (the `recovery` lock), where `host` is the challenge's `host` and
+  `url` the host address the party is connected to ([LGN-4]). The host checks `url` ([HST-18]) → `wrong_host`, verifies
+  the signature against the lock's `auth` key, respectively the log's current recovery key → `bad_signature`, and
+  returns the vault.
 - **[FET-2]** Before a fetch, the primary host gives anyone who asks the **lock hints**: for each password lock, `id`,
   `label` and `kdf`, and nothing else (not `auth`, `box` or `wrap`). A client needs them to run Argon2id. Hints are not
   signed.
@@ -732,29 +744,37 @@ Both start with a **challenge** from the primary host.
 ### 13.3 Login
 
 **[LGN-1]** A login runs at the primary host:
-1. The client obtains the host's newest log for the identity, merges it with its own ([VER-4]) and, if its own is newer,
-   sends the missing events first ([VER-5]).
-2. The client checks that the current instance's `home` is the host it is talking to: `home.key` equals the host's key
-   and the connection goes to `home.url` → otherwise it stops with `not_home`.
+1. The client obtains the host's newest log for the identity and compares it with its own ([VER-2]). If its own is newer
+   it sends the missing events first ([VER-5]); on a fork it stops → `fork`.
+2. The client checks that the host it is talking to is the current instance's home: `home.key` is one of the keys the
+   host presents (its descriptor, [HST-17]) → otherwise it stops with `not_home`. It SHOULD connect to `home.url`, and
+   MAY follow the host's own announcement of a new address ([HST-18]).
 3. The client obtains a vault of the current instance: from its own storage if it has one, otherwise by a vault fetch
    (§13.2). It unlocks it ([VLT-8]).
 4. The client requests a `login` challenge and checks `challenge.host` = `home.key`, `challenge.realm` = the log's realm
    → `wrong_host`, and `challenge.version` = its version → `stale_version` (it then fetches the newer log and restarts).
-5. The client signs the **login message** with the account key and sends `{ account, nonce, version, sig }`:
+5. The client signs the **login message** with the account key and sends `{ account, nonce, version, url, sig }`:
    ```
    sig = Ed25519.sign(account key, frame("rootcard/login/v1",
-           { "account": …, "host": "ed25519:<host key>", "nonce": …, "realm": …, "version": { seq, hash } }))
+           { "account": …, "host": "ed25519:<home.key>", "nonce": …, "realm": …, "url": "<address in use>",
+             "version": { seq, hash } }))
    ```
 6. The host checks, in order: the account exists and is not retired → `unknown_account`, `account_retired`; it is the
-   home of the current instance → `not_home`; the nonce ([CHL-2]) → `challenge_unknown`, `challenge_expired`; `version`
-   equals its current version exactly → `stale_version`; the signature with the current instance's `account_key` →
-   `bad_signature`. It then opens a session ([HST-10]).
+   home of the current instance ([HST-17]) → `not_home`; `url` is one of its addresses ([HST-18]) → `wrong_host`; the
+   nonce ([CHL-2]) → `challenge_unknown`, `challenge_expired`; `version` equals its current version exactly →
+   `stale_version`; the signature with the current instance's `account_key` → `bad_signature`. It then returns the
+   **login result** `{ account, handle, instance, version }` and opens a session for it ([HST-10]).
 
 - **[LGN-2]** The account key exists only in the unlocked vault in the client's memory. Clients import it
   non-extractable where the platform allows it and erase the raw bytes ([IMP-2]).
 - **[LGN-3]** No step sends the password, a value derived from it, the vault key or the account key's private part to
   any host. A host learns only signatures and, at a fetch, which lock was used.
 
+- **[LGN-4]** **Address binding.** `url` in the login and fetch messages is the address of the host as the client
+  actually reaches it (for a browser client, the origin and base path of the host's API; for other clients, the base URL
+  they connect to), not a value received from the host. A phishing site that relays challenges to the real host gets
+  signatures for its own address, which the real host rejects. This is what lets a host change or add addresses without
+  a new instance ([HST-18]).
 ---
 
 ## 14. Proofs
@@ -874,14 +894,18 @@ the recovery key. Everything else needs at most the password. In doubt, a new fe
 
 ## 17. Hosts
 
-A host serves one or more realms, has one Ed25519 host key, and is identified by it. These rules are normative for hosts
-whatever binding they use. HOST_PROTOCOL.md maps them to HTTP.
+A host serves one or more realms and is identified by its Ed25519 host keys ([HST-17]). A host may run on any number of
+servers that share its storage. These rules are normative for hosts whatever binding they use. HOST_PROTOCOL.md maps
+them to HTTP, and docs/ARCHITECTURE.md describes how `rootcard-host` implements them.
+
+A host never runs Argon2id, never sees a password and never decrypts a vault: everything it checks is a signature, a
+hash or a size. Its cost per request is a few Ed25519 verifications and one atomic storage update.
 
 ### 17.1 Storage
 
-- **[HST-1]** A host stores per identity: the newest valid log it has seen ([VER-4]); if it is the current primary host,
-  the newest vault ([VLT-4]); the newest public profile of the current instance ([DAT-3]). Hosts map account ids to
-  internal ids that never leave the host.
+- **[HST-1]** A host stores per identity: the events of the newest valid log it has seen and its log state ([VER-4],
+  [LOG-16]); if it is the current primary host, the newest vault ([VLT-4]); the newest public profile of the current
+  instance ([DAT-3]). Hosts map account ids to internal ids that never leave the host.
 - **[HST-2]** A host stores no password, no password hash and nothing derived from a password other than what the vault
   it holds as primary host contains. It never hands out a vault except per [VLT-5].
 
@@ -889,38 +913,45 @@ whatever binding they use. HOST_PROTOCOL.md maps them to HTTP.
 
 - **[HST-3]** **Registration** submits `[inception, pending instance]` with `reason` `register`, a vault and optionally
   a public profile. The host checks, in order: the realm is one it serves → `realm_not_accepted`; the username satisfies
-  the realm's policy → `username_policy`; `verify_log([inception])` and `verify_pending` ([LOG-9]) → their codes; the
-  host does not already store a log for the account → `stale_version`, answered with its log (an owner who wants an
-  instance here uses the key tool, [KT-3]); the instance's `home.key` is this host's key → `wrong_host`; the time window
-  ([HST-6]) → `bad_time`; the handle is free ([HST-4]) → `handle_taken`; the vault ([VLT-3]) and profile ([DAT-2])
-  verify → their codes; the vault has a password lock → `bad_locks`. It then adds the receipt, stores everything and
-  answers with the account id, the handle and the version.
-- **[HST-4]** **Handle uniqueness:** a host never stores two identities that collide ([HDL-4]) unless the collision
-  arrived by propagation ([HST-15]). Retired identities keep their handle reserved.
+  the realm's policy → `username_policy`; `verify_log([inception])` and `verify_pending` ([LOG-9]) → their codes; if the
+  host already stores a log for the account, the request is a retry when that log is exactly the submitted inception and
+  instance (it answers as for the original request, [HST-20]), and otherwise → `stale_version` with its log (an owner
+  who wants an instance here uses the key tool, [KT-3]); the instance's `home` names this host ([HST-6]) → `wrong_host`;
+  the time window ([HST-6]) → `bad_time`; the handle is free in the realm ([HST-4]) → `handle_taken`; the vault
+  ([VLT-3]) and profile ([DAT-2]) verify → their codes; the vault has a password lock → `bad_locks`. It then adds the
+  receipt, stores everything atomically ([HST-19]) and answers with the account id, the handle, the version and the
+  receipt.
+- **[HST-4]** **Handle uniqueness:** a host never stores two identities of one realm that collide ([HDL-4]) unless the
+  collision arrived by propagation ([HST-15]). Retired identities keep their handle reserved. *Note:* a unique index on
+  `(realm, lower-case username, tag)` implements this rule.
 - **[HST-5]** **New instance** submits a pending instance, the events the host may be missing before it, a vault and
-  optionally a profile. The host merges the missing events ([HST-14]) and then requires the pending instance's `prev` to
-  be the hash of its current version → otherwise `stale_version`, answered with its version and the events the submitter
-  lacks.
-- **[HST-6]** A host adds its receipt only when: the event is the next event of its newest log; `home.key` is this
-  host's key and `home.url` this host's address → `wrong_host`; the event's `time` is within **600 s** of the host's
-  clock (`|time − now| ≤ 600`) → `bad_time`; the realm is one it serves; the vault for the new instance verifies. The
-  receipt therefore attests that the instance was made at about `time`.
-- **[HST-7]** On adopting a log whose current instance differs from its previous one, a host immediately revokes every
-  session of the previous instances ([HST-11]). If it is no longer the primary host, it deletes the vault and answers
-  logins and fetches with `not_home` and the address of the primary host. A session that was revoked is never restored,
-  even if a branch switch ([VER-3]) makes an older instance current again.
-- **[HST-8]** On adopting a retired log, a host revokes every session, deletes the vault and the public profile, keeps
-  the complete log so that the id is never reused, and answers with `account_retired`.
-
+  optionally a profile. The host extends its log with the missing events ([HST-14]) and then requires the pending
+  instance's `prev` to be the hash of its current version → otherwise `stale_version` (the submitter is behind) or
+  `fork`, answered with its version and the events the submitter lacks. A resubmission of an instance the host already
+  receipted is a retry ([HST-20]).
+- **[HST-6]** A host adds its receipt only when: the event is the next event of its newest log; `home.key` is the host's
+  **current** key and `home.url` one of its addresses ([HST-17], [HST-18]) → `wrong_host`; the event's `time` is within
+  **600 s** of the host's clock (`|time − now| ≤ 600`) → `bad_time`; the realm is one it serves; the vault for the new
+  instance verifies. It signs the receipt with its current key.
+- **[HST-7]** When a host adopts a log whose current instance differs from its previous one, every session of the
+  previous instances is invalid from then on ([HST-11]). If the host is no longer the primary host, it deletes the vault
+  and answers lock hints, fetches and logins with `not_home` and the new `home`.
+- **[HST-8]** On adopting a retired log, a host deletes the vault and the public profile, keeps the complete log so that
+  the id is never reused, and answers with `account_retired`. Every session of the identity is invalid from then on.
 ### 17.3 Fetch, login and sessions
 
-- **[HST-9]** Only the primary host gives lock hints, fetches vaults ([FET-1]) and accepts logins ([LGN-1]); every other
-  host answers `not_home` with the primary host's `home`.
-- **[HST-10]** A session is created only by a successful login. It belongs to one host, one account and one instance. A
-  session token is at least 32 random bytes and the host stores only its SHA-256 hash. With a session, the user may read
-  and replace the vault ([VLT-4]) and the public profile ([DAT-3]), and export the account file ([FIL-2]).
-- **[HST-11]** A session ends on logout, after at most **24 h** without use, and on any new instance or retirement
-  ([HST-7], [HST-8]).
+- **[HST-9]** Only the primary host (the host holding the current instance's `home.key`, [HST-17]) gives lock hints,
+  fetches vaults ([FET-1]) and accepts logins ([LGN-1]); every other host answers `not_home` with the current `home`.
+- **[HST-10]** A session is created only from a login result ([LGN-1] step 6). It belongs to one host, one account and
+  one instance, and records the instance hash. The host MAY use any session mechanism it already has (opaque tokens,
+  signed tokens, framework sessions) as long as it meets [HST-11]. With an opaque token, the token is at least 32 random
+  bytes and the host stores only its SHA-256 hash. With a session, the user may read and replace the vault ([VLT-4]) and
+  the public profile ([DAT-3]), and export the account file ([FIL-2]).
+- **[HST-11]** A session is valid only while its instance is the current instance of the identity's stored log and the
+  log is not retired. The host checks this **on every use**, against its storage, so a new instance or retirement ends
+  every session at once without a list of sessions to revoke; a host MAY cache the current instance hash for at most 10
+  s. A session also ends on logout and after at most **24 h** without use. A session that became invalid never becomes
+  valid again.
 - **[HST-12]** The primary host accepts a vault replacement only if the new vault verifies ([VLT-3]) and satisfies
   [VLT-4], and either the request carries a session of the current instance, or the new `locks.gen` is greater than the
   stored one (a new lock set signed by the current recovery key authorizes the replacement, so the key tool needs no
@@ -932,15 +963,37 @@ whatever binding they use. HOST_PROTOCOL.md maps them to HTTP.
 
 - **[HST-13]** **Only the public log and the public profile are shared** between hosts. Vaults and anything derived from
   passwords never leave the primary host ([VLT-5]).
-- **[HST-14]** A host accepts events and logs from anyone (clients, peers) and verifies them itself ([LOG-12] with
-  `now`); it never trusts another host's claim. It adopts a received log only if it is newer ([VER-2]); otherwise it
-  answers `stale_version` with its version.
+- **[HST-14]** A host accepts events and logs from anyone (clients, peers) and verifies them itself ([LOG-12], [LOG-15]
+  with `now`); it never trusts another host's claim. It adopts a received log only if it is newer ([VER-2]); otherwise
+  it answers `stale_version` (older or equal) or `fork` with its version.
 - **[HST-15]** Hosts that serve the same realm MAY be configured as **peers** by exchanging host keys. A host SHOULD
   push new events and profiles to its peers, MUST push a new `instance` to the previous primary host when it can reach
   it, and SHOULD pull from its peers periodically. Collisions revealed by sharing are shown with extended tags
   ([HDL-6]).
 - **[HST-16]** A host SHOULD rate limit registrations, lock hints, challenges, fetches, logins and event submissions per
   network address and per identity. HOST_PROTOCOL.md gives recommended limits. → `rate_limited`
+
+### 17.5 Keys, addresses and operation
+
+- **[HST-17]** **Host keys.** A host has one **current** host key and MAY keep **retired** host keys. It is the home of
+  every instance whose `home.key` is any of its keys, and presents all of them (HOST_PROTOCOL.md: the descriptor). It
+  signs receipts and peer requests with the current key only. A host rotates its key by making a new key current and
+  keeping the old one as retired: existing instances keep working and need no new event. A host key signs nothing that
+  could create or change an identity without the owner's recovery key, so a leaked host key lets an attacker only
+  impersonate the host towards peers; the host then rotates and tells its peers. A host needs only the public part of a
+  retired key and SHOULD destroy its private part.
+- **[HST-18]** **Addresses.** A host has one or more addresses (base URLs). `home.url` records the address at the time
+  of the instance and is a hint for finding the host. A host accepts login and fetch messages ([LGN-4]) whose `url` is
+  one of its current addresses, and MAY announce a new address at an old one. Changing addresses needs no new instance.
+- **[HST-19]** **Atomic updates.** Every change of one identity's stored log, vault or profile is a compare-and-swap on
+  the stored version, `rev` or `gen` that the change was checked against, so that concurrent requests on several servers
+  can neither lose an update nor move backwards. Consuming a challenge nonce is atomic across all servers of a host, and
+  registration claims the handle and stores the identity in one atomic step.
+- **[HST-20]** **Retries are safe.** A request that would store exactly what is already stored (the same events, the
+  same vault, the same profile) succeeds with the same answer as the first time, including the same receipt (Ed25519
+  signatures are deterministic, [CRY-8]). A host therefore never fails a client that retries after a lost response.
+- **[HST-21]** **Time.** A host takes `now` from its own clock for every check that needs it ([LOG-12], [HST-6],
+  [CHL-2]) and keeps its clock synchronized. The cores take time as a parameter ([IMP-1]).
 
 ---
 
@@ -967,8 +1020,9 @@ whatever binding they use. HOST_PROTOCOL.md maps them to HTTP.
 - **[KT-1]** The key tool is the `rootcard` CLI or `keytool.html`. It makes no network request except to hosts the user
   chooses, and it works without a network for every operation that needs none.
 - **[KT-2]** **Finding the newest version:** before any operation that creates an event or a lock set, the key tool
-  gathers the logs it can reach (the chosen hosts, account files, the card) and uses the newest ([VER-2]). If it found
-  none, it builds on the inception derived from the card.
+  gathers the logs it can reach (the chosen hosts, account files, the card) and uses the newest ([VER-2]). If two of
+  them fork, it stops and reports the fork ([KT-7]) instead of building on either. If it found none, it builds on the
+  inception derived from the card.
 - **[KT-3]** **Restore and fresh** (a new instance, on the same or another host): generate a new account key and a new
   vault key, build a pending instance on top of the newest version ([KT-2]) with `home` = the chosen host, and submit it
   with the new vault and profile ([HST-5]). `restore`: unlock the current vault with the recovery lock (fetched with a
@@ -986,9 +1040,9 @@ whatever binding they use. HOST_PROTOCOL.md maps them to HTTP.
   then a new recovery card with `log` ([CRD-2]). The old card SHOULD be destroyed. *Note:* in format version 1, a
   rotation does not protect against someone who already holds the old key (THREAT_MODEL.md AR3).
 - **[KT-6]** **Retire:** a `retire` event, after the user confirms that the identity is closed forever.
-- **[KT-7]** The key tool shows the result of every operation as the newest version and the current instance, and warns
-  when it detects a branch ([VER-3]).
-
+- **[KT-7]** The key tool shows the result of every operation as the newest version and the current instance. When it
+  detects a fork ([VER-3]) it shows both branches, which hosts hold which, and offers to extend the branch held by the
+  primary host.
 ### 18.3 Implementation requirements
 
 - **[IMP-1]** The cores (`crates/rootcard`, `packages/rootcard`) do no I/O, read no clock and draw no randomness
@@ -1025,6 +1079,7 @@ whatever binding they use. HOST_PROTOCOL.md maps them to HTTP.
 | Future time | 600 s | [LOG-12] |
 | Receipt time window | ± 600 s | [HST-6] |
 | Session idle | 24 h | [HST-11] |
+| Cache of the current instance for session checks | 10 s | [HST-11] |
 | Argon2id | `p = 1`, `46 MiB ≤ m ≤ 1 GiB`, `2 ≤ t ≤ 16` | [LCK-6] |
 | `rev`, `gen` | 1 … 2³² | [VLT-4], [DAT-3] |
 
@@ -1067,6 +1122,7 @@ its code ([CNV-4]).
 | `account_retired` | The identity is retired | LOG-14, HST-8 |
 | `no_instance` | The log has no current instance | VLT-3, DAT-2, PRF-4 |
 | `stale_version` | Not the newest version | VER-4, LGN-1, HST-5, PRF-4 |
+| `fork` | Two logs of the identity fork; format version 1 does not resolve forks | VER-3, VER-4, LGN-1, HST-5, HST-14 |
 | `wrong_instance` | A vault or profile of another instance | VLT-3, DAT-2 |
 | `stale_rev` | `rev` does not increase | VLT-4, DAT-3 |
 | `stale_locks` | The lock set goes backwards or changes without a new `gen` | VLT-4 |
@@ -1081,7 +1137,7 @@ its code ([CNV-4]).
 | `challenge_unknown` | An unknown, used or other-purpose nonce | CHL-2 |
 | `challenge_expired` | An expired nonce | CHL-2 |
 | `not_home` | This host is not the primary host | LGN-1, HST-7, HST-9 |
-| `wrong_host` | A challenge or instance names another host | LGN-1, HST-3 |
+| `wrong_host` | A challenge, instance, login or fetch names another host or address | LGN-1, FET-1, HST-3, HST-6 |
 | `unknown_account` | The host does not know the account | LGN-1 |
 | `unauthorized` | No valid session, or a vault replacement that is not authorized | HST-10, HST-12 |
 | `rate_limited` | Too many requests | HST-16 |
@@ -1096,8 +1152,8 @@ its code ([CNV-4]).
   expected output or the expected `error` code.
 - **[VEC-3]** Files: `meta.json` (format version and the label registry, [DS-3]), `primitives.json` (canonical JSON,
   base64url, base32, recovery keys, strict Ed25519 including every rejected class of [CRY-3], X25519, HKDF, Argon2id),
-  `log.json` (inceptions, ids, handles, extended tags, logs, the version order), `vault.json`, `profile.json`,
-  `proof.json` (login and fetch messages, proofs), `file.json` (account files and cards).
+  `log.json` (inceptions, ids, handles, extended tags, logs, incremental verification, extension and fork detection),
+  `vault.json`, `profile.json`, `proof.json` (login and fetch messages, proofs), `file.json` (account files and cards).
 - **[VEC-4]** Every rule that a verifier checks has at least one accept and one reject vector, and every
   security-relevant fix adds a regression vector.
 
@@ -1117,26 +1173,24 @@ its code ([CNV-4]).
 
 ---
 
-## Appendix A: the version order is total
+## Appendix A: forks
 
-*(informative)* Let `κ(x) = (r, t, s, −h)` for a valid log `x`, where `r` is 1 if `x` is retired, `t` the `time` of its
-last event (0 for the inception), `s` its last `seq` and `h` its version hash as a 256-bit unsigned integer. [VER-2]
-says `a` is newer than `b` exactly when `κ(a) > κ(b)` lexicographically.
+*(informative)* A fork is two valid logs of one identity where neither extends the other. Every event after the
+inception needs the current recovery key ([PWR-1]) and every `instance` the receipt of its primary host, so a host or a
+thief of a password or an account key cannot fork a log; they can only withhold newer events (THREAT_MODEL.md AR4).
+Forks therefore come from the owner (for example a new instance minted from an old account file while the newest log was
+out of reach) or from a thief of the recovery key.
 
-1. **Total and transitive.** `κ` maps logs to a lexicographic product of total orders, which is a total order. Two logs
-   of one account with equal `κ` have equal version hashes and are therefore the same log (second-preimage resistance of
-   SHA-256 over the hash chain). Hence the order is a strict total order on distinct logs.
-2. **Extension is newer.** If `b` extends `a`, nothing follows a `retire` ([LOG-14]), so `a` is not retired and `r(b) ≥
-   r(a)`. If `r(b) > r(a)`, `b` is newer. Otherwise times never decrease along a log ([LOG-12] step 4.5), so `t(b) ≥
-   t(a)`, and `s(b) > s(a)`, hence `κ(b) > κ(a)`.
-3. **Retiring is final.** Every retired log has `r = 1` and every other `r = 0`.
-4. **Who can create a competing branch.** Every event after the inception needs the current recovery key ([PWR-1]), and
-   every `instance` the receipt of its primary host. A host or a thief of a password or an account key cannot create a
-   log that is newer than the owner's; they can only withhold newer logs (THREAT_MODEL.md AR4).
+Format version 1 keeps the rule simple for hosts: a host keeps the first log it saw and only ever extends it ([VER-3],
+[VER-4]). This makes host storage an append-only log per identity guarded by one compare-and-swap ([HST-19]), and a host
+never has to switch an identity back to an older instance. The key tool avoids accidental forks by gathering every log
+it can reach before it signs ([KT-2]) and by rebuilding when a host answers `stale_version` ([KT-3]).
 
-*Rationale for comparing the last events rather than the events at the fork point:* the owner's latest action wins, so a
-new instance minted from an old account file on a host that could not see the newest version (§18.2, [KT-3]) supersedes
-the branch it did not see, which is what the owner just asked for.
+A deterministic fork choice, so that every party converges on the same branch without the owner's help, is left to a
+later format version together with witnesses (DESIGN §10.3). A candidate is ordering logs by `(retired, time of the last
+event, seq, lowest hash)`, which is total and transitive and keeps retirement final; it was drafted for version 1 and
+set aside because it lets a holder of a rotated-out recovery key win by choosing a later time, and because it makes
+hosts handle switches between instances.
 
 ---
 
@@ -1162,9 +1216,9 @@ Each change keeps the design's intent.
    their own. The vault's `revoked` list is dropped: revocation is a new instance.
 7. **`rev` instead of `version`** for vault and profile revisions, so that "version" always means the log version (`{
    seq, hash }`).
-8. **The version order** compares `(retired, time, seq, hash)` of the last events ([VER-2]). The design's wording
-   ("latest `time`, then lower hash") was not transitive with the extension rule on equal times; `seq` fixes that, and
-   `retired` makes retirement final as the design intended.
+8. **Versions are ordered by extension only; forks are detected, not resolved** ([VER-2], [VER-3]). The design's branch
+   rule ("latest `time`, then lower hash") was not transitive and would make hosts switch identities between instances;
+   fork resolution is deferred to a later format version (Appendix A).
 9. **Receipts** require the new instance's `time` to be within 600 s of the receipting host's clock ([HST-6]).
 10. **Instance body field `account_key`** (the design reused `account`, which is also the account id).
 11. **Sizes:** the vault limit is 96 KiB and the contents 64 KiB, since the design's 64 KiB vault could not hold 48 KiB
@@ -1177,3 +1231,8 @@ Each change keeps the design's intent.
     the inception.
 14. **Key reuse** across roles and instances is rejected ([LOG-12] step 4.8).
 15. **The recovery key checksum** is framed with its own label (`rootcard/recovery/check/v1`).
+16. **Host operation** ([HST-17]–[HST-21]): hosts may rotate their key and change their address without a new instance,
+    login and fetch messages are bound to the address the client actually uses ([LGN-4]) instead of only to `home.url`,
+    sessions are checked against the current instance on every use instead of being revoked one by one, storage updates
+    are compare-and-swap, retries are idempotent, and logs are verified incrementally ([LOG-15]).
+17. **Handles are unique per realm** ([HDL-4]), not per host.

@@ -20,6 +20,8 @@ Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is applica
 | D4 | Minimum supported Rust version | Latest stable minus two releases, checked in CI |
 | D5 | Minimum browsers | Those with WebCrypto `Ed25519` and `X25519`. No weaker fallback |
 | D6 | Security contact and disclosure policy | `SECURITY.md` with a private advisory address on GitHub |
+| D7 | Unicode dependency for passwords (NFC) | ✅ **`unicode-normalization`** in Rust, behind the core's `vault` feature so hosts do not build it; JS uses `String.prototype.normalize` (decided) |
+| D8 | Scope of v1 | ✅ **Good for servers first** (decided): hosts are simple, multi-server safe and need no password handling; forks are detected, not resolved, and fork resolution waits for a later format version |
 
 ---
 
@@ -53,7 +55,7 @@ Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is applica
 
 - [x] `spec/SPEC.md`: turn DESIGN.md into a normative, application-neutral specification (MUST/SHOULD):
   canonical JSON, base32 and the recovery-key format, inception and id, handle and extended tags, log events (`incept`,
-  `instance`, `rotate_recovery`, `retire`), the total order of versions, the vault and locks, the public profile and
+  `instance`, `rotate_recovery`, `retire`), versions, the vault and locks, the public profile and
   namespaces, login, receipts and proofs, the account file and the recovery card, size limits, error codes
 - [x] `docs/THREAT_MODEL.md`: the threat table, the secure-and-feasible decisions and the accepted risks from DESIGN.md §2 and §10,
   expanded (attacker capabilities, assets, trust boundaries)
@@ -74,10 +76,13 @@ refer to.
   - the **lock set is signed by the recovery key** with a generation counter, because the design let the account key (low
     power) sign locks;
   - recovery key derivation is bound to realm and username, so identities from one key are unlinkable;
-  - the version order compares `(retired, time, seq, hash)` of the last events, which is transitive and makes `retire` final;
+  - versions are ordered by extension only; forks are detected (`fork`) and not resolved in v1 (D8, SPEC Appendix A);
+  - hosts can rotate keys and change addresses without new instances, login and fetch messages are bound to the address
+    the client uses, sessions are checked against the current instance on every use, storage updates are
+    compare-and-swap and retries are idempotent (SPEC [HST-17]–[HST-21]); handles are unique per realm;
   - vault and profile revisions are `rev`; "version" means only the log version.
-- Phase 2 needs Unicode NFC for passwords (SPEC [LCK-7]). WebCrypto has `String.prototype.normalize`; Rust needs a crate
-  such as `unicode-normalization`, to be justified in that PR (AGENTS.md rule 6).
+- Phase 2 needs Unicode NFC for passwords (SPEC [LCK-7]): `unicode-normalization` in Rust (D7), only with the `vault`
+  feature. The dependency budget per package is in [ARCHITECTURE.md](ARCHITECTURE.md) §5.
 - Phase 2's JS `crypto.js` must perform the strict Ed25519 pre-checks itself (SPEC [CRY-3] steps 1–4), since WebCrypto
   verifiers differ on them.
 
@@ -95,11 +100,13 @@ a documented parameter change in the spec.
 ## Phase 3: identity log and versions
 
 - [ ] Deterministic inception from recovery key + username + realm, account id, handle, extended tags
-- [ ] Events, `verify_log` (including self-signature of every new public key), current instance, `newer` (total order)
+- [ ] Events, `verify_log` (including self-signature of every new public key), `extend_log` (incremental, equal to
+  `verify_log` on the whole log), `verify_pending`, current instance, `compare_logs` (extension, fork)
 - [ ] Reject cases: wrong `prev`, wrong signer, wrong realm, future time, after `retire`, forged inception, tag collision
 - [ ] Vectors: `spec/vectors/log.json`
 
-**Acceptance:** both languages accept and reject exactly the same logs, and order the same versions the same way.
+**Acceptance:** both languages accept and reject exactly the same logs with the same error codes, and compare the same
+logs the same way.
 
 ## Phase 4: vault, public profile, login and proofs
 
@@ -119,10 +126,14 @@ a documented parameter change in the spec.
   `inspect`, `verify`, `prove`. Reads and writes account files and cards, talks to a host only when asked
 - [ ] `packages/rootcard/keytool.html`: the same operations as one standalone page with no network access unless the user picks
   a host. Works from `file://`
-- [ ] `rootcard-host`: `ChallengeStore` (single use, 60 s), `IdentityStore` trait with an in-memory implementation, version
-  handling (`stale_version`, sessions bound to an instance), handlers independent of any HTTP framework
+- [ ] `rootcard-host` (design in [ARCHITECTURE.md](ARCHITECTURE.md) §3): `ChallengeStore` (atomic take, 60 s),
+  `IdentityStore` with compare-and-swap and an in-memory implementation, stored log states with `extend_log`, host keys
+  with retired keys, accepted addresses, `stale_version` and `fork`, idempotent retries, `LoginResult` and
+  `session_valid` (sessions bound to an instance), handlers independent of any HTTP framework, built on the core without
+  the `vault` feature
+- [ ] A documented SQL schema for the store, and a concurrency test: two handlers on one store racing the same update
 - [ ] An example host (`examples/host`, axum) and an end-to-end test: register, log in, export, new instance on a second host,
-  the first host answers `not_home`
+  the first host answers `not_home`; a host key rotation and an address change with existing identities logging in
 
 **Acceptance:** the full flow runs end to end in CI with two example hosts.
 
@@ -140,7 +151,10 @@ a documented parameter change in the spec.
 ## Later
 
 - Passkeys (WebAuthn PRF) as a lock type
-- Witnesses and pre-rotation (`v: 2`) against a stolen recovery key
+- Witnesses and pre-rotation (`v: 2`) against a stolen recovery key, together with deterministic fork resolution (SPEC
+  Appendix A)
+- Host helpers for JavaScript servers (`rootcard/host`), if there is demand; the JS core already verifies everything a
+  host checks
 - Post-quantum key types (ML-DSA, ML-KEM) by new type tags
 - Federation of public logs between hosts
 - First application: Xigna (its integration plan is in the Xigna repository)

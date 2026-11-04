@@ -8,6 +8,8 @@ crates.io and an npm package on npmjs, from one monorepo. Security is the produc
 3. [spec/SPEC.md](spec/SPEC.md): the normative format. Where it differs from DESIGN.md, the spec wins (Appendix B)
 4. [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md): goals, attackers, trust boundaries, threats and accepted risks
 5. [docs/HOST_PROTOCOL.md](docs/HOST_PROTOCOL.md): the recommended HTTP binding for hosts
+6. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): components, server usage, the `rootcard-host` design and the dependency
+   budget. Keep it, SPEC, THREAT_MODEL and HOST_PROTOCOL consistent in the same commit
 
 ## Layout (target)
 
@@ -21,7 +23,7 @@ packages/rootcard       npm package: plain ES modules, zero dependencies, WebCry
 packages/rootcard/keytool.html   standalone key tool page (works from file://)
 spec/SPEC.md            normative specification
 spec/vectors/*.json     shared test vectors (the facit for every implementation)
-docs/                   plan, design, threat model, host protocol
+docs/                   plan, design, architecture, threat model, host protocol
 ```
 
 ## Commands
@@ -56,7 +58,8 @@ Run all of them before every commit. CI runs them too.
 - **No home-made cryptography**, with one exception: Argon2id (and BLAKE2b inside it) in JS, because WebCrypto lacks it. It
   must pass the RFC 9106 vectors and the shared vectors.
 - Rust uses audited crates only: `ed25519-dalek` (with `verify_strict`), `x25519-dalek`, `sha2`, `hkdf`, `aes-gcm`, `argon2`,
-  `getrandom`, `zeroize`. JS uses WebCrypto (`Ed25519`, `X25519`, `SHA-256`, `HKDF`, `AES-GCM`, `getRandomValues`).
+  `getrandom`, `zeroize`, plus `unicode-normalization` for password NFC. Password and vault cryptography sits behind the
+  core's `vault` feature, so hosts build without it (ARCHITECTURE.md §4–5). JS uses WebCrypto (`Ed25519`, `X25519`, `SHA-256`, `HKDF`, `AES-GCM`, `getRandomValues`).
 - Strict verification everywhere: reject small-order keys and non-canonical signatures.
 - Secrets are zeroized (Rust `zeroize`, JS overwrite buffers) and JS keys are imported non-extractable.
 - `#![forbid(unsafe_code)]` in every crate. No `unwrap()`/`expect()` outside tests (`clippy::unwrap_used`).
