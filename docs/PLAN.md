@@ -3,7 +3,7 @@
 This is the plan for agents that set up the monorepo and build the first release. Work through the phases in order. A
 phase is done when every acceptance criterion is checked, with tests where possible. Record deviations under the phase.
 
-**Current phase: 1 (specification and threat model).** Phase 0 is done.
+**Current phase: 2 (primitives in both languages).** Phases 0 and 1 are done.
 
 Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is application-neutral here (labels `rootcard/...`,
 `realm`, *host*). Xigna's own integration plan lives in the Xigna repository.
@@ -49,18 +49,37 @@ Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is applica
 - The parity mechanism is in place from the start: `xtask vectors` writes `spec/vectors/meta.json` (format version and labels),
   and the JS tests read it. Every later phase adds its vectors the same way.
 
-## Phase 1: specification and threat model
+## Phase 1: specification and threat model ✅
 
-- [ ] `spec/SPEC.md`: turn DESIGN.md into a normative, application-neutral specification (MUST/SHOULD):
+- [x] `spec/SPEC.md`: turn DESIGN.md into a normative, application-neutral specification (MUST/SHOULD):
   canonical JSON, base32 and the recovery-key format, inception and id, handle and extended tags, log events (`incept`,
   `instance`, `rotate_recovery`, `retire`), the total order of versions, the vault and locks, the public profile and
   namespaces, login, receipts and proofs, the account file and the recovery card, size limits, error codes
-- [ ] `docs/THREAT_MODEL.md`: the threat table, the secure-and-feasible decisions and the accepted risks from DESIGN.md §2 and §10,
+- [x] `docs/THREAT_MODEL.md`: the threat table, the secure-and-feasible decisions and the accepted risks from DESIGN.md §2 and §10,
   expanded (attacker capabilities, assets, trust boundaries)
-- [ ] `docs/HOST_PROTOCOL.md`: the HTTP endpoints as a recommended (not required) binding
+- [x] `docs/HOST_PROTOCOL.md`: the HTTP endpoints as a recommended (not required) binding
 
 **Acceptance:** the spec can be implemented without reading DESIGN.md, and every rule has a number that tests can
 refer to.
+- [x] Every normative rule has a stable identifier (`[LOG-12]`) and names its error code; algorithms are numbered steps
+  checked in order, so reject vectors can require the same code from both implementations (SPEC [CNV-3])
+- [x] The label registry (SPEC §5) is checked against `spec/vectors/meta.json` by both test suites and by `xtask vectors`
+
+**Deviations**
+- The spec changes the design where it was ambiguous or unsafe; SPEC Appendix B lists every change. The ones that matter
+  most for later phases:
+  - every hashed or signed input is `label ‖ 0x00 ‖ canonical JSON` (login and proof messages are JSON objects);
+  - the vault is released only after a **lock proof** (`rootcard/fetch/v1`, signed by a per-lock `auth` key derived from the
+    same Argon2id output), because the design's public `GET /id/<account>/vault` allowed offline guessing by anyone;
+  - the **lock set is signed by the recovery key** with a generation counter, because the design let the account key (low
+    power) sign locks;
+  - recovery key derivation is bound to realm and username, so identities from one key are unlinkable;
+  - the version order compares `(retired, time, seq, hash)` of the last events, which is transitive and makes `retire` final;
+  - vault and profile revisions are `rev`; "version" means only the log version.
+- Phase 2 needs Unicode NFC for passwords (SPEC [LCK-7]). WebCrypto has `String.prototype.normalize`; Rust needs a crate
+  such as `unicode-normalization`, to be justified in that PR (AGENTS.md rule 6).
+- Phase 2's JS `crypto.js` must perform the strict Ed25519 pre-checks itself (SPEC [CRY-3] steps 1–4), since WebCrypto
+  verifiers differ on them.
 
 ## Phase 2: primitives in both languages
 
@@ -85,7 +104,8 @@ a documented parameter change in the spec.
 ## Phase 4: vault, public profile, login and proofs
 
 - [ ] Vault: create, unlock with a password or the recovery key, add a lock, revoke (new instance, rewrap to remaining
-  locks by their public keys), `restore` and `fresh` instances, private data
+  locks by their public keys), `restore` and `fresh` instances, private data, recovery-signed lock sets (`gen`), lock
+  `auth` keys and fetch messages
 - [ ] Public profile: key and value rules, namespaces, versions, signing
 - [ ] Login message, receipts, proofs (`prove`, `verify_proof`), account file and recovery card (text and QR payload)
 - [ ] Power-level tests: nothing reachable with the account key can change the log or the locks

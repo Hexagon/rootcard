@@ -17,3 +17,16 @@ test("labels match the Rust crate", () => {
     assert.equal(label(purpose, FORMAT_VERSION), expected);
   }
 });
+
+test("the label registry in spec/SPEC.md is exactly the labels in meta.json", () => {
+  const spec = readFileSync(new URL("../../../spec/SPEC.md", import.meta.url), "utf8");
+  const inSpec = new Set(spec.match(/rootcard\/[a-z0-9/]*[a-z0-9]\/v[0-9]+/g));
+  const inMeta = new Set(vectors("meta.json").labels.map((l) => l.label));
+  assert.deepEqual([...inSpec].sort(), [...inMeta].sort());
+});
+
+test("labels are unique and never contain a zero byte (SPEC DS-1, DS-2)", () => {
+  const labels = vectors("meta.json").labels.map((l) => l.label);
+  assert.equal(new Set(labels).size, labels.length);
+  for (const l of labels) assert.match(l, /^rootcard\/[a-z]+(\/[a-z]+)*\/v[0-9]+$/);
+});
