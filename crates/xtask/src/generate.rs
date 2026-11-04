@@ -705,7 +705,7 @@ fn ed25519_rejects() -> Vec<V> {
         hasher.update(a_mixed);
         hasher.update(mmsg);
         let k = Scalar::from_bytes_mod_order_wide(&hasher.finalize().into());
-        if k.to_bytes()[0] % 8 == 0 {
+        if k.to_bytes()[0].is_multiple_of(8) {
             continue;
         }
         let s = r + k * a;
