@@ -1,0 +1,3 @@
+# Test vectors, the spec and every text file are compared byte for byte (spec [CNV-4]); keep LF on every platform,
+# including Windows checkouts with core.autocrlf.
+* text=auto eol=lf

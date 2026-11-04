@@ -12,6 +12,7 @@
     { "purpose": "public", "label": "rootcard/public/v1" },
     { "purpose": "login", "label": "rootcard/login/v1" },
     { "purpose": "fetch", "label": "rootcard/fetch/v1" },
+    { "purpose": "change", "label": "rootcard/change/v1" },
     { "purpose": "proof", "label": "rootcard/proof/v1" },
     { "purpose": "statement", "label": "rootcard/statement/v1" },
     { "purpose": "recovery/check", "label": "rootcard/recovery/check/v1" },
