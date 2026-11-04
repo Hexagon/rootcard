@@ -23,10 +23,12 @@
     ".": "./src/index.js",
     "./vault": "./src/vault-index.js",
     "./testing": "./src/testing.js",
+    "./keytool.html": "./keytool.html",
     "./package.json": "./package.json"
   },
   "files": [
     "src/",
+    "keytool.html",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
@@ -36,6 +38,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "build": "node tools/build-keytool.mjs"
   }
 }

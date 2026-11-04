@@ -112,7 +112,7 @@ Carries newer events to a host ([VER-5], [HST-14]). Anyone may call it.
 ```
 { "events": [ ... ], "vault"?: Vault }
 ```
-`events[0].seq` is any `s ≥ 1` for which `events[0].prev` is the hash of the host's event `s − 1`; the host combines its
+`events[0].seq` is `0` (the complete log) or any `s ≥ 1` for which `events[0].prev` is the hash of the host's event `s − 1`; the host combines its
 events `0 … s − 1` with the submitted ones, verifies the result ([LOG-12] with `now`) and adopts it if it is newer
 ([VER-2]). A client that does not know the host's log sends the complete log. `vault` is accepted only by the primary
 host, only together with a `rotate_recovery` ([KT-5]), and is verified against the resulting log state ([VLT-3],

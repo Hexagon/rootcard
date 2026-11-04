@@ -4,6 +4,7 @@ description = "Host-side helpers for rootcard identities: challenges, identity s
 keywords = ["identity", "authentication", "login", "server"]
 categories = ["authentication"]
 readme = "README.md"
+include = ["src/**/*.rs", "README.md", "CHANGELOG.md", "LICENSE"]
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

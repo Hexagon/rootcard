@@ -3,7 +3,7 @@
 This is the plan for agents that set up the monorepo and build the first release. Work through the phases in order. A
 phase is done when every acceptance criterion is checked, with tests where possible. Record deviations under the phase.
 
-**Current phase: 2 (primitives in both languages).** Phases 0 and 1 are done.
+**Current phase: 6 (hardening and release).** Phases 0 to 5 are done, with the deviations recorded under each.
 
 Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is application-neutral here (labels `rootcard/...`,
 `realm`, *host*). Xigna's own integration plan lives in the Xigna repository.
@@ -87,56 +87,94 @@ refer to.
 - Phase 2's JS `crypto.js` must perform the strict Ed25519 pre-checks itself (SPEC [CRY-3] steps 1–4), since WebCrypto
   verifiers differ on them.
 
-## Phase 2: primitives in both languages
+## Phase 2: primitives in both languages ✅
 
-- [ ] Rust: `canon`, `base32` (Crockford + checksum), thin wrappers over the crypto crates with strict verification
-- [ ] JS: `canon.js`, `base32.js`, `crypto.js` (WebCrypto wrappers), `blake2b.js`, `argon2.js`
-- [ ] `xtask vectors`: generates `spec/vectors/primitives.json`. Both suites check it. RFC 8032, RFC 7748, RFC 5869 and RFC
+- [x] Rust: `canon`, `base32` (Crockford + checksum), thin wrappers over the crypto crates with strict verification
+- [x] JS: `canon.js`, `base32.js`, `crypto.js` (WebCrypto wrappers), `blake2b.js`, `argon2.js`
+- [x] `xtask vectors`: generates `spec/vectors/primitives.json`. Both suites check it. RFC 8032, RFC 7748, RFC 5869 and RFC
   9106 vectors pass in both languages
 - [ ] JS Argon2id benchmark (`m = 64 MiB, t = 3`) recorded in the PR: Node, desktop browser, a mid-range phone
 
 **Acceptance:** identical bytes for every vector in both languages. Argon2id in JS within about 3 s on a mid-range phone, or
 a documented parameter change in the spec.
 
-## Phase 3: identity log and versions
+**Deviations**
+- The modules are named by area (`json`, `encoding`, `crypto`, `keys`, `recovery` in Rust; the same files in JS) rather
+  than `canon` and `base32`.
+- The crypto crates are the current majors: `ed25519-dalek` 3, `x25519-dalek` 3, `sha2` 0.11, `hkdf` 0.13, `aes-gcm` 0.11,
+  `argon2` 0.6, without their `getrandom` features: the core draws no randomness ([IMP-1]).
+- Argon2id in JS takes about 1.7 s at the minimum lock parameters and 3 s at the default in Node 22 on the development
+  machine. Desktop browsers and a phone are not measured yet; the default may need to move towards the minimum.
+- The RFC 9106 vector (with a secret and associated data) is checked by unit tests in both languages; the shared vectors
+  use rootcard's own parameters (no secret, no associated data).
+- `testing::TestRandom` (Rust) and `testRandom` (JS) are a deterministic byte stream for vectors: every function that
+  draws random bytes documents the order of its draws, so creation is checked byte for byte too.
 
-- [ ] Deterministic inception from recovery key + username + realm, account id, handle, extended tags
-- [ ] Events, `verify_log` (including self-signature of every new public key), `extend_log` (incremental, equal to
+## Phase 3: identity log and versions ✅
+
+- [x] Deterministic inception from recovery key + username + realm, account id, handle, extended tags
+- [x] Events, `verify_log` (including self-signature of every new public key), `extend_log` (incremental, equal to
   `verify_log` on the whole log), `verify_pending`, current instance, `compare_logs` (extension, fork)
-- [ ] Reject cases: wrong `prev`, wrong signer, wrong realm, future time, after `retire`, forged inception, tag collision
-- [ ] Vectors: `spec/vectors/log.json`
+- [x] Reject cases: wrong `prev`, wrong signer, wrong realm, future time, after `retire`, forged inception, tag collision
+- [x] Vectors: `spec/vectors/log.json`
 
 **Acceptance:** both languages accept and reject exactly the same logs with the same error codes, and compare the same
 logs the same way.
 
-## Phase 4: vault, public profile, login and proofs
+**Deviations**
+- `extend_log` checks the total length before the events, so that it reports the same code as `verify_log` on the whole
+  log (SPEC [LOG-15] now says so).
+- Tag collisions are a host concern ([HST-4]); the vectors cover extended tags ([HDL-6]) and the host tests cover the
+  unique index.
 
-- [ ] Vault: create, unlock with a password or the recovery key, add a lock, revoke (new instance, rewrap to remaining
+## Phase 4: vault, public profile, login and proofs ✅
+
+- [x] Vault: create, unlock with a password or the recovery key, add a lock, revoke (new instance, rewrap to remaining
   locks by their public keys), `restore` and `fresh` instances, private data, recovery-signed grants (`gen`), password change with the old password, login lock proofs, lock
   `auth` keys and fetch messages
-- [ ] Public profile: key and value rules, namespaces, versions, signing
-- [ ] Login message, receipts, proofs (`prove`, `verify_proof`), account file and recovery card (text and QR payload)
-- [ ] Power-level tests: nothing reachable with the account key can change the log or the locks
-- [ ] Vectors: `spec/vectors/vault.json`, `profile.json`, `proof.json`, `file.json`
+- [x] Public profile: key and value rules, namespaces, versions, signing
+- [x] Login message, receipts, proofs (`prove`, `verify_proof`), account file and recovery card (text and QR payload)
+- [x] Power-level tests: nothing reachable with the account key can change the log or the locks
+- [x] Vectors: `spec/vectors/vault.json`, `profile.json`, `proof.json`, `file.json`
 
 **Acceptance:** an account created in JS is unlocked, revoked and re-instanced in Rust and the other way round.
 
-## Phase 5: key tool and host helpers
+**Deviations**
+- Interoperability is proven by the vectors rather than a separate cross-language test: vaults created by Rust from a
+  random stream are re-created byte for byte by JS from the same stream, and both unlock, change, revoke and re-instance
+  the other's output.
+- The power levels are enforced by the format: every log event and grant needs the recovery key ([LCK-3], [LOG-13]);
+  the reject vectors cover a grant or an event signed by anything else, and `vault_change` classifies every replacement
+  under [VLT-4].
 
-- [ ] `rootcard-cli`: `new`, `card`, `add-password`, `revoke-password`, `reset-password`, `restore`, `fresh`,
+## Phase 5: key tool and host helpers ✅
+
+- [x] `rootcard-cli`: `new`, `card`, `add-password`, `revoke-password`, `reset-password`, `restore`, `fresh`,
   `rotate-recovery`, `retire`, `inspect`, `verify`, `prove`. Reads and writes account files and cards, talks to a host only when asked
-- [ ] `packages/rootcard/keytool.html`: the same operations as one standalone page with no network access unless the user picks
+- [x] `packages/rootcard/keytool.html`: the same operations as one standalone page with no network access unless the user picks
   a host. Works from `file://`
-- [ ] `rootcard-host` (design in [ARCHITECTURE.md](ARCHITECTURE.md) §3): `ChallengeStore` (atomic take, 60 s),
+- [x] `rootcard-host` (design in [ARCHITECTURE.md](ARCHITECTURE.md) §3): `ChallengeStore` (atomic take, 60 s),
   `IdentityStore` with compare-and-swap and an in-memory implementation, stored log states with `extend_log`, host keys
   with retired keys, accepted addresses, `stale_version` and `fork`, idempotent retries, `LoginResult` and
   `session_valid` (sessions bound to an instance), handlers independent of any HTTP framework, built on the core without
   the `vault` feature
-- [ ] A documented SQL schema for the store, and a concurrency test: two handlers on one store racing the same update
-- [ ] An example host (`examples/host`, axum) and an end-to-end test: register, log in, export, new instance on a second host,
-  the first host answers `not_home`; a host key rotation and an address change with existing identities logging in
+- [x] A documented SQL schema for the store, and a concurrency test: two handlers on one store racing the same update
+- [x] An example host and an end-to-end test: register, log in, export, new instance on a second host, the first host
+  answers `not_home`; a host key rotation and an address change with existing identities logging in
 
 **Acceptance:** the full flow runs end to end in CI with two example hosts.
+
+**Deviations**
+- The example host is `crates/rootcard-host/examples/host.rs` on `std::net` (development only, no TLS), not axum: it
+  needs no dependency beyond `getrandom`. The end-to-end test (`crates/rootcard-host/tests/e2e.rs`) runs two hosts
+  through `http::route` in-process; the key tool and `keytool.html` were also run against two example hosts over HTTP.
+- The traits are synchronous. An async store can wrap them.
+- The router answers `GET /peer/changes` and `POST /peer/push` with signed peer requests; pulling from peers and pushing
+  new instances to the previous primary host is the application's loop (the key tool tells the previous host itself).
+- `keytool.html` is generated by `tools/build-keytool.mjs`, which inlines the package's own modules (a page opened from
+  `file://` cannot import modules); `npm test` fails if it is stale.
+- The CLI's HTTP client is `ureq` with `rustls` (and Mozilla's root list through `webpki-roots`, a per-crate license
+  exception in `deny.toml`); passwords are read without echo with `rpassword`.
 
 ## Phase 6: hardening and release
 

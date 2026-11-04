@@ -6,5 +6,15 @@ All notable changes to this package are recorded here.
 
 ## 0.1.0 - 2026-11-04
 
-- Repository skeleton (phase 0): `FORMAT_VERSION`, `LABEL_PREFIX` and `label()` for domain-separation labels.
-- Pre-implementation release: none of the formats in the specification are implemented yet, and nothing is stable.
+- First release of the core, implementing format version 1 of `spec/SPEC.md` (no format change: everything is `v: 1`).
+- Canonical JSON (`parse_json`, `parse_limited`, `canonical`), unpadded base64url, Crockford base32, key strings.
+- Strict Ed25519 verification with the pre-checks of [CRY-3] (canonical points, no small order, `S < L`, cofactorless).
+- Recovery keys: written form, parsing, derivation of the signing and lock keys.
+- Identities: deterministic inception, account id, handles, `parse_handle`, `extended_tags`, realm and username rules.
+- The identity log: `verify_log`, `extend_log`, `verify_pending`, `compare_logs`, event builders and receipts.
+- Vaults: `verify_vault` and `vault_change` (always); with the default `vault` feature, password locks (Argon2id,
+  NFC), wrapping, contents, `unlock_vault`, `change_password`, `add_slot`, `regrant`, `instance_vault`.
+- Public profiles and data keys, login, fetch and change messages, challenges, proofs and statement challenges,
+  account files and recovery cards.
+- High-level flows (`account`, feature `vault`): `register`, `new_instance`, `rotate_recovery`.
+- `testing::TestRandom`, the deterministic stream the shared vectors are generated with.

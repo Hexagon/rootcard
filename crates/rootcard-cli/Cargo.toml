@@ -4,6 +4,7 @@ description = "The rootcard key tool: recovery-key operations for rootcard ident
 keywords = ["identity", "authentication", "cli", "recovery"]
 categories = ["authentication", "command-line-utilities"]
 readme = "README.md"
+include = ["src/**/*.rs", "README.md", "CHANGELOG.md", "LICENSE"]
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

@@ -4,6 +4,7 @@ description = "A portable, self-certifying identity for online logins (core libr
 keywords = ["identity", "authentication", "login", "ed25519", "self-certifying"]
 categories = ["authentication", "cryptography"]
 readme = "README.md"
+include = ["src/**/*.rs", "README.md", "CHANGELOG.md", "LICENSE"]
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
