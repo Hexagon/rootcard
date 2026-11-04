@@ -1,0 +1,871 @@
+{
+  "description": "Data keys and public profiles (SPEC §12)",
+  "vectors": [
+    {
+      "input": {
+        "key": "user.name"
+      },
+      "name": "data key \"user.name\"",
+      "op": "check_data_key",
+      "output": true,
+      "rules": ["DAT-4"]
+    },
+    {
+      "input": {
+        "key": "app.xigna.level"
+      },
+      "name": "data key \"app.xigna.level\"",
+      "op": "check_data_key",
+      "output": true,
+      "rules": ["DAT-4"]
+    },
+    {
+      "input": {
+        "key": "app.a-1.x_y"
+      },
+      "name": "data key \"app.a-1.x_y\"",
+      "op": "check_data_key",
+      "output": true,
+      "rules": ["DAT-4"]
+    },
+    {
+      "error": "bad_data_key",
+      "input": {
+        "key": "user."
+      },
+      "name": "data key \"user.\"",
+      "op": "check_data_key",
+      "rules": ["DAT-4"]
+    },
+    {
+      "error": "bad_data_key",
+      "input": {
+        "key": "app.x."
+      },
+      "name": "data key \"app.x.\"",
+      "op": "check_data_key",
+      "rules": ["DAT-4"]
+    },
+    {
+      "error": "bad_data_key",
+      "input": {
+        "key": "app.-x.y"
+      },
+      "name": "data key \"app.-x.y\"",
+      "op": "check_data_key",
+      "rules": ["DAT-4"]
+    },
+    {
+      "error": "bad_data_key",
+      "input": {
+        "key": "name"
+      },
+      "name": "data key \"name\"",
+      "op": "check_data_key",
+      "rules": ["DAT-4"]
+    },
+    {
+      "error": "bad_data_key",
+      "input": {
+        "key": "User.x"
+      },
+      "name": "data key \"User.x\"",
+      "op": "check_data_key",
+      "rules": ["DAT-4"]
+    },
+    {
+      "error": "bad_data_key",
+      "input": {
+        "key": "sys.x"
+      },
+      "name": "data key \"sys.x\"",
+      "op": "check_data_key",
+      "rules": ["DAT-4"]
+    },
+    {
+      "error": "bad_data_key",
+      "input": {
+        "key": "app.x"
+      },
+      "name": "data key \"app.x\"",
+      "op": "check_data_key",
+      "rules": ["DAT-4"]
+    },
+    {
+      "error": "bad_data_key",
+      "input": {
+        "key": "user.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "name": "data key \"user.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"",
+      "op": "check_data_key",
+      "rules": ["DAT-4"]
+    },
+    {
+      "input": {
+        "app": "xigna",
+        "data": {
+          "user.name": "Astra"
+        },
+        "key": "app.xigna.level",
+        "value": 3
+      },
+      "name": "set an own key",
+      "op": "set_data",
+      "output": {
+        "app.xigna.level": 3,
+        "user.name": "Astra"
+      },
+      "rules": ["DAT-7"]
+    },
+    {
+      "input": {
+        "app": "xigna",
+        "data": {
+          "user.name": "Astra"
+        },
+        "key": "user.motto",
+        "value": {
+          "text": "hi"
+        }
+      },
+      "name": "set a user key",
+      "op": "set_data",
+      "output": {
+        "user.motto": {
+          "text": "hi"
+        },
+        "user.name": "Astra"
+      },
+      "rules": ["DAT-7"]
+    },
+    {
+      "error": "bad_data_key",
+      "input": {
+        "app": "xigna",
+        "data": {
+          "user.name": "Astra"
+        },
+        "key": "app.other.level",
+        "value": 3
+      },
+      "name": "set another application's key",
+      "op": "set_data",
+      "rules": ["DAT-7"]
+    },
+    {
+      "input": {
+        "account_seed": "aed799c366b97d492e5d1334a832b2ac1e46e6a836b057bc76c4d145e01596a5",
+        "data": {
+          "user.name": "Astra"
+        },
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "rev": 2
+      },
+      "name": "sign a profile",
+      "op": "sign_public",
+      "output": {
+        "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+        "data": {
+          "user.name": "Astra"
+        },
+        "instance": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+        "rev": 2,
+        "sig": "ctiU2hsojJX0WaBz8hV1p0S4RfGeyGBxPGnvUJYtjK2rHoA-bBlZSKcKfnZV3l8HDtho8t9JzoyvI4u3uUVTBA",
+        "v": 1
+      },
+      "rules": ["DAT-1","DAT-2"]
+    },
+    {
+      "error": "bad_data_key",
+      "input": {
+        "account_seed": "aed799c366b97d492e5d1334a832b2ac1e46e6a836b057bc76c4d145e01596a5",
+        "data": {
+          "name": "x"
+        },
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "rev": 2
+      },
+      "name": "sign a profile with a bad key",
+      "op": "sign_public",
+      "rules": ["DAT-4"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "profile": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "data": {},
+          "instance": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "rev": 1,
+          "sig": "125afWBoU5_8xtV12xN1M6AuF-cA-u6wE7SSWpr9YOGasB0r0o3PQguhyu6zeZ-hVmyIJrmVYsWGyvRbEuIcBw",
+          "v": 1
+        }
+      },
+      "name": "registered profile verifies",
+      "op": "verify_public",
+      "output": {
+        "data": {},
+        "rev": 1
+      },
+      "rules": ["DAT-2"]
+    },
+    {
+      "error": "wrong_instance",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "profile": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "data": {},
+          "instance": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "rev": 1,
+          "sig": "125afWBoU5_8xtV12xN1M6AuF-cA-u6wE7SSWpr9YOGasB0r0o3PQguhyu6zeZ-hVmyIJrmVYsWGyvRbEuIcBw",
+          "v": 1
+        }
+      },
+      "name": "profile of an old instance",
+      "op": "verify_public",
+      "rules": ["DAT-2","DAT-3"]
+    },
+    {
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          }
+        ],
+        "profile": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "data": {},
+          "instance": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "rev": 1,
+          "sig": "G4aw526gaw0PiKUkPaH8IwUxxM2OFuA49B9lTXMUlyIYCMB7Gf9WBzWwUfyhznMkViE-SlMKi3edLFsBlXd4Bw",
+          "v": 1
+        }
+      },
+      "name": "restored profile verifies",
+      "op": "verify_public",
+      "output": {
+        "data": {},
+        "rev": 1
+      },
+      "rules": ["DAT-2"]
+    },
+    {
+      "error": "account_retired",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+              "home": {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "url": "https://b.example"
+              },
+              "reason": "restore"
+            },
+            "kind": "instance",
+            "prev": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 2,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "IVroNFBC-4Xypj7caoqvxadeD2YVmR1JegbztcoAfPy8l9wlmNSbYvWj9AYPN83ZXJk4Mbe_P4Oldey-G7kCBg"
+              },
+              {
+                "key": "ed25519:Yb81D3iuCw-yvubhsb8HVLW3_ugVzLgWu3qWYfc3y80",
+                "sig": "MSPG2-3Eg0nqgD0vbMk_V6vuJUUhPH3ji6PYjktWUOOxvuZwGd4NPWxaYlz6bN3LyzaTQUN2frxWeiCAqh8mCg"
+              },
+              {
+                "key": "ed25519:VRVPQgZepaG-oFRjgmviaE65LfksEAAnqrquV8pVQgc",
+                "sig": "GCtQyi3lHw_cMbds9CxfGKkdXlopoqtPsaQYT1NonhcQVtJmi4NvklJkV9NPXP5kcZFVShZYGsDLtyEVU1vhDg"
+              }
+            ],
+            "time": 1800000100,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "recovery": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A"
+            },
+            "kind": "rotate_recovery",
+            "prev": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+            "seq": 3,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "0CQOZgVOkqvXdwXjE529r_HVNRpgoynt1VN-zqmpAJpNoxNdnn4iOcEaD_4hHYe5XkPW6XgtcKfYyeImGBSbCQ"
+              },
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "nvX70SDjO7hvpD9Gagi7yXO0837HNrFEWm0GKyHk4X8QVu90eb4DioDVaDvEZ-zcpJucEVmBgnFEQWrW8_SVBA"
+              }
+            ],
+            "time": 1800000200,
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {},
+            "kind": "retire",
+            "prev": "0AY6upO5pdWlJpnpdhimN1q5makU38LSRAGMycYcTdY",
+            "seq": 4,
+            "sigs": [
+              {
+                "key": "ed25519:kQKawGz5TG7-KEiPIFND3FM0ZU-od_L736J1GAOiC1A",
+                "sig": "blh2d4Sx8l6MVRe1oTAA2B9NLx08NHddNyReo5rYkXOKbrysYhkkoryTQV3q4aGzhM6NG6suePbLUa1SrO9WCw"
+              }
+            ],
+            "time": 1800000300,
+            "v": 1
+          }
+        ],
+        "profile": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "data": {},
+          "instance": "chHr0k_pXBJ2Xxecw_9AjoeQy-myAjtsFiUJOCpYjdI",
+          "rev": 1,
+          "sig": "G4aw526gaw0PiKUkPaH8IwUxxM2OFuA49B9lTXMUlyIYCMB7Gf9WBzWwUfyhznMkViE-SlMKi3edLFsBlXd4Bw",
+          "v": 1
+        }
+      },
+      "name": "profile of a retired identity",
+      "op": "verify_public",
+      "rules": ["DAT-2"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "profile": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "data": {
+            "user.name": "Mallory"
+          },
+          "instance": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "rev": 1,
+          "sig": "125afWBoU5_8xtV12xN1M6AuF-cA-u6wE7SSWpr9YOGasB0r0o3PQguhyu6zeZ-hVmyIJrmVYsWGyvRbEuIcBw",
+          "v": 1
+        }
+      },
+      "name": "tampered profile",
+      "op": "verify_public",
+      "rules": ["DAT-2"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "profile": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "data": {},
+          "instance": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "rev": 0,
+          "sig": "125afWBoU5_8xtV12xN1M6AuF-cA-u6wE7SSWpr9YOGasB0r0o3PQguhyu6zeZ-hVmyIJrmVYsWGyvRbEuIcBw",
+          "v": 1
+        }
+      },
+      "name": "profile rev 0",
+      "op": "verify_public",
+      "rules": ["DAT-2"]
+    },
+    {
+      "error": "too_large",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "profile": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "data": {
+            "user.big": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          },
+          "instance": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "rev": 1,
+          "sig": "125afWBoU5_8xtV12xN1M6AuF-cA-u6wE7SSWpr9YOGasB0r0o3PQguhyu6zeZ-hVmyIJrmVYsWGyvRbEuIcBw",
+          "v": 1
+        }
+      },
+      "name": "profile too large",
+      "op": "verify_public",
+      "rules": ["DAT-1"]
+    }
+  ]
+}

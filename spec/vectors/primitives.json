@@ -1,0 +1,1090 @@
+{
+  "description": "Canonical JSON, encodings, recovery keys and the cryptographic primitives (SPEC §2–§6)",
+  "vectors": [
+    {
+      "input": {
+        "text": "207b20226222203a20312c20226122203a205b2074727565202c2066616c7365202c202d35205d207d20"
+      },
+      "name": "object members are sorted and whitespace removed",
+      "op": "canonical",
+      "output": "{\"a\":[true,false,-5],\"b\":1}",
+      "rules": ["CJ-9"]
+    },
+    {
+      "input": {
+        "text": "7b22ee8080223a312c22f09f9880223a322c2261223a337d"
+      },
+      "name": "members sorted by UTF-16 code units",
+      "op": "canonical",
+      "output": "{\"a\":3,\"😀\":2,\"\":1}",
+      "rules": ["CJ-9"]
+    },
+    {
+      "input": {
+        "text": "225c75303030305c75303030385c745c6e5c75303030625c665c725c75303031665c225c5c5c2f5c75303037665c75323032385c753030653922"
+      },
+      "name": "string escapes",
+      "op": "canonical",
+      "output": "\"\\u0000\\b\\t\\n\\u000b\\f\\r\\u001f\\\"\\\\/ é\"",
+      "rules": ["CJ-9"]
+    },
+    {
+      "input": {
+        "text": "225c75643833645c756465303022"
+      },
+      "name": "surrogate pair",
+      "op": "canonical",
+      "output": "\"😀\"",
+      "rules": ["CJ-3","CJ-9"]
+    },
+    {
+      "input": {
+        "text": "5b393030373139393235343734303939312c2d393030373139393235343734303939312c305d"
+      },
+      "name": "safe integer bounds",
+      "op": "canonical",
+      "output": "[9007199254740991,-9007199254740991,0]",
+      "rules": ["CJ-2"]
+    },
+    {
+      "input": {
+        "text": "5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d"
+      },
+      "name": "depth 32",
+      "op": "canonical",
+      "output": "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]",
+      "rules": ["CJ-5"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "6e756c6c"
+      },
+      "name": "null is not a value",
+      "op": "canonical",
+      "rules": ["CJ-1"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "312e30"
+      },
+      "name": "fraction",
+      "op": "canonical",
+      "rules": ["CJ-1","CJ-6"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "316532"
+      },
+      "name": "exponent",
+      "op": "canonical",
+      "rules": ["CJ-6"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "2d30"
+      },
+      "name": "negative zero",
+      "op": "canonical",
+      "rules": ["CJ-6"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "3031"
+      },
+      "name": "leading zero",
+      "op": "canonical",
+      "rules": ["CJ-6"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "39303037313939323534373430393932"
+      },
+      "name": "unsafe integer",
+      "op": "canonical",
+      "rules": ["CJ-2"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "7b2261223a312c2261223a327d"
+      },
+      "name": "duplicate member",
+      "op": "canonical",
+      "rules": ["CJ-4"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "7b2261223a312c2261223a327d"
+      },
+      "name": "duplicate member after unescaping",
+      "op": "canonical",
+      "rules": ["CJ-4"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "225c756438303022"
+      },
+      "name": "lone high surrogate",
+      "op": "canonical",
+      "rules": ["CJ-3","CJ-6"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "225c756463303022"
+      },
+      "name": "lone low surrogate",
+      "op": "canonical",
+      "rules": ["CJ-3","CJ-6"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d"
+      },
+      "name": "depth 33",
+      "op": "canonical",
+      "rules": ["CJ-5"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "efbbbf7b7d"
+      },
+      "name": "byte order mark",
+      "op": "canonical",
+      "rules": ["CJ-6"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "22c32822"
+      },
+      "name": "invalid UTF-8",
+      "op": "canonical",
+      "rules": ["CJ-6"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "7b7d207b7d"
+      },
+      "name": "trailing data",
+      "op": "canonical",
+      "rules": ["CJ-6"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "220122"
+      },
+      "name": "raw control character",
+      "op": "canonical",
+      "rules": ["CJ-6"]
+    },
+    {
+      "error": "bad_json",
+      "input": {
+        "text": "5b312c5d"
+      },
+      "name": "trailing comma",
+      "op": "canonical",
+      "rules": ["CJ-6"]
+    },
+    {
+      "input": {
+        "hex": ""
+      },
+      "name": "base64url encode empty",
+      "op": "base64url_encode",
+      "output": "",
+      "rules": ["B64-1"]
+    },
+    {
+      "input": {
+        "hex": "66"
+      },
+      "name": "base64url encode one byte",
+      "op": "base64url_encode",
+      "output": "Zg",
+      "rules": ["B64-1"]
+    },
+    {
+      "input": {
+        "hex": "666f"
+      },
+      "name": "base64url encode two bytes",
+      "op": "base64url_encode",
+      "output": "Zm8",
+      "rules": ["B64-1"]
+    },
+    {
+      "input": {
+        "hex": "666f6f"
+      },
+      "name": "base64url encode three bytes",
+      "op": "base64url_encode",
+      "output": "Zm9v",
+      "rules": ["B64-1"]
+    },
+    {
+      "input": {
+        "hex": "fbff"
+      },
+      "name": "base64url encode url alphabet",
+      "op": "base64url_encode",
+      "output": "-_8",
+      "rules": ["B64-1"]
+    },
+    {
+      "input": {
+        "text": "Zm9v"
+      },
+      "name": "base64url decode valid",
+      "op": "base64url_decode",
+      "output": "666f6f",
+      "rules": ["B64-2"]
+    },
+    {
+      "input": {
+        "text": "Zg"
+      },
+      "name": "base64url decode valid two",
+      "op": "base64url_decode",
+      "output": "66",
+      "rules": ["B64-2"]
+    },
+    {
+      "error": "bad_base64",
+      "input": {
+        "text": "Zh"
+      },
+      "name": "base64url decode non-zero unused bits",
+      "op": "base64url_decode",
+      "rules": ["B64-2"]
+    },
+    {
+      "error": "bad_base64",
+      "input": {
+        "text": "Zm9="
+      },
+      "name": "base64url decode padding",
+      "op": "base64url_decode",
+      "rules": ["B64-2"]
+    },
+    {
+      "error": "bad_base64",
+      "input": {
+        "text": "Z"
+      },
+      "name": "base64url decode length 1 mod 4",
+      "op": "base64url_decode",
+      "rules": ["B64-2"]
+    },
+    {
+      "error": "bad_base64",
+      "input": {
+        "text": "Zm+v"
+      },
+      "name": "base64url decode plus",
+      "op": "base64url_decode",
+      "rules": ["B64-2"]
+    },
+    {
+      "error": "bad_base64",
+      "input": {
+        "text": "Zm/v"
+      },
+      "name": "base64url decode slash",
+      "op": "base64url_decode",
+      "rules": ["B64-2"]
+    },
+    {
+      "input": {
+        "hex": "838b9796bc23418660e5329bfae01afef4a475ede9918372f33b7b12ab4cdf6a"
+      },
+      "name": "base32 encode 32 bytes",
+      "op": "base32_encode",
+      "output": "GE5SF5NW4D0RCR756ADZNR0TZVTA8XFDX68R6WQK7DXH5ATCVXN0",
+      "rules": ["B32-2"]
+    },
+    {
+      "input": {
+        "hex": "ff"
+      },
+      "name": "base32 encode 1 byte",
+      "op": "base32_encode",
+      "output": "ZW",
+      "rules": ["B32-2"]
+    },
+    {
+      "input": {
+        "len": 32,
+        "lenient": false,
+        "text": "GE5SF5NW4D0RCR756ADZNR0TZVTA8XFDX68R6WQK7DXH5ATCVXN0"
+      },
+      "name": "base32 decode strict",
+      "op": "base32_decode",
+      "output": "838b9796bc23418660e5329bfae01afef4a475ede9918372f33b7b12ab4cdf6a",
+      "rules": ["B32-3"]
+    },
+    {
+      "error": "bad_base32",
+      "input": {
+        "len": 32,
+        "lenient": false,
+        "text": "ge5sf5nw4d0rcr756adznr0tzvta8xfdx68r6wqk7dxh5atcvxn0"
+      },
+      "name": "base32 decode strict rejects lower case",
+      "op": "base32_decode",
+      "rules": ["B32-3"]
+    },
+    {
+      "input": {
+        "len": 32,
+        "lenient": true,
+        "text": "ge5sf5nw4d0rcr756adznr0tzvta8xfdx68r6wqk7dxh5atcvxn0"
+      },
+      "name": "base32 decode lenient accepts lower case",
+      "op": "base32_decode",
+      "output": "838b9796bc23418660e5329bfae01afef4a475ede9918372f33b7b12ab4cdf6a",
+      "rules": ["B32-4"]
+    },
+    {
+      "error": "bad_base32",
+      "input": {
+        "len": 1,
+        "lenient": false,
+        "text": "ZZ"
+      },
+      "name": "base32 decode strict rejects padding bits",
+      "op": "base32_decode",
+      "rules": ["B32-3"]
+    },
+    {
+      "input": {
+        "len": 1,
+        "lenient": false,
+        "text": "ZW"
+      },
+      "name": "base32 decode strict one byte",
+      "op": "base32_decode",
+      "output": "ff",
+      "rules": ["B32-3"]
+    },
+    {
+      "input": {
+        "len": 1,
+        "lenient": true,
+        "text": "zw"
+      },
+      "name": "base32 decode lenient one byte",
+      "op": "base32_decode",
+      "output": "ff",
+      "rules": ["B32-4"]
+    },
+    {
+      "input": {
+        "len": 2,
+        "lenient": true,
+        "text": "o-il o"
+      },
+      "name": "base32 decode lenient maps O I L and drops separators",
+      "op": "base32_decode",
+      "output": "0042",
+      "rules": ["B32-4"]
+    },
+    {
+      "error": "bad_base32",
+      "input": {
+        "len": 1,
+        "lenient": true,
+        "text": "U0"
+      },
+      "name": "base32 decode lenient never accepts U",
+      "op": "base32_decode",
+      "rules": ["B32-4"]
+    },
+    {
+      "error": "bad_base32",
+      "input": {
+        "len": 32,
+        "lenient": false,
+        "text": "GE5SF5NW4D0RCR756ADZNR0TZVTA8XFDX68R6WQK7DXH5ATCVXN"
+      },
+      "name": "base32 decode wrong length",
+      "op": "base32_decode",
+      "rules": ["B32-3"]
+    },
+    {
+      "input": {
+        "key": "f4978828d6f18c4feecb69cfa10996e62f98b3714564bb8b44e47c3a41fa9ec8"
+      },
+      "name": "recovery key written form",
+      "op": "format_recovery_key",
+      "output": "RCR-YJBR-GA6P-Y664-ZVPB-D77T-22CP-WRQS-HCVH-8NJB-Q2T4-WHY3-MGFT-KV40-JTQH",
+      "rules": ["RK-1"]
+    },
+    {
+      "input": {
+        "text": "RCR-YJBR-GA6P-Y664-ZVPB-D77T-22CP-WRQS-HCVH-8NJB-Q2T4-WHY3-MGFT-KV40-JTQH"
+      },
+      "name": "parse recovery key: written form",
+      "op": "parse_recovery_key",
+      "output": "f4978828d6f18c4feecb69cfa10996e62f98b3714564bb8b44e47c3a41fa9ec8",
+      "rules": ["RK-2","B32-4"]
+    },
+    {
+      "input": {
+        "text": "rcr yjbr ga6p y664 zvpb d77t 22cp wrqs hcvh 8njb q2t4 why3 mgft kv40 jtqh"
+      },
+      "name": "parse recovery key: lower case with spaces",
+      "op": "parse_recovery_key",
+      "output": "f4978828d6f18c4feecb69cfa10996e62f98b3714564bb8b44e47c3a41fa9ec8",
+      "rules": ["RK-2","B32-4"]
+    },
+    {
+      "input": {
+        "text": "YJBR-GA6P-Y664-ZVPB-D77T-22CP-WRQS-HCVH-8NJB-Q2T4-WHY3-MGFT-KV40-JTQH"
+      },
+      "name": "parse recovery key: without prefix",
+      "op": "parse_recovery_key",
+      "output": "f4978828d6f18c4feecb69cfa10996e62f98b3714564bb8b44e47c3a41fa9ec8",
+      "rules": ["RK-2","B32-4"]
+    },
+    {
+      "input": {
+        "text": "RCR-YJBR-GA6P-Y664-ZVPB-D77T-22CP-WRQS-HCVH-8NJB-Q2T4-WHY3-MGFT-KV4o-JTQH"
+      },
+      "name": "parse recovery key: lenient letters",
+      "op": "parse_recovery_key",
+      "output": "f4978828d6f18c4feecb69cfa10996e62f98b3714564bb8b44e47c3a41fa9ec8",
+      "rules": ["RK-2","B32-4"]
+    },
+    {
+      "error": "bad_checksum",
+      "input": {
+        "text": "RCR-YJBR-GA6P-Y664-ZVPB-D77T-22CP-WRQS-HCVH-8NJB-Q2T4-WHY3-MGFT-KV40-JTQ0"
+      },
+      "name": "parse recovery key: wrong checksum",
+      "op": "parse_recovery_key",
+      "rules": ["RK-2","B32-4"]
+    },
+    {
+      "error": "bad_base32",
+      "input": {
+        "text": "RCR-YUBR-GA6P-Y664-ZVPB-D77T-22CP-WRQS-HCVH-8NJB-Q2T4-WHY3-MGFT-KV40-JTQH"
+      },
+      "name": "parse recovery key: U is not accepted",
+      "op": "parse_recovery_key",
+      "rules": ["RK-2","B32-4"]
+    },
+    {
+      "error": "bad_base32",
+      "input": {
+        "text": "RCR-YJBR-GA6P-Y664-ZVPB-D77T-22CP-WRQS-H"
+      },
+      "name": "parse recovery key: too short",
+      "op": "parse_recovery_key",
+      "rules": ["RK-2","B32-4"]
+    },
+    {
+      "input": {
+        "key": "f4978828d6f18c4feecb69cfa10996e62f98b3714564bb8b44e47c3a41fa9ec8",
+        "realm": "global",
+        "username": "Astra"
+      },
+      "name": "recovery key derivation",
+      "op": "derive_recovery_keys",
+      "output": {
+        "box_public": "b1680ec60130c9e356b97923b535e9f33f128b6b69f68c2c40948d9296480631",
+        "box_secret": "b90df2ca291e49c2b905dbe4ed6ebb4804df3e8c93d0c0312bf1db337cbcf4c9",
+        "sign_public": "10590fea5a3a35dcff1458a632cbc1ea7dade674b39a7d10cefb56a06262d38a",
+        "sign_seed": "0309e4b5c933cb1620b92d3009b40f1d359a4f5dc58540fdbbbb2caf7e235f58"
+      },
+      "rules": ["RK-4"]
+    },
+    {
+      "input": {
+        "key": "f4978828d6f18c4feecb69cfa10996e62f98b3714564bb8b44e47c3a41fa9ec8",
+        "realm": "global",
+        "username": "astra"
+      },
+      "name": "recovery key derivation is bound to the username",
+      "op": "derive_recovery_keys",
+      "output": {
+        "box_public": "5e8c711aa8ced83165215ac9acc98727181e8207e10eb42bcc904eeb9e6eaf59",
+        "box_secret": "74e0632b9a969e91d2268383972cd6e0ea5c95e0728670eccac4d8f1ec8f1ae4",
+        "sign_public": "b205f0efd4940c5894c305da6675c3a1fe85a29c55986ce6834f8c52f3c7b356",
+        "sign_seed": "ecf3d3f100921c69538560ecb3303b244891d34091dea30f5f34a1cabc67d4c7"
+      },
+      "rules": ["RK-4"]
+    },
+    {
+      "input": {
+        "len": 80,
+        "random": "seed"
+      },
+      "name": "test random stream",
+      "op": "random",
+      "output": "336f28a022193939585a1b4edc989f870917f3a5f6ddd16e4fb357084a6bdfc273a649427664d03bbb062e456425488416c52c64ef46fe011ed2a983f30ea9b90eeb559ba5193bb7741a6ed9186af9c4",
+      "rules": ["VEC-2"]
+    },
+    {
+      "input": {
+        "msg": "",
+        "seed": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"
+      },
+      "name": "RFC 8032 test 1",
+      "op": "ed25519_sign",
+      "output": {
+        "public": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+        "sig": "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"
+      },
+      "rules": ["CRY-1","CRY-8"]
+    },
+    {
+      "input": {
+        "msg": "72",
+        "seed": "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb"
+      },
+      "name": "RFC 8032 test 2",
+      "op": "ed25519_sign",
+      "output": {
+        "public": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+        "sig": "92a009a9f0d4cab8720e820b5f642540a2b27b5416503f8fb3762223ebdb69da085ac1e43e15996e458f3613d0f11d8c387b2eaeb4302aeeb00d291612bb0c00"
+      },
+      "rules": ["CRY-1","CRY-8"]
+    },
+    {
+      "input": {
+        "msg": "af82",
+        "seed": "c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7"
+      },
+      "name": "RFC 8032 test 3",
+      "op": "ed25519_sign",
+      "output": {
+        "public": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025",
+        "sig": "6291d657deec24024827e69c3abe01a30ce548a284743a445e3680d7db5ac3ac18ff9b538d16f290ae67f760984dc6594a7c15e9716ed28dc027beceea1ec40a"
+      },
+      "rules": ["CRY-1","CRY-8"]
+    },
+    {
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "valid signature",
+      "op": "ed25519_verify",
+      "output": true,
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617263",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "other message",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c"
+      },
+      "name": "short signature",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd3802cccb854807c7bcd7c28b029fda418267d3fcbd093f5ad1273ad715793c16"
+      },
+      "name": "S is not reduced (S + L)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "eeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "non-canonical A (y = p + 1)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "0100000000000000000000000000000000000000000000000000000000000080",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "non-canonical A (x = 0 with the sign bit)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "eeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "non-canonical R",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "0100000000000000000000000000000000000000000000000000000000000000",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order A (0)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "01000000000000000000000000000000000000000000000000000000000000004b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order R (0)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order A (1)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order R (1)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "0000000000000000000000000000000000000000000000000000000000000080",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order A (2)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "00000000000000000000000000000000000000000000000000000000000000804b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order R (2)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc05",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order A (3)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc054b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order R (3)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order A (4)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order R (4)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc85",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order A (5)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc854b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order R (5)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "0000000000000000000000000000000000000000000000000000000000000000",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order A (6)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "00000000000000000000000000000000000000000000000000000000000000004b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order R (6)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
+        "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order A (7)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "726f6f7463617264",
+        "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
+        "sig": "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
+      },
+      "name": "small-order R (7)",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "error": "bad_signature",
+      "input": {
+        "msg": "6d00",
+        "public": "909d46cc8558eb47786d214947ec700a778f3dc0281f6eddb359f943ceff157f",
+        "sig": "16f22cb57ec6daa4e3e80a2773084235906ae0f5192468a418659ec6c7179cc74f68b2099f7f91627738d994d8b62a7527b7af59dc16e67a259a76d39939b801"
+      },
+      "name": "mixed-order A that only a cofactored verifier accepts",
+      "op": "ed25519_verify",
+      "rules": ["CRY-3"]
+    },
+    {
+      "input": {
+        "peer": "e6db6867583030db3594c1a424b15f7c726624ec26b3353b10a903a6d0ab1c4c",
+        "secret": "a546e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449ac4"
+      },
+      "name": "RFC 7748 5.2 test 1",
+      "op": "x25519",
+      "output": {
+        "public": "1c9fd88f45606d932a80c71824ae151d15d73e77de38e8e000852e614fae7019",
+        "shared": "c3da55379de9c6908e94ea4df28d084f32eccf03491c71f754b4075577a28552"
+      },
+      "rules": ["CRY-1","CRY-2"]
+    },
+    {
+      "input": {
+        "peer": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f",
+        "secret": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a"
+      },
+      "name": "RFC 7748 6.1 Alice and Bob",
+      "op": "x25519",
+      "output": {
+        "public": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a",
+        "shared": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742"
+      },
+      "rules": ["CRY-1"]
+    },
+    {
+      "error": "bad_key",
+      "input": {
+        "peer": "0000000000000000000000000000000000000000000000000000000000000000",
+        "secret": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a"
+      },
+      "name": "X25519 with a small-order peer fails",
+      "op": "x25519",
+      "rules": ["CRY-4"]
+    },
+    {
+      "error": "bad_key",
+      "input": {
+        "peer": "e0eb7a7c3b41b8ae1656e3faf19fc46ada098deb9c32b1fd866205165f49b800",
+        "secret": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a"
+      },
+      "name": "X25519 with the order-8 peer fails",
+      "op": "x25519",
+      "rules": ["CRY-4"]
+    },
+    {
+      "input": {
+        "ikm": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+        "info": "f0f1f2f3f4f5f6f7f8f9",
+        "salt": "000102030405060708090a0b0c"
+      },
+      "name": "RFC 5869 A.1",
+      "op": "hkdf",
+      "output": "3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf",
+      "rules": ["CRY-5"]
+    },
+    {
+      "input": {
+        "ikm": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+        "info": "",
+        "salt": ""
+      },
+      "name": "RFC 5869 A.3 empty salt and info",
+      "op": "hkdf",
+      "output": "8da4e775a563c18f715f802a063c5a31b8a11f5c5ee1879ec3454e5f3c738d2d",
+      "rules": ["CRY-5"]
+    },
+    {
+      "input": {
+        "m": 64,
+        "p": 1,
+        "password": "70617373776f7264",
+        "salt": "736f6d6573616c74736f6d6573616c74",
+        "t": 3
+      },
+      "name": "Argon2id small",
+      "op": "argon2id",
+      "output": "6164c739a04e17de34a80bee65c6a58f4b8a240cbf5652f4a79e35ae02b7c616",
+      "rules": ["CRY-6"]
+    },
+    {
+      "input": {
+        "m": 32,
+        "p": 4,
+        "password": "0101010101010101010101010101010101010101010101010101010101010101",
+        "salt": "02020202020202020202020202020202",
+        "t": 3
+      },
+      "name": "Argon2id two lanes",
+      "op": "argon2id",
+      "output": "03aab965c12001c9d7d0d2de33192c0494b684bb148196d73c1df1acaf6d0c2e",
+      "rules": ["CRY-6"]
+    },
+    {
+      "input": {
+        "m": 47104,
+        "p": 1,
+        "password": "636f727265637420686f727365206261747465727920737461706c65",
+        "salt": "07070707070707070707070707070707",
+        "t": 2
+      },
+      "name": "Argon2id at the minimum lock parameters",
+      "op": "argon2id",
+      "output": "968a178530d9428212df0a454acae36b31f60cd65cd1586a4ec258d654580b3c",
+      "rules": ["CRY-6","LCK-6"]
+    },
+    {
+      "input": {
+        "aad": "616164",
+        "key": "e6b4e8399e00a769b59858c855267c87cff5478931df9b97135525a76ac7c77a",
+        "nonce": "78377b525757b494427f8901",
+        "plaintext": "726f6f7463617264"
+      },
+      "name": "AES-256-GCM encrypt",
+      "op": "aes_gcm_encrypt",
+      "output": "fd2f45887de45911500669a272ac38f0cc557b67957e3446",
+      "rules": ["CRY-7"]
+    },
+    {
+      "input": {
+        "aad": "616164",
+        "ciphertext": "fd2f45887de45911500669a272ac38f0cc557b67957e3446",
+        "key": "e6b4e8399e00a769b59858c855267c87cff5478931df9b97135525a76ac7c77a",
+        "nonce": "78377b525757b494427f8901"
+      },
+      "name": "AES-256-GCM decrypt",
+      "op": "aes_gcm_decrypt",
+      "output": "726f6f7463617264",
+      "rules": ["CRY-7"]
+    },
+    {
+      "error": "unlock_failed",
+      "input": {
+        "aad": "616165",
+        "ciphertext": "fd2f45887de45911500669a272ac38f0cc557b67957e3446",
+        "key": "e6b4e8399e00a769b59858c855267c87cff5478931df9b97135525a76ac7c77a",
+        "nonce": "78377b525757b494427f8901"
+      },
+      "name": "AES-256-GCM wrong aad fails",
+      "op": "aes_gcm_decrypt",
+      "rules": ["CRY-7"]
+    },
+    {
+      "input": {
+        "text": "ed25519:_RckOFqgx1tk-3jNYC-h2ZH96_drE8WO1wLqyDXp9hg",
+        "type": "ed25519"
+      },
+      "name": "key valid",
+      "op": "parse_key",
+      "output": "fd1724385aa0c75b64fb78cd602fa1d991fdebf76b13c58ed702eac835e9f618",
+      "rules": ["KEY-1","KEY-2","KEY-3"]
+    },
+    {
+      "error": "bad_key",
+      "input": {
+        "text": "x25519:_RckOFqgx1tk-3jNYC-h2ZH96_drE8WO1wLqyDXp9hg",
+        "type": "ed25519"
+      },
+      "name": "key wrong type",
+      "op": "parse_key",
+      "rules": ["KEY-1","KEY-2","KEY-3"]
+    },
+    {
+      "error": "bad_key",
+      "input": {
+        "text": "ed25519:_RckOFqgx1tk-3jNYC-h2ZH96_drE8WO1wLqyDXp9hg",
+        "type": "x25519"
+      },
+      "name": "key required type differs",
+      "op": "parse_key",
+      "rules": ["KEY-1","KEY-2","KEY-3"]
+    },
+    {
+      "error": "bad_key",
+      "input": {
+        "text": "ed25519:_RckOFqgx1tk-3jNYC-h2ZH96_drE8WO1wLqyDXp9hgA",
+        "type": "ed25519"
+      },
+      "name": "key wrong length",
+      "op": "parse_key",
+      "rules": ["KEY-1","KEY-2","KEY-3"]
+    },
+    {
+      "error": "bad_key",
+      "input": {
+        "text": "ed25519:_RckOFqgx1tk-3jNYC-h2ZH96_drE8WO1wLqyDXp9hg=",
+        "type": "ed25519"
+      },
+      "name": "key padding",
+      "op": "parse_key",
+      "rules": ["KEY-1","KEY-2","KEY-3"]
+    },
+    {
+      "error": "bad_key",
+      "input": {
+        "text": "ed25519",
+        "type": "ed25519"
+      },
+      "name": "key no payload",
+      "op": "parse_key",
+      "rules": ["KEY-1","KEY-2","KEY-3"]
+    },
+    {
+      "error": "bad_key",
+      "input": {
+        "text": "ed25519:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "type": "ed25519"
+      },
+      "name": "key small order",
+      "op": "parse_key",
+      "rules": ["KEY-1","KEY-2","KEY-3"]
+    },
+    {
+      "error": "bad_key",
+      "input": {
+        "text": "ed25519:__________________________________________8",
+        "type": "ed25519"
+      },
+      "name": "key non-canonical",
+      "op": "parse_key",
+      "rules": ["KEY-1","KEY-2","KEY-3"]
+    },
+    {
+      "input": {
+        "text": "x25519:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "type": "x25519"
+      },
+      "name": "key x25519 has no point check",
+      "op": "parse_key",
+      "output": "0000000000000000000000000000000000000000000000000000000000000000",
+      "rules": ["KEY-1","KEY-2","KEY-3"]
+    },
+    {
+      "input": {
+        "statement": {
+          "for": "example.org",
+          "until": 1900000000
+        }
+      },
+      "name": "statement challenge",
+      "op": "statement_challenge",
+      "output": "fd495cbe9ae8fb18b7e8949b35c031126341fed276f9fa86d0eeaa319312f704",
+      "rules": ["PRF-5"]
+    }
+  ]
+}
