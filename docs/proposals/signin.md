@@ -162,7 +162,59 @@ rootcard_proof=<canonical JSON of the proof>
 The RP answers with its own session (cookie) and a redirect. Errors are shown to the user; codes are those of spec
 §20.
 
-### 6.4 Libraries (sketch)
+### 6.4 Discovery with well-known URLs
+
+- **The RP**, not the home, is what a non-browser client needs to discover: `GET
+  https://<rp>/.well-known/rootcard-rp` → `{ "v": 1, "signin": "<https base URL of the RP's sign-in API>", "realms":
+  [ … ] }` (RFC 8615).
+- **The home** MAY answer `GET https://<domain>/.well-known/rootcard` with its descriptor (`GET /host`), so that a user
+  can name a host by its domain. It is a convenience only: the address an RP or client relies on is `home.url` in the
+  verified log ([SIN-6]).
+- **The challenge always comes from the RP.** Freshness is the verifier's own guarantee ([PRF-5]): a nonce issued by
+  the home would make the RP trust the home's word that it is fresh and unused, which [HST-14] rules out. The home
+  serves the sign-in page; it never issues challenges for RPs.
+
+### 6.5 Sign-in API for non-browser clients
+
+```
+POST <signin>/start    { "account": "<account id>" }          → { "flow", "nonce", "expires" }
+POST <signin>/finish   { "flow": "<flow id>", "proof": Proof } → { "account", "handle", "token", "expires" }
+```
+
+`flow` is a random 32-byte id that replaces the flow cookie of [SIN-7]; the same client calls both endpoints over TLS,
+so there is no browser to bind to and no login CSRF. `token` is the RP's own credential (bearer token), with the
+lifetime and refresh of [SIN-14]. The RP checks the proof exactly as in [SIN-12].
+
+- **[SIN-16]** A non-browser client derives the recipient from the RP URL **it connects to itself** (the origin of
+  `signin`, as configured or typed by the user), never from a value the RP or another program sends, as [LGN-4] does
+  for host logins.
+
+### 6.6 Three ways to sign in without a browser
+
+1. **The key tool signs in directly** (`rootcard signin https://shop.example --handle Astra#3F9C`). It discovers the
+   RP (§6.4), gathers the log ([KT-2]), fetches the vault from the home with the password ([FET-1]), unlocks it,
+   calls `start`, signs the proof with the recipient from [SIN-16], calls `finish` and hands the token to the user
+   (stdout or a credential file chosen by the user). Only the password is used: this is low power. The strongest
+   variant, since the client knows the real origin, and nothing but the trusted key tool sees the password.
+2. **An agent for other programs** (`rootcard agent`, like `ssh-agent`). It keeps the account key unlocked in memory,
+   non-extractable where possible, for a time the user chooses. An RP's own CLI asks it over a local socket to "sign
+   in to `https://shop.example`"; the agent runs the whole flow of 1 itself, so the recipient is the origin the agent
+   connects to, and the RP's CLI receives only the token. The agent asks for confirmation per sign-in or per RP, as
+   the user configures.
+3. **Device approval for a headless machine** (compare RFC 8628). The RP's CLI calls `start` with a `device: true`
+   flag, gets a short user code and the RP's approval URL, and polls `finish`. The user opens the approval URL on any
+   device with a browser, types the code, and completes the browser flow of §3 there; the RP attaches the proof to the
+   waiting flow. The RP shows the device's name and network address on the approval page, and the code expires with
+   the flow (300 s). Residual risk: **device-code phishing**, where an attacker starts a flow and persuades the victim
+   to approve the attacker's code. Prefer 1 or 2 where the user can run the key tool.
+
+The RP's own CLI MUST NOT ask for the rootcard password and unlock the vault itself: that is the rejected alternative of
+§8 in another form.
+
+*Note on the existing key tool:* `rootcard prove --challenge <hex>` signs a raw 32-byte challenge. It must not be used
+for sign-in ([SIN-2]); `rootcard signin` would be the only sign-in command.
+
+### 6.7 Libraries (sketch)
 
 - Core, both languages: `signin_challenge(nonce, recipient)` / `signinChallenge(nonce, recipient)`, with vectors.
 - `rootcard-host`: an optional `RelyingParty` helper: flow store (trait, like the challenge store), `start(handle |
@@ -184,6 +236,8 @@ The RP answers with its own session (cookie) and a redirect. Errors are shown to
 | T-S8 | A host lies in a lookup or serves a forged log | The RP verifies the log itself and takes `home.url` from it ([SIN-5], [SIN-6]) |
 | T-S9 | An old instance is used after a password reset or a move | Proof is bound to the current instance ([PRF-1]); RP refreshes the log and ends stale sessions ([SIN-14]) |
 | T-S10 | DoS with long logs | Spec limits ([LOG-1]); the RP caches logs and fetches with `from=` |
+| T-S11 | A program on the user's machine asks the agent for a proof for another origin | The agent connects to the RP itself and derives the recipient from that connection ([SIN-16]); a program gets only a token for the RP it named. Malware that controls the user's session is out of scope (THREAT_MODEL.md §3) |
+| T-S12 | Device-code phishing | Codes typed by the user, device details on the approval page, 300 s expiry; still a residual risk (§6.6) |
 
 ### 7.2 Residual risks (would become accepted risks)
 
@@ -229,7 +283,8 @@ The RP answers with its own session (cookie) and a redirect. Errors are shown to
 1. SPEC: §5 label, a new section with [SIN-*] rules, §19 limits, §21 vectors. THREAT_MODEL: threats and accepted
    risks. HOST_PROTOCOL: descriptor member, §6 endpoints, §7 flow. ARCHITECTURE: the relying-party workflow.
 2. `xtask`: `LABEL_PURPOSES` and vectors for `signin_challenge` (accept and reject cases).
-3. Both cores: `signin_challenge` / `signinChallenge`. `rootcard-host`: the `RelyingParty` helper and its tests.
+3. Both cores: `signin_challenge` / `signinChallenge`. `rootcard-host`: the `RelyingParty` helper and its tests,
+   including the JSON API of §6.5. `rootcard-cli`: `signin` and, later, `agent`.
 4. CHANGELOGs under `## Unreleased`.
 
 ## 10. Open questions for the owner
@@ -237,5 +292,6 @@ The RP answers with its own session (cookie) and a redirect. Errors are shown to
 1. Is the redirect flow acceptable for a first version, with the extension/wallet flow later?
 2. Should `/host` advertise the sign-in page, or should it be fixed at `<home.url>/signin`?
 3. Is 300 s for an RP flow and 10 minutes for session refresh the right balance?
-4. Should RPs be able to request public profile keys (for example a display name) in the same flow, or read them from
+4. Is the agent (§6.6, 2) wanted in the first version, or only `rootcard signin`?
+5. Should RPs be able to request public profile keys (for example a display name) in the same flow, or read them from
    `GET /id/{account}/public` afterwards (recommended, since the profile is public and signed)?
