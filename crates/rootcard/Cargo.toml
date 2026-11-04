@@ -11,5 +11,20 @@ repository.workspace = true
 homepage.workspace = true
 license.workspace = true
 
+[features]
+default = ["vault"]
+# Password and vault cryptography: X25519, AES-256-GCM, Argon2id and NFC (ARCHITECTURE.md §4–5). Hosts build without it.
+vault = ["dep:x25519-dalek", "dep:aes-gcm", "dep:argon2", "dep:unicode-normalization"]
+
+[dependencies]
+ed25519-dalek = { version = "3.0.0", default-features = false, features = ["fast", "zeroize"] }
+sha2 = { version = "0.11.1", default-features = false }
+hkdf = { version = "0.13.0", default-features = false }
+zeroize = { version = "1.9.1", default-features = false, features = ["alloc"] }
+x25519-dalek = { version = "3.0.0", default-features = false, features = ["precomputed-tables", "zeroize", "static_secrets"], optional = true }
+aes-gcm = { version = "0.11.1", default-features = false, features = ["aes", "alloc", "zeroize"], optional = true }
+argon2 = { version = "0.6.0", default-features = false, features = ["alloc", "zeroize"], optional = true }
+unicode-normalization = { version = "0.1.26", default-features = false, optional = true }
+
 [lints]
 workspace = true

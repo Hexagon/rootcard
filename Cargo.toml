@@ -20,3 +20,9 @@ missing_docs = "warn"
 [workspace.lints.clippy]
 unwrap_used = "deny"
 expect_used = "deny"
+
+# Argon2id and BLAKE2b are too slow unoptimized for the tests (m = 46 MiB).
+[profile.dev.package.argon2]
+opt-level = 3
+[profile.dev.package.blake2]
+opt-level = 3
