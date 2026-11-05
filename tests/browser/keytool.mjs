@@ -1,7 +1,8 @@
 // keytool.html end to end in a browser, against the development host (crates/rootcard-host/examples/host.rs): create
-// an identity at the host, load it from the downloaded card, add a password, rotate the recovery key with the host up,
-// load the new card, rotate with the host gone (the new card must still be downloaded and both cards kept), and
-// retire a second identity. The page is opened from file://, as users open it, so every request is cross-origin.
+// an identity at the host, load it from the downloaded card, add a password, rotate the recovery key with the host gone
+// (the new card must still be downloaded and both cards kept) and with the host up, load the new card and retire it.
+// Then create a second identity only on the card, open it without a host (only offline actions are allowed) and
+// start it at the host, typed without a scheme. The page is opened from file://, as users open it, so every request is cross-origin.
 // The 0.2.0 page could not reach any host and no test noticed (docs/PLAN.md).
 
 import { spawn } from "node:child_process";
@@ -90,12 +91,14 @@ export async function keytoolTest(engine, root, port) {
 
     // Load it from the card file; the host supplies the log and the vault. (A card holds only the inception, so the
     // page needs the account file or a host to ask, like `--from` in the CLI.)
-    await page.fill("#hosts", url);
+    expect((await page.inputValue("#hosts")) === url, "create did not fill in the host for opening the identity");
+    await page.click("#tab-open");
     await page.setInputFiles("#cardFile", card);
     r = await act(page, "#load");
     expect(r.ok && r.text.includes("Astra#") && !r.text.includes("Vault not available"), "load failed", r.text);
 
     // Add a password ([KT-4]).
+    await page.click("[data-pick=add]");
     await page.fill("#newPassword", "a second passphrase");
     await page.fill("#label", "Phone");
     r = await act(page, "[data-op=add]");
@@ -103,6 +106,7 @@ export async function keytoolTest(engine, root, port) {
 
     // Rotate while the host cannot be reached for the rotation itself ([KT-5]): the new card is downloaded before
     // anything is sent, and the page says to keep both cards. Nothing reached the host, so the old card stays current.
+    await page.click("[data-pick=rotate]");
     await page.route("**/events", (route) => route.abort("connectionrefused"));
     r = await actWithDownloads(page, "[data-op=rotate]", dir);
     await page.unroute("**/events");
@@ -120,10 +124,45 @@ export async function keytoolTest(engine, root, port) {
     expect(r.ok && !r.text.includes("Vault not available"), "loading the new card failed (the vault must verify)", r.text);
 
     // Retire ([KT-6]).
+    await page.click("[data-pick=retire]");
     await page.fill("#retireConfirm", "Astra");
     r = await act(page, "[data-op=retire]");
     expect(r.ok && r.text.includes("retired"), "retire failed", r.text);
-    return "create, load, add, rotate (send failed, then sent), load the new card, retire";
+
+    // An identity that exists only on its card ([KT-1]): created without a host, opened without one. Actions that
+    // need a host are unavailable and say why; showing the card works offline.
+    await page.click("#tab-create");
+    await page.fill("#nUser", "Bora");
+    await page.check("#nLocal");
+    r = await actWithDownloads(page, "#create", dir);
+    expect(r.ok && r.files.length === 2, "creating an identity on the card only failed", r.text);
+    const local = r.files.find((f) => f.endsWith(".card.json"));
+    await page.click("#tab-open");
+    await page.fill("#hosts", "");
+    await page.setInputFiles("#cardFile", local);
+    r = await act(page, "#load");
+    expect(r.ok && r.text.includes("Instance: none"), "opening a card-only identity failed", r.text);
+    expect((await page.textContent("#badges")).includes("Not at any host"), "the page does not say the identity is at no host");
+    await page.click("[data-pick=reset]");
+    expect(await page.isDisabled("[data-op=reset]"), "reset is offered for an identity at no host");
+    expect(await page.isVisible("#opBlocked"), "the page does not say why reset is unavailable");
+    await page.click("[data-pick=card]");
+    r = await act(page, "[data-op=card]");
+    expect(r.ok && r.text.includes("Bora"), "showing the card offline failed", r.text);
+
+    // Start it at the host ([KT-3] fresh). The address is typed without a scheme; the page adds http:// for this
+    // computer, and shows what it will contact.
+    await page.click("[data-pick=fresh]");
+    await page.fill("#targetHost", url.replace("http://", ""));
+    expect((await page.textContent("#targetHostCheck")).includes(url), "the host address is not shown as normalized");
+    await page.fill("#newPassword", PASSWORD);
+    r = await actWithDownloads(page, "[data-op=fresh]", dir);
+    expect(r.ok && r.text.includes(`at ${url}`) && r.files.length === 1, "starting at the host failed", r.text);
+    expect((await page.textContent("#badges")).includes("At a host"), "the page does not show the new host");
+    expect(!(await page.isDisabled("[data-op=fresh]")), "fresh disabled after starting at the host");
+    await page.click("[data-pick=add]");
+    expect(!(await page.isDisabled("[data-op=add]")), "add is not offered once the identity is at a host");
+    return "create, load, add, rotate (send failed, then sent), load the new card, retire; card only: create, open, start at host";
   } finally {
     await browser.close();
     await stopHost(host);
