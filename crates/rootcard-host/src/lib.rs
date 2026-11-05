@@ -606,14 +606,28 @@ impl<S: IdentityStore, C: ChallengeStore, T: SessionStore> Host<S, C, T> {
             }
             return Ok(version_answer(&st).into());
         };
+        let rotated = events
+            .iter()
+            .any(|e| e.as_object().and_then(|m| m.get("kind")).and_then(Value::as_str) == Some("rotate_recovery"));
         let Some((all, st)) = self.merge(&stored, &events, now, false)? else {
+            // The events are already stored (a retry, or the rotation arrived first from someone else). A vault sent
+            // with them is still the owner's new grant for the rotated key: store it, or confirm a retry ([HST-12]
+            // case 3, [HST-20]), but never answer success without it.
+            if let Some(v) = vault
+                && stored.vault.as_ref() != Some(v)
+            {
+                self.require_home(&stored)?;
+                if !rotated {
+                    return Err(Error::Unauthorized.into());
+                }
+                return self
+                    .replace_vault(&stored, v, &|c| matches!(c, VaultChange::Grant))
+                    .map(|_| version_answer(&stored.state).into());
+            }
             return Ok(version_answer(&stored.state).into());
         };
         let mut new = self.adopt(&stored, all, st);
         if let Some(v) = vault {
-            let rotated = events
-                .iter()
-                .any(|e| e.as_object().and_then(|m| m.get("kind")).and_then(Value::as_str) == Some("rotate_recovery"));
             self.require_home(&new)?;
             let old = stored.vault.as_ref().ok_or(Error::Unauthorized)?;
             if !rotated {

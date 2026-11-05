@@ -3,7 +3,7 @@
 //! store, and retirement. The client side uses the core with the `vault` feature, as an application client would.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use rootcard::account::{InstanceMode, new_instance, register};
+use rootcard::account::{InstanceMode, new_instance, register, rotate_recovery};
 use rootcard::crypto::{ed25519_public, ed25519_sign};
 use rootcard::encoding::{base64url_decode, base64url_encode};
 use rootcard::file::import_account;
@@ -14,7 +14,7 @@ use rootcard::messages::{Challenge, LoginRequest, change_message, fetch_message}
 use rootcard::profile::sign_public;
 use rootcard::recovery::derive_recovery_keys;
 use rootcard::testing::TestRandom;
-use rootcard::vault::{Kdf, Secret, change_password, derive_lock_secrets, unlock_vault, verify_vault};
+use rootcard::vault::{Kdf, Secret, change_password, derive_lock_secrets, regrant, unlock_vault, verify_vault};
 use rootcard_host::http::{API_VERSION, Request, route};
 use rootcard_host::peer::sign_peer_request;
 use rootcard_host::store::{MemoryChallengeStore, MemoryIdentityStore, MemorySessionStore};
@@ -615,4 +615,78 @@ fn two_hosts_end_to_end() {
         format_key(KeyType::Ed25519, &[0; 32]),
         Version { seq: 0, hash: [0; 32] },
     );
+}
+
+/// Regression (0.2.0): `POST /id/{account}/events` with a rotation and the new vault answered success without storing
+/// the vault when the rotation was already stored (it arrived first from someone else, [HST-14]). The stored vault then
+/// no longer verified against the new recovery key and nobody could log in.
+#[test]
+fn a_rotation_that_arrived_first_still_gets_its_vault() {
+    let a = host([0xa3; 32], "https://a.example");
+    let (_, desc) = call(&a, "GET", "/host", None, None, T0);
+    let a_key = rootcard::keys::parse_key(get(&desc, "key").as_str().unwrap(), KeyType::Ed25519).unwrap();
+    let mut rng = TestRandom::new(b"rotation");
+    let rk = rng.bytes::<32>();
+    let new_rk = rng.bytes::<32>();
+    let mut random = |x: &mut [u8]| rng.fill(x);
+    let home = Home {
+        key: a_key,
+        url: "https://a.example".into(),
+    };
+    let reg = register(&rk, "global", "Astra", PW, "Laptop", &home, T0, Kdf::MIN, &mut random).unwrap();
+    let body = obj(&[
+        ("log", Value::Array(reg.log.clone())),
+        ("vault", reg.vault.clone()),
+        ("public", reg.public.clone()),
+    ]);
+    assert_eq!(call(&a, "POST", "/id/register", Some(body), None, T0).0, 201);
+    let account = reg.account.clone();
+    let (log, st) = fetch_log(&a, &account);
+    let keys = derive_recovery_keys(&rk, "global", "Astra");
+    let u = unlock_vault(&reg.vault, &st, &Secret::Recovery(&keys)).unwrap();
+    let rot = rotate_recovery(&st, &log, &keys, &new_rk, &reg.vault, &u, T0 + 10, &mut random).unwrap();
+    let event: Value = rot.event.clone().into();
+
+    // The rotation arrives alone first: the stored vault no longer verifies, so logins fail.
+    let alone = obj(&[("events", Value::Array(vec![event.clone()]))]);
+    assert_eq!(
+        call(&a, "POST", &format!("/id/{account}/events"), Some(alone), None, T0 + 20).0,
+        200
+    );
+    assert!(login(&a, &account, "https://a.example", PW, T0 + 20).is_err());
+
+    // A vault whose new grant is signed by the rotated-out key is still refused.
+    let stale_grant = regrant(&u, &reg.vault, &keys, &mut random).unwrap();
+    let with_old = obj(&[("events", Value::Array(vec![event.clone()])), ("vault", stale_grant)]);
+    let (s, v) = call(
+        &a,
+        "POST",
+        &format!("/id/{account}/events"),
+        Some(with_old),
+        None,
+        T0 + 25,
+    );
+    assert_eq!(s, 400, "{v:?}");
+
+    // The owner's submission of the rotation with its vault stores the vault, and a retry gets the same answer.
+    let with_vault = obj(&[("events", Value::Array(vec![event])), ("vault", rot.vault.clone())]);
+    let (s, first) = call(
+        &a,
+        "POST",
+        &format!("/id/{account}/events"),
+        Some(with_vault.clone()),
+        None,
+        T0 + 30,
+    );
+    assert_eq!(s, 200, "{first:?}");
+    let (s, again) = call(
+        &a,
+        "POST",
+        &format!("/id/{account}/events"),
+        Some(with_vault),
+        None,
+        T0 + 31,
+    );
+    assert_eq!((s, &again), (200, &first));
+    assert!(login(&a, &account, "https://a.example", PW, T0 + 40).is_ok());
 }
