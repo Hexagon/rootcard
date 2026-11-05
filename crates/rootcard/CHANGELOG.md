@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.0 - 2026-11-05
+
 - New Ed25519 keys never use a seed whose first byte is zero (SPEC [CRY-9]; WebKit's WebCrypto cannot import one):
   `account::register` and `account::new_instance` draw the account seed again, `vault::new_password_lock`,
   `change_password` and `add_slot` draw the salt again, and **breaking:** `register` and `rotate_recovery` refuse a

@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.0 - 2026-11-05
+
 - **Breaking:** every function that creates a password lock enforces the password rules of SPEC [LCK-8]
   (`weak_password`), not only `register`: `newPasswordLock` (and so `addSlot`, `instanceVault`, `newInstance`) and
   `changePassword`. Slots (`{ label, password, kdf }`) need `username`, and `changePassword` has a new parameter

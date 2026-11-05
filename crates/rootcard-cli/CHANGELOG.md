@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.0 - 2026-11-05
+
 - `new` and `rotate-recovery` generate recovery keys with `new_recovery_key`, so the signing key works in every
   browser ([CRY-9]).
 - Host addresses with dot segments or percent-encoding in their path are refused ([HST-22]), and new passwords are
