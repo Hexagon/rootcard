@@ -104,6 +104,21 @@ pub fn ed25519_public(seed: &[u8; 32]) -> [u8; 32] {
     ed25519_dalek::SigningKey::from_bytes(seed).verifying_key().to_bytes()
 }
 
+/// How often a seed is drawn again before a generator is taken to be broken ([CRY-9]). A working generator needs more
+/// than one attempt about once in 256 and more than 64 with probability 2^-512.
+pub const DRAW_ATTEMPTS: usize = 64;
+
+/// Whether an Ed25519 seed may be used for a new key: its first byte is not zero ([CRY-9]).
+pub fn usable_seed(seed: &[u8; 32]) -> bool {
+    seed[0] != 0
+}
+
+/// Whether the Ed25519 public key of `seed` is `public_key` ([IMP-6] in JavaScript, where a platform may only answer
+/// this by importing the seed with the key; here it is a plain comparison).
+pub fn ed25519_public_is(seed: &[u8; 32], public_key: &[u8; 32]) -> bool {
+    &ed25519_public(seed) == public_key
+}
+
 /// A deterministic Ed25519 signature ([CRY-8]).
 pub fn ed25519_sign(seed: &[u8; 32], m: &[u8]) -> [u8; 64] {
     use ed25519_dalek::Signer;

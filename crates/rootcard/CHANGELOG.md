@@ -4,6 +4,12 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- New Ed25519 keys never use a seed whose first byte is zero (SPEC [CRY-9]; WebKit's WebCrypto cannot import one):
+  `account::register` and `account::new_instance` draw the account seed again, `vault::new_password_lock`,
+  `change_password` and `add_slot` draw the salt again, and **breaking:** `register` and `rotate_recovery` refuse a
+  recovery key whose signing seed is unusable (`bad_key`). New: `recovery::new_recovery_key` generates a usable
+  recovery key, `recovery::check_new_recovery_key`, `crypto::usable_seed`, `crypto::ed25519_public_is` and
+  `crypto::DRAW_ATTEMPTS`. Draws change only when a first draw is unusable; existing keys and signatures stay valid.
 - **Breaking:** `crypto::aes_gcm_encrypt` returns `Result<Vec<u8>>` (`too_large` beyond AES-GCM's input limits)
   instead of an empty vector on failure. No output changes.
 - **Breaking:** every function that creates a password lock enforces the password rules of SPEC [LCK-8]

@@ -17,7 +17,7 @@ use rootcard::log::{
 use rootcard::messages::{Challenge, LoginRequest, change_message, fetch_message, login_message};
 use rootcard::profile::{check_data_key, set_data, sign_public, verify_public};
 use rootcard::proof::{ProofBy, prove, statement_challenge, verify_proof};
-use rootcard::recovery::{derive_recovery_keys, format_recovery_key, parse_recovery_key};
+use rootcard::recovery::{derive_recovery_keys, format_recovery_key, new_recovery_key, parse_recovery_key};
 use rootcard::testing::TestRandom;
 use rootcard::vault::{
     Kdf, NewSlot, Secret, VaultChange, add_slot, change_password, check_password, unlock_vault, update_contents,
@@ -186,10 +186,20 @@ pub fn run(op: &str, input: &Map) -> R<Outcome> {
         }
         "ed25519_sign" => {
             let seed = i.hex32("seed")?;
+            // A public key on record that the seed is checked against first ([IMP-6]).
+            if i.opt("known").is_some() && !crypto::ed25519_public_is(&seed, &i.hex32("known")?) {
+                return Ok(Outcome::Err(Error::BadKey));
+            }
             Map::new()
                 .with("public", hex(&ed25519_public(&seed)))
                 .with("sig", hex(&crypto::ed25519_sign(&seed, &i.hex("msg")?)))
                 .into()
+        }
+        "ed25519_public_is" => crypto::ed25519_public_is(&i.hex32("seed")?, &i.hex32("public")?).into(),
+        "new_recovery_key" => {
+            let mut rng = i.random()?;
+            let mut random = |b: &mut [u8]| rng.fill(b);
+            hex(tryr!(new_recovery_key(i.str("realm")?, i.str("username")?, &mut random)).as_ref())
         }
         "ed25519_verify" => {
             tryr!(crypto::ed25519_verify(

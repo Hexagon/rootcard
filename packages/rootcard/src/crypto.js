@@ -78,14 +78,76 @@ async function publicOf(prefix, alg, secret, usages) {
   return x;
 }
 
-/** The Ed25519 public key of a 32-byte seed ([CRY-2]). */
-export async function ed25519Public(seed) {
-  return publicOf(ED_PKCS8, "Ed25519", seed, ["sign"]);
+/** How often a seed is drawn again before a generator is taken to be broken ([CRY-9]). */
+export const DRAW_ATTEMPTS = 64;
+
+/** Whether an Ed25519 seed may be used for a new key: its first byte is not zero ([CRY-9]). */
+export function usableSeed(seed) {
+  return seed[0] !== 0;
 }
 
-/** Import an Ed25519 seed as a non-extractable signing key ([IMP-2]). */
+// [IMP-6]: WebKit's WebCrypto rejects a pkcs8 Ed25519 seed whose first byte is zero, but signs with it when it is
+// imported as a JWK with its public key. Public keys of seeds checked against a key on record (ed25519PublicIs) are
+// kept here, keyed by the seed's buffer, so that later signatures with the same buffer can use that import. Nothing
+// here is secret, and nothing is added without the check.
+const CHECKED = new WeakMap();
+
+function b64u(bytes) {
+  let b = "";
+  for (const x of bytes) b += String.fromCharCode(x);
+  return btoa(b).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+async function importJwk(seed, publicKey, extractable) {
+  const jwk = { kty: "OKP", crv: "Ed25519", d: b64u(seed), x: b64u(publicKey), ext: extractable };
+  try {
+    return await subtle.importKey("jwk", jwk, { name: "Ed25519" }, extractable, ["sign"]);
+  } finally {
+    jwk.d = "";
+  }
+}
+
+/** The Ed25519 public key of a 32-byte seed ([CRY-2]). */
+export async function ed25519Public(seed) {
+  try {
+    return await publicOf(ED_PKCS8, "Ed25519", seed, ["sign"]);
+  } catch (e) {
+    const known = CHECKED.get(seed);
+    if (known) return known.slice();
+    throw e;
+  }
+}
+
+/**
+ * Whether the Ed25519 public key of `seed` is `publicKey` (raw 32 bytes). Where the platform cannot import the seed
+ * ([IMP-6]), the import of the seed with `publicKey` answers it, since the platform rejects a public key that does
+ * not belong to the seed; the key is then remembered for signing with this seed buffer.
+ */
+export async function ed25519PublicIs(seed, publicKey) {
+  let pub;
+  try {
+    pub = await publicOf(ED_PKCS8, "Ed25519", seed, ["sign"]);
+  } catch {
+    try {
+      await importJwk(seed, publicKey, false);
+    } catch {
+      return false;
+    }
+    CHECKED.set(seed, Uint8Array.from(publicKey));
+    return true;
+  }
+  return pub.length === publicKey.length && pub.every((b, i) => b === publicKey[i]);
+}
+
+/** Import an Ed25519 seed as a non-extractable signing key ([IMP-2], [IMP-6]). */
 export async function ed25519SigningKey(seed) {
-  return importPrivate(ED_PKCS8, "Ed25519", seed, false, ["sign"]);
+  try {
+    return await importPrivate(ED_PKCS8, "Ed25519", seed, false, ["sign"]);
+  } catch (e) {
+    const known = CHECKED.get(seed);
+    if (known) return importJwk(seed, known, false);
+    throw e;
+  }
 }
 
 /** A deterministic Ed25519 signature ([CRY-8]). `key` is a seed or a key from ed25519SigningKey. */

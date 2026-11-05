@@ -530,6 +530,28 @@
     },
     {
       "input": {
+        "random": "new recovery key 0",
+        "realm": "global",
+        "username": "Astra"
+      },
+      "name": "a new recovery key",
+      "op": "new_recovery_key",
+      "output": "c7ea6d5ea3564c6ef59792a663c1ae84cc252f7f16465c5aa159df8f520b0757",
+      "rules": ["RK-3","CRY-9"]
+    },
+    {
+      "input": {
+        "random": "new recovery key 686",
+        "realm": "global",
+        "username": "Astra"
+      },
+      "name": "a new recovery key is drawn again while its signing seed is unusable",
+      "op": "new_recovery_key",
+      "output": "30da0da0a1104b7ff50ff8f4b1bf1c09ed47e5501835da2ffb29d2755f57b2f4",
+      "rules": ["RK-3","CRY-9"]
+    },
+    {
+      "input": {
         "len": 80,
         "random": "seed"
       },
@@ -580,19 +602,6 @@
     {
       "input": {
         "msg": "72",
-        "seed": "004ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6"
-      },
-      "name": "seed with a zero first byte",
-      "op": "ed25519_sign",
-      "output": {
-        "public": "a10bb1fca87b929460b69c34f1258796bc328d59eed0126480683a929bdbf2ce",
-        "sig": "00118f0184fafd546738a10929efd8ad9ba1e90d946e5f5814a4fcd614c7a7a8346e691224d90bdaac5b44ed0591c18c98c988787e6bf3e3478891a292ec1908"
-      },
-      "rules": ["CRY-1","CRY-8"]
-    },
-    {
-      "input": {
-        "msg": "72",
         "seed": "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a600"
       },
       "name": "seed with a zero last byte",
@@ -602,6 +611,51 @@
         "sig": "68b40995e532adafbcb68a0263317bf9d39127defd8495d5ec78bac1c42e36e55cac7957e39002df53e8a2140de5de2b34db4303dd2de22ebf21c8e7d8b44902"
       },
       "rules": ["CRY-1","CRY-8"]
+    },
+    {
+      "input": {
+        "known": "d15056613e76d65566c2d95624edca418946c2f3b3f353f1594534ce52d0bc0a",
+        "msg": "72",
+        "seed": "00dc8dc05d0acfb97f5482414adae811ad3d7390961e1c97f6acdb98dc47b93f"
+      },
+      "name": "seed with a zero first byte, signed with its key on record",
+      "op": "ed25519_sign",
+      "output": {
+        "public": "d15056613e76d65566c2d95624edca418946c2f3b3f353f1594534ce52d0bc0a",
+        "sig": "f21021b98bf789651884f4e7e1854443976f3125dcbc9ea1beea7874d8057e22ccc36132e670ad2ba31d02c1097c1a5d56028dde73e78f9c118dd488f416a302"
+      },
+      "rules": ["CRY-8","CRY-9","IMP-6"]
+    },
+    {
+      "error": "bad_key",
+      "input": {
+        "known": "fd1724385aa0c75b64fb78cd602fa1d991fdebf76b13c58ed702eac835e9f618",
+        "msg": "72",
+        "seed": "00dc8dc05d0acfb97f5482414adae811ad3d7390961e1c97f6acdb98dc47b93f"
+      },
+      "name": "a key on record that is not the seed's is refused",
+      "op": "ed25519_sign",
+      "rules": ["IMP-6"]
+    },
+    {
+      "input": {
+        "public": "d15056613e76d65566c2d95624edca418946c2f3b3f353f1594534ce52d0bc0a",
+        "seed": "00dc8dc05d0acfb97f5482414adae811ad3d7390961e1c97f6acdb98dc47b93f"
+      },
+      "name": "the public key of a seed",
+      "op": "ed25519_public_is",
+      "output": true,
+      "rules": ["CRY-2","IMP-6"]
+    },
+    {
+      "input": {
+        "public": "fd1724385aa0c75b64fb78cd602fa1d991fdebf76b13c58ed702eac835e9f618",
+        "seed": "00dc8dc05d0acfb97f5482414adae811ad3d7390961e1c97f6acdb98dc47b93f"
+      },
+      "name": "another public key is not the seed's",
+      "op": "ed25519_public_is",
+      "output": false,
+      "rules": ["CRY-2","IMP-6"]
     },
     {
       "input": {

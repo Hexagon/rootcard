@@ -13,7 +13,7 @@ use rootcard::keys::{KeyType, parse_key};
 use rootcard::log::{Home, LogOrder, LogState, VerifyOptions, compare_logs, retire_event, verify_log};
 use rootcard::messages::{Challenge, fetch_message};
 use rootcard::proof::{ProofBy, prove, statement_challenge, verify_proof};
-use rootcard::recovery::{RecoveryKeys, derive_recovery_keys};
+use rootcard::recovery::{RecoveryKeys, derive_recovery_keys, new_recovery_key};
 use rootcard::vault::{Kdf, NewSlot, Secret, add_slot, check_password, unlock_vault, verify_vault};
 use std::process::ExitCode;
 use zeroize::Zeroizing;
@@ -450,8 +450,8 @@ fn run(cmd: &str, args: &Args) -> R<()> {
             let realm = args.req("--realm")?;
             let username = args.req("--username")?;
             let dir = args.opt("--dir").unwrap_or_else(|| ".".into());
-            let mut rk = Zeroizing::new([0u8; 32]);
-            random(rk.as_mut());
+            // A recovery key whose signing seed is usable in every browser ([RK-3], [CRY-9]).
+            let rk = new_recovery_key(&realm, &username, &mut |b: &mut [u8]| random(b)).map_err(code)?;
             let (card, file, state) = match args.opt("--host") {
                 Some(base) => {
                     let home = host_home(&http, &base)?;
@@ -702,8 +702,8 @@ fn run(cmd: &str, args: &Args) -> R<()> {
             let id = gather(args, &http, &[])?;
             let base = home_url(&id)?;
             let (vault, u) = current_vault(&id, &http)?;
-            let mut new_key = Zeroizing::new([0u8; 32]);
-            random(new_key.as_mut());
+            let new_key =
+                new_recovery_key(&id.state.realm, &id.state.username, &mut |b: &mut [u8]| random(b)).map_err(code)?;
             let mut rnd = |b: &mut [u8]| random(b);
             let rot =
                 rotate_recovery(&id.state, &id.log, &id.keys, &new_key, &vault, &u, now(), &mut rnd).map_err(code)?;
