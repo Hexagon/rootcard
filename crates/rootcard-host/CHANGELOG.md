@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.2.1 - 2026-11-05
+
 - **Fixed:** `POST /id/{account}/events` with a rotation and the new vault answered success without storing the vault
   when the host already had the rotation (for example from a peer). The stored vault then no longer verified and nobody
   could log in. The vault is now stored as a new grant ([HST-12] case 3) or refused, and a retry of the same

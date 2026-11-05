@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.2.1 - 2026-11-05
+
 - **Fixed (loss of the recovery key):** `rotate-recovery` sent the rotation to the primary host before it wrote the new
   card. If the card could not be written (a missing `--dir`, a full disk) or the host's answer was lost, the host had
   the rotation, the old card no longer worked and the new key was gone. The new card is now written and printed first;
