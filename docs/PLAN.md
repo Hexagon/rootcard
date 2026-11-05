@@ -125,6 +125,11 @@ unpinned actions (the run was green, nothing suggests a compromise). The review 
   `file://` as users open it): create, load, add a password, rotate with the send failing (the card is downloaded
   first, the page says to keep both) and with the host up, load the new card (the old one answers
   `wrong_recovery_key`), retire. It fails on the 0.2.0 page.
+- [x] Make `keytool.html` clear about hosts and card-only identities. **Decided:** the page uses the rootcard.org
+  theme and shows which actions work offline and which need a host, disabling the rest with the reason ([KT-1]). A
+  card-only identity can show its card and make root proofs, and "Start at a host" ([KT-3] fresh) puts it on one.
+  Host addresses are checked while typed ([HST-22]), and `https://` is added when no scheme is given. The browser
+  test also covers the card-only flow (create without a host, open it, start it at the host).
 - [x] An end-to-end test of the CLI against a host (`new --host`, `rotate-recovery`, `restore`), beside the offline
   tests of `crates/rootcard-cli/tests/key_tool.rs`: `tests/against_host.rs` runs `http::route` behind a minimal HTTP
   server in the test process and checks what the host stores after each command, including that the vault still

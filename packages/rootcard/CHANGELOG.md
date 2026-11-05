@@ -6,6 +6,15 @@ All notable changes to this package are recorded here.
 
 ## 0.3.0 - 2026-11-05
 
+- `keytool.html` is redesigned in the rootcard.org theme, with the same operations and checks. It has tabs (open,
+  create, verify a proof). An opened identity is shown as a card with its host, and each action says whether it
+  works offline, sends to the primary host or to a host you enter. Actions the identity cannot do yet are disabled,
+  with the reason: a card-only identity (no instance) can show its card and make root proofs, and "Start at a host"
+  puts it on one. Before, reset, revoke, rotate and retire failed with a script error for such an identity. Host
+  addresses are checked as you type and show what will be contacted. `https://` is added when no scheme is given
+  (`http://` for `localhost`, `127.0.0.1` and `[::1]`), and a trailing `/v0` is refused with an explanation
+  ([HST-22]). Creating an identity offers "At a host" or "Only on this computer", and asks for a password only
+  for a host. "Could not reach the host" replaces the browser's bare fetch error.
 - **Breaking:** every function that creates a password lock enforces the password rules of SPEC [LCK-8]
   (`weak_password`), not only `register`: `newPasswordLock` (and so `addSlot`, `instanceVault`, `newInstance`) and
   `changePassword`. Slots (`{ label, password, kdf }`) need `username`, and `changePassword` has a new parameter
