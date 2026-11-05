@@ -2,8 +2,8 @@
 // user enters ([KT-1]) and gathers the newest log before signing anything ([KT-2]).
 
 const rc = { ...__modules["index.js"] };
-for (const name of ["errors.js", "json.js", "encoding.js", "labels.js", "crypto.js", "keys.js", "recovery.js", "id.js", "log.js",
-  "vaultcheck.js", "profile.js", "messages.js", "proof.js", "file.js", "vault.js", "account.js", "testing.js"]) {
+for (const name of ["errors.js", "json.js", "encoding.js", "labels.js", "binding.js", "crypto.js", "keys.js", "recovery.js", "id.js", "log.js",
+  "vaultcheck.js", "profile.js", "messages.js", "proof.js", "file.js", "argon2.js", "vault.js", "account.js", "testing.js"]) {
   Object.assign(rc, __modules[name]);
 }
 const $ = (id) => document.getElementById(id);
@@ -266,10 +266,21 @@ const ops = {
     const { vault, u } = await currentVault();
     const newKey = random(32);
     const r = await rc.rotateRecovery(current.state, current.log, current.keys, newKey, vault, u, now(), random);
-    await http("POST", `${apiRoot(current.state.instance.home.url)}/id/${current.state.account}/events`, { events: [r.event], vault: r.vault });
+    newKey.fill(0);
+    // The new card is saved and shown before the rotation is sent: once the host has the event, the old key no longer
+    // signs and the new card is the only copy of the new key ([KT-5]).
     download(`${current.state.username}-new.card.json`, r.card);
     const text = await rc.cardText(r.card);
-    newKey.fill(0);
+    show(text + "\nSending the rotation… Keep this card.", true);
+    try {
+      await http("POST", `${apiRoot(current.state.instance.home.url)}/id/${current.state.account}/events`, { events: [r.event], vault: r.vault });
+    } catch (e) {
+      throw new Error(
+        `${explain(e)}\n\nThe rotation may or may not have reached the primary host. Keep both cards: the new card ` +
+          `below (also downloaded) and the old one. Load the identity with the old card: if it answers that the ` +
+          `recovery key is not the current one, the rotation arrived and the new card is current.\n\n${text}`,
+      );
+    }
     current = null;
     $("actions").hidden = true;
     return text + "\nThe new card was downloaded. Destroy the old card, then load the new one.";
@@ -321,6 +332,10 @@ $("create").addEventListener("click", () =>
     if (base) {
       const home = await hostHome(checkHost(base));
       const reg = await rc.register(rk, realm, username, $("nPassword").value, "Password", home, now(), rc.KDF_DEFAULT, random);
+      rk.fill(0);
+      // The card is saved before anything is sent: once the host has the identity, the card is the only copy of its
+      // recovery key ([CLT-1]).
+      download(`${username}-${rc.tag(reg.account)}.card.json`, reg.card);
       await http("POST", `${apiRoot(home.url)}/id/register`, { log: reg.log, vault: reg.vault, public: reg.public });
       const v = await http("GET", `${apiRoot(home.url)}/id/${reg.account}/log`);
       state = await rc.verifyLog(v.events, { realms: [realm], now: now() });
@@ -334,7 +349,7 @@ $("create").addEventListener("click", () =>
       file = rc.exportAccount(state, [inc]);
     }
     rk.fill(0);
-    download(`${username}-${rc.tag(state.account)}.card.json`, card);
+    if (!base) download(`${username}-${rc.tag(state.account)}.card.json`, card);
     download(rc.accountFileName(state), file);
     return (await rc.cardText(card)) + "\n" + describe(state) + "\n\nThe card and the account file were downloaded. Keep the card offline.";
   }),
