@@ -1,0 +1,9 @@
+{
+  "name": "rootcard-browser-tests",
+  "private": true,
+  "description": "Runs the shared vectors and keytool.html in real browsers. Not published; the npm package stays dependency-free.",
+  "type": "module",
+  "scripts": {
+    "test": "node run.mjs"
+  }
+}

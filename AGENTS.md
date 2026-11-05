@@ -22,6 +22,7 @@ crates/rootcard-host    host-side helpers: challenge store, identity store trait
 crates/xtask            vector generation, release checks
 packages/rootcard       npm package: plain ES modules, zero dependencies, WebCrypto
 packages/rootcard/keytool.html   standalone key tool page (works from file://)
+tests/browser           the vectors and keytool.html in real browsers (Playwright, CI only, not published)
 spec/SPEC.md            normative specification
 spec/vectors/*.json     shared test vectors (the facit for every implementation)
 docs/                   plan, design, architecture, threat model, host protocol, releasing
@@ -37,6 +38,7 @@ cargo test --workspace
 cargo run -p xtask -- vectors --check     # Rust output matches spec/vectors
 cargo run -p xtask -- repo-check          # pinned workflow dependencies, documents that name the version
 (cd packages/rootcard && npm test)        # node --test, Node >= 20, no dependencies
+(cd tests/browser && node run.mjs chromium)   # vectors and keytool.html in a browser (needs Playwright; CI runs all three)
 ```
 
 For a release pull request, also `cargo run -p xtask -- release-check --tag vX.Y.Z` and the dry runs in

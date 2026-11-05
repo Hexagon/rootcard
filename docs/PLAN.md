@@ -110,11 +110,13 @@ unpinned actions (the run was green, nothing suggests a compromise). The review 
   `Result` now (`too_large`; unreachable within the format's size limits).
 
 **Testing and tools**
-- [ ] Run the shared vectors in browsers in CI (Playwright: Chromium, Firefox, WebKit). WebCrypto's Ed25519 and
-  X25519 differ between engines, and `keytool.html` runs there. Chromium 153 passed all 321 vectors in the review;
-  Firefox and WebKit are untested.
-- [ ] Drive `keytool.html` end to end in a browser against the example host in CI: create, load, add a password,
-  rotate (with the host up and gone), retire. The 0.2.0 page could not reach any host and no test noticed.
+- [x] Run the shared vectors in browsers in CI (Playwright: Chromium, Firefox, WebKit): `tests/browser`, the CI job
+  `browser`. The page runs the same `ops.mjs` as Node; the deterministic test stream's SHA-256 is precomputed with
+  WebCrypto. Chromium 153 passes all 331 vectors locally; Firefox and WebKit run only in CI so far.
+- [x] Drive `keytool.html` end to end in a browser against the example host in CI (`tests/browser/keytool.mjs`, from
+  `file://` as users open it): create, load, add a password, rotate with the send failing (the card is downloaded
+  first, the page says to keep both) and with the host up, load the new card (the old one answers
+  `wrong_recovery_key`), retire. It fails on the 0.2.0 page.
 - [x] An end-to-end test of the CLI against a host (`new --host`, `rotate-recovery`, `restore`), beside the offline
   tests of `crates/rootcard-cli/tests/key_tool.rs`: `tests/against_host.rs` runs `http::route` behind a minimal HTTP
   server in the test process and checks what the host stores after each command, including that the vault still

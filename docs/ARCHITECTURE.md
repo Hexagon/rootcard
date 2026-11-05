@@ -222,6 +222,7 @@ Few dependencies, each justified (AGENTS.md rule 6). The budget:
 | `rootcard-cli` | `rootcard`, `getrandom`, `zeroize`, `ureq` with `rustls` (HTTPS to hosts), `rpassword` (no-echo input) |
 | `packages/rootcard` | none (WebCrypto, `String.prototype.normalize`; own Argon2id and BLAKE2b) |
 | `crates/rootcard-host/examples/host.rs` (not published) | `getrandom` (development dependency) |
+| `tests/browser` (not published, CI only) | `playwright` at an exact version, installed in the CI job only: the vectors and `keytool.html` in Chromium, Firefox and WebKit |
 | `crates/rootcard-cli/tests` (not published) | `rootcard-host` by path only, so `cargo publish` drops it: the key tool's end-to-end test runs a host in the test process |
 | `xtask` (not published) | `curve25519-dalek`, `sha2`: only to construct the rejected signature classes of the vectors |
 

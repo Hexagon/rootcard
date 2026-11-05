@@ -1,7 +1,7 @@
 // The vector operations of crates/xtask/src/ops.rs, in JavaScript. Each takes the vector's input and returns its
-// output in the same JSON form; errors are thrown as RootcardError with the code.
+// output in the same JSON form; errors are thrown as RootcardError with the code. The module runs in Node and in
+// browsers (tests/browser): the synchronous SHA-256 behind the deterministic test stream is set by the caller.
 
-import { createHash } from "node:crypto";
 import * as rc from "../src/index.js";
 import * as vault from "../src/vault-index.js";
 import { testRandom } from "../src/testing.js";
@@ -10,7 +10,13 @@ import { aesGcmDecrypt, aesGcmEncrypt, ed25519Public, ed25519Sign, ed25519Verify
 import { argon2id } from "../src/argon2.js";
 import { recoverySignPublic } from "../src/recovery.js";
 
-const sha256Sync = (m) => new Uint8Array(createHash("sha256").update(m).digest());
+let sha256Sync = () => {
+  throw new Error("setSha256Sync was not called");
+};
+/** Set the synchronous SHA-256 that `testRandom` needs: `node:crypto` in Node, precomputed digests in a browser. */
+export function setSha256Sync(f) {
+  sha256Sync = f;
+}
 const rng = (i) => testRandom(new TextEncoder().encode(i.random), sha256Sync);
 const opts = (i) => {
   const o = { realms: i.realms ?? ["global"] };

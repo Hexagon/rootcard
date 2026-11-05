@@ -33,7 +33,10 @@ test("labels are unique and never contain a zero byte (SPEC DS-1, DS-2)", () => 
 });
 
 // Every generated vector file (SPEC §21): run the operation and compare the output, or the error code, exactly.
-import { ops } from "./ops.mjs";
+import { createHash } from "node:crypto";
+import { ops, setSha256Sync } from "./ops.mjs";
+
+setSha256Sync((m) => new Uint8Array(createHash("sha256").update(m).digest()));
 import { canonicalString, RootcardError } from "../src/index.js";
 
 for (const file of ["primitives.json", "log.json", "vault.json", "profile.json", "proof.json", "file.json"]) {
