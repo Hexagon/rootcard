@@ -11,6 +11,8 @@ crates.io and an npm package on npmjs, from one monorepo. Security is the produc
 6. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): components, server usage, the `rootcard-host` design and the dependency
    budget. Keep it, SPEC, THREAT_MODEL and HOST_PROTOCOL consistent in the same commit
 7. [docs/RELEASING.md](docs/RELEASING.md): how a release is prepared (by agents) and published (by the owner, through CI)
+8. [docs/CONCEPTS.md](docs/CONCEPTS.md): an informative guide to the log, vault, recovery card, proofs and verification.
+   It cites SPEC rule ids; update it when a rule it explains changes
 
 ## Layout (target)
 
@@ -24,7 +26,7 @@ packages/rootcard       npm package: plain ES modules, zero dependencies, WebCry
 packages/rootcard/keytool.html   standalone key tool page (works from file://)
 spec/SPEC.md            normative specification
 spec/vectors/*.json     shared test vectors (the facit for every implementation)
-docs/                   plan, design, architecture, threat model, host protocol, releasing
+docs/                   plan, design, concepts, architecture, threat model, host protocol, releasing
 .github/workflows       ci.yml (every push and PR), release.yml (publishes on a GitHub release)
 ```
 
