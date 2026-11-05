@@ -431,6 +431,14 @@ fn submit_instance(
     Ok(())
 }
 
+/// Write a new identity's recovery card as `<username>-<tag>.card.json` in `dir`.
+fn write_card(dir: &str, username: &str, account: &str, card: &Value) -> R<()> {
+    write_json(
+        &format!("{dir}/{username}-{}.card.json", rootcard::id::tag(account)),
+        card,
+    )
+}
+
 fn slot_label(args: &Args) -> String {
     args.opt("--label").unwrap_or_else(|| "Password".to_string())
 }
@@ -461,6 +469,9 @@ fn run(cmd: &str, args: &Args) -> R<()> {
                         &mut rnd,
                     )
                     .map_err(code)?;
+                    // The card is saved before anything is sent: once the host has the identity, the card is the
+                    // only copy of its recovery key ([CLT-1], [KT-1]).
+                    write_card(&dir, &username, &reg.account, &reg.card)?;
                     let body = obj(vec![
                         ("log", Value::Array(reg.log.clone())),
                         ("vault", reg.vault.clone()),
@@ -479,11 +490,10 @@ fn run(cmd: &str, args: &Args) -> R<()> {
                     let log = vec![Value::Object(inc)];
                     let st = verify_log(&log, &options(&realm)).map_err(code)?;
                     let card = recovery_card(&realm, &username, &st.account, &rk, None);
+                    write_card(&dir, &username, &st.account, &card)?;
                     (card, export_account(&st, &log, None, None, None), st)
                 }
             };
-            let tag = rootcard::id::tag(&state.account);
-            write_json(&format!("{dir}/{username}-{tag}.card.json"), &card)?;
             write_json(&format!("{dir}/{}", account_file_name(&state)), &file)?;
             println!("{}", card_text(&card).map_err(code)?);
             report(&state);
@@ -694,15 +704,8 @@ fn run(cmd: &str, args: &Args) -> R<()> {
             let mut rnd = |b: &mut [u8]| random(b);
             let rot =
                 rotate_recovery(&id.state, &id.log, &id.keys, &new_key, &vault, &u, now(), &mut rnd).map_err(code)?;
-            let body = obj(vec![
-                ("events", Value::Array(vec![rot.event.clone().into()])),
-                ("vault", rot.vault),
-            ]);
-            http.ok(
-                "POST",
-                &format!("{}/id/{}/events", api(&base)?, id.state.account),
-                Some(&body),
-            )?;
+            // The new card is saved and shown before the rotation is sent: once the host has the event, the old key
+            // no longer signs and the new card is the only copy of the new key ([KT-5]).
             let dir = args.opt("--dir").unwrap_or_else(|| ".".into());
             let path = format!(
                 "{dir}/{}-{}.card.json",
@@ -711,6 +714,23 @@ fn run(cmd: &str, args: &Args) -> R<()> {
             );
             write_json(&path, &rot.card)?;
             println!("{}", card_text(&rot.card).map_err(code)?);
+            let body = obj(vec![
+                ("events", Value::Array(vec![rot.event.clone().into()])),
+                ("vault", rot.vault),
+            ]);
+            if let Err(e) = http.ok(
+                "POST",
+                &format!("{}/id/{}/events", api(&base)?, id.state.account),
+                Some(&body),
+            ) {
+                return Err(format!(
+                    "{e}\nThe rotation may or may not have reached the primary host. Keep both cards: the new card {path} \
+                     and the old card {}. To see which is current, run `rootcard prove --card {path} --from {base} \
+                     --statement '\"check\"' --recipient check`: it changes nothing, and it answers \
+                     wrong_recovery_key if the rotation did not arrive (then the old card is still current).",
+                    id.card_path
+                ));
+            }
             eprintln!("The new card is {path}. Destroy the old card {}.", id.card_path);
             let _ = id.key;
             Ok(())

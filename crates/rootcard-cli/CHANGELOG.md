@@ -4,6 +4,13 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- **Fixed (loss of the recovery key):** `rotate-recovery` sent the rotation to the primary host before it wrote the new
+  card. If the card could not be written (a missing `--dir`, a full disk) or the host's answer was lost, the host had
+  the rotation, the old card no longer worked and the new key was gone. The new card is now written and printed first;
+  if sending fails, the tool says to keep both cards and how to check which one is current.
+- **Fixed:** `new --host` wrote the card only after the registration and a further request had succeeded. The card is
+  now written before anything is sent.
+
 ## 0.2.0 - 2026-11-05
 
 - License: MIT OR Apache-2.0, at the user's option (0.1.0 was MIT only). The package now ships `LICENSE-MIT` and
