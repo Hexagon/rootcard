@@ -14,9 +14,9 @@ exactly the bytes of the npm package `rootcard`; both are tested against the sha
 
 ```toml
 # A host or relying party: verification only, no Argon2id, X25519 or AES-GCM in the build.
-rootcard = { version = "0.1", default-features = false }
+rootcard = { version = "0.2", default-features = false }
 # A client or the key tool: vault cryptography as well (the default).
-rootcard = "0.1"
+rootcard = "0.2"
 ```
 
 ```rust
