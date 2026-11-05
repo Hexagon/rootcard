@@ -4,6 +4,14 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.2.1 - 2026-11-05
+
+- **Fixed:** `keytool.html` 0.2.0 refused every host address ("not a host base URL"), because the page did not include
+  `checkBaseUrl` and `API_VERSION`. A test now checks that the page has every function the package exports.
+- **Fixed (loss of the recovery key):** the key tool page sent a recovery key rotation before it downloaded the new
+  card, and registered at a host before it downloaded the card. Both cards are now downloaded and shown first; if a
+  rotation cannot be sent, the page says to keep both cards.
+
 ## 0.2.0 - 2026-11-05
 
 - License: MIT OR Apache-2.0, at the user's option (0.1.0 was MIT only). The package now ships `LICENSE-MIT` and

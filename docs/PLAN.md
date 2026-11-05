@@ -45,6 +45,65 @@ Three version numbers move independently. None of them may break what an earlier
 
 ---
 
+## Planned for 0.3.0 (review of 0.2.0)
+
+A review of 0.2.0 found two bugs that could lose a recovery key or break the key tool, fixed in 0.2.1 (the key tool
+saved new cards only after sending; `keytool.html` lacked `binding.js`; `POST /events` dropped a rotation's vault).
+These findings remain. None needs a format change unless stated. Each item gets the tests and, where bytes change,
+the vectors that AGENTS.md asks for.
+
+**Release pipeline (a separate pull request, before the 0.2.1 release is published if possible).** RELEASING.md §3
+keeps the release workflow out of release pull requests, so this was not part of 0.2.1.
+- [ ] Pin every third-party action in `.github/workflows/release.yml` (and `ci.yml`) to a full commit SHA, with the tag
+  in a comment: `actions/checkout`, `actions/setup-node`, `dtolnay/rust-toolchain`, `rust-lang/crates-io-auth-action`.
+  The publishing jobs hold `id-token: write`, so a moved tag could publish in the project's name.
+- [ ] Replace `npm install -g npm@^11.5.1` in the npm job with an exact version.
+
+**Hosts**
+- [ ] Handle squatting by propagation. `POST /id/{account}/events` stores an unknown account's log, even one of only
+  the inception, and the stored identity reserves its handle (`insert(.., false)` still enters the handle index), so
+  registration of a colliding handle fails with `handle_taken`. About 2^20 cheap requests cover every tag of one
+  username at a host without rate limits. [HST-4] allows this today; decide in the spec, for example that an identity
+  without a current instance reserves no handle, or that only identities a host registered or received from a peer
+  do, and test it in both directions.
+- [ ] Reject-case tests for the host rules, through `http::route`: `handle_taken`, `username_policy`,
+  `realm_not_accepted`, `bad_locks` (registration without a slot), `fork` and `stale_version` on `/events` and
+  `/instance`, `bad_signature` at fetch and login (wrong password), every `unauthorized` and `stale_locks` case of
+  [HST-12] and [CHG-2] (a session that changes locks, a stolen session changing a password), session idle expiry
+  ([HST-11]), and retries ([HST-20]) of `/instance` and `/events`.
+- [ ] `merge` answers `stale_version` when the first submitted `prev` does not match, and `fork` when an overlapping
+  event differs, without verifying the submitted events. Verify first, so that garbage is `bad_*` and only a valid
+  diverging log is `fork`.
+- [ ] `peer::verify_peer_request` computes `(headers.time - now).abs()`, which overflows in debug builds for an extreme
+  header time (anyone can send a peer's public key from the descriptor). Use a saturating difference.
+- [ ] `MemoryChallengeStore` never drops expired challenges, and `POST /id/{account}/challenge` needs no
+  authentication, so the example host's memory grows without bound. Purge on insert; document the same duty for the
+  SQL schema (ARCHITECTURE.md §3.1).
+
+**Format and both cores**
+- [ ] `check_base_url` ([HST-22]) accepts `.` and `..` path segments, so a version segment can enter a base URL as
+  `https://example.com/v0/..`. Reject dot segments (and decide on percent-encoded ones) in the spec, both cores and
+  the vectors in `proof.json`.
+- [ ] Decide whether the cores enforce [LCK-8] in every function that creates a password lock (`change_password`,
+  `add_slot`, `new_password_lock`), not only in `register`. Today the key tools and applications must call
+  `check_password` themselves.
+- [ ] Rust `aes_gcm_encrypt` turns an encryption failure into an empty vector (`unwrap_or_default`); return an error.
+
+**Testing and tools**
+- [ ] Run the shared vectors in browsers in CI (Playwright: Chromium, Firefox, WebKit). WebCrypto's Ed25519 and
+  X25519 differ between engines, and `keytool.html` runs there. Chromium 153 passed all 321 vectors in the review;
+  Firefox and WebKit are untested.
+- [ ] Drive `keytool.html` end to end in a browser against the example host in CI: create, load, add a password,
+  rotate (with the host up and gone), retire. The 0.2.0 page could not reach any host and no test noticed.
+- [ ] An end-to-end test of the CLI against the example host (`new --host`, `rotate-recovery`, `restore`), beside the
+  offline tests of `crates/rootcard-cli/tests/key_tool.rs`.
+
+**Documentation**
+- [ ] SPEC §5: the `rootcard/fetch/v1` row of the label table is indented and may not render in the table; SPEC §11.1:
+  `"locks"` is indented one level too deep.
+
+---
+
 ## Phase 0: repository skeleton ✅
 
 - [x] `Cargo.toml` workspace with `crates/rootcard`, `crates/rootcard-cli`, `crates/rootcard-host`, `crates/xtask`

@@ -426,7 +426,7 @@ dependencies = [
 
 [[package]]
 name = "rootcard"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aes-gcm",
  "argon2",
@@ -440,7 +440,7 @@ dependencies = [
 
 [[package]]
 name = "rootcard-cli"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "getrandom 0.4.3",
  "rootcard",
@@ -451,7 +451,7 @@ dependencies = [
 
 [[package]]
 name = "rootcard-host"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "getrandom 0.4.3",
  "rootcard",
@@ -762,7 +762,7 @@ dependencies = [
 
 [[package]]
 name = "xtask"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "curve25519-dalek",
  "rootcard",
