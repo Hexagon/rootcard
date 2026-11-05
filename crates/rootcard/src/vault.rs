@@ -573,7 +573,7 @@ mod crypto {
         let epk = x25519_public(&e);
         let s = x25519(&e, box_key)?;
         let wk = wrap_key_material(&s, &epk, box_key, account, instance, lock);
-        let ct: [u8; 48] = aes_gcm_encrypt(&wk, &nonce, vk, &[])
+        let ct: [u8; 48] = aes_gcm_encrypt(&wk, &nonce, vk, &[])?
             .try_into()
             .map_err(|_| Error::BadKey)?;
         Ok(Wrap { epk, nonce, ct })
@@ -821,7 +821,7 @@ mod crypto {
             .with("rev", rev)
             .with("locks", locks)
             .with("nonce", base64url_encode(&nonce));
-        let ct = aes_gcm_encrypt(vault_key, &nonce, &plain, &contents_aad(&v));
+        let ct = aes_gcm_encrypt(vault_key, &nonce, &plain, &contents_aad(&v))?;
         v.insert("ct", base64url_encode(&ct).into());
         let sig = ed25519_sign(&contents.account_seed, &vault_message(&v));
         v.insert("sig", base64url_encode(&sig).into());

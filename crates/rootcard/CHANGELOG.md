@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- **Breaking:** `crypto::aes_gcm_encrypt` returns `Result<Vec<u8>>` (`too_large` beyond AES-GCM's input limits)
+  instead of an empty vector on failure. No output changes.
 - **Breaking:** every function that creates a password lock enforces the password rules of SPEC [LCK-8]
   (`weak_password`), not only `register`: `new_password_lock` (and so `add_slot`, `instance_vault`, `new_instance`)
   and `change_password`. `NewSlot` has a new field `username`, and `change_password` a new parameter `username` after
