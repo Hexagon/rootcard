@@ -1,10 +1,10 @@
 # rootcard-host
 
-Helpers for hosts (servers) that store [rootcard](https://github.com/Hexagon/rootcard) identities and accept their
+Helpers for hosts (servers) that store [rootcard](https://github.com/rootcard/rootcard) identities and accept their
 logins (SPEC §17). A library, not a server: the handlers are plain functions over three storage traits, so a host can
 run on any number of servers in front of one shared store and with any HTTP framework.
 
-> **New to rootcard?** Start with the [project README](https://github.com/Hexagon/rootcard#readme): what rootcard is,
+> **New to rootcard?** Start with the [project README](https://github.com/rootcard/rootcard#readme): what rootcard is,
 > the two ways to use it (a safer username-and-password login for your own service, or an ID card across services),
 > how it compares with other login methods, and the roadmap.
 

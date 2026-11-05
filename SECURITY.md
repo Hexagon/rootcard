@@ -1,7 +1,7 @@
 # Security policy
 
 rootcard is security software. Please report vulnerabilities **privately** through GitHub's
-[private vulnerability reporting](https://github.com/Hexagon/rootcard/security/advisories/new). Do not open a public issue.
+[private vulnerability reporting](https://github.com/rootcard/rootcard/security/advisories/new). Do not open a public issue.
 
 ## Supported versions
 

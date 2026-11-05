@@ -4,6 +4,10 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.1 - 2026-11-05
+
+- The crate metadata (`repository`, `homepage`) and the README links point to `github.com/rootcard/rootcard`.
+
 ## 0.3.0 - 2026-11-05
 
 - New Ed25519 keys never use a seed whose first byte is zero (SPEC [CRY-9]; WebKit's WebCrypto cannot import one):
