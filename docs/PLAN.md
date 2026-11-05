@@ -3,7 +3,8 @@
 This is the plan for agents that set up the monorepo and build the first release. Work through the phases in order. A
 phase is done when every acceptance criterion is checked, with tests where possible. Record deviations under the phase.
 
-**Current phase: 6 (hardening and release).** Phases 0 to 5 are done, with the deviations recorded under each.
+**Current phase: 6 (hardening and release).** Phases 0 to 5 are done, with the deviations recorded under each. Released:
+0.1.0, 0.2.0 and 0.2.1; next: 0.3.0 (below).
 
 Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is application-neutral here (labels `rootcard/...`,
 `realm`, *host*). Xigna's own integration plan lives in the Xigna repository.
@@ -52,15 +53,22 @@ saved new cards only after sending; `keytool.html` lacked `binding.js`; `POST /e
 These findings remain. None needs a format change unless stated. Each item gets the tests and, where bytes change,
 the vectors that AGENTS.md asks for.
 
-**Release pipeline (a separate pull request, before the 0.2.1 release is published if possible).** RELEASING.md §3
-keeps the release workflow out of release pull requests, so this was not part of 0.2.1.
-- [ ] Pin every third-party action in `.github/workflows/release.yml` (and `ci.yml`) to a full commit SHA, with the tag
-  in a comment: `actions/checkout`, `actions/setup-node`, `dtolnay/rust-toolchain`, `rust-lang/crates-io-auth-action`.
-  The publishing jobs hold `id-token: write`, so a moved tag could publish in the project's name.
-- [ ] Replace `npm install -g npm@^11.5.1` in the npm job with an exact version.
+**Release pipeline (a separate pull request).** RELEASING.md §3 keeps the release workflow out of release pull requests,
+so this was not part of 0.2.1. It was meant to land before 0.2.1 was published and did not: 0.2.1 was published with
+unpinned actions (the run was green, nothing suggests a compromise). The review of 0.2.x recorded this.
+- [x] Pin every third-party action in `.github/workflows/release.yml` and `ci.yml` to a full commit SHA, with the tag
+  in a comment: `actions/checkout`, `actions/setup-node`, `dtolnay/rust-toolchain` (with an explicit `toolchain`),
+  `rust-lang/crates-io-auth-action`, `Swatinem/rust-cache`, `EmbarkStudios/cargo-deny-action`. Checkouts no longer
+  keep the job token in `.git/config` (`persist-credentials: false`).
+- [x] `npm install -g npm@11.21.2` in the npm job, an exact version.
+- [x] `xtask repo-check` (in CI and in `release-check`) fails on an unpinned `uses:` or an npm install without an exact
+  version, so the pins cannot erode.
 
 **Hosts**
-- [ ] Handle squatting by propagation. `POST /id/{account}/events` stores an unknown account's log, even one of only
+- [x] Handle squatting by propagation. **Decided** ([HST-4], [HDL-5]): only identities registered at a host reserve a
+  handle there; identities that arrive any other way reserve nothing and are told apart by extended tags.
+  `IdentityStore::handle_claimed`; tested in both directions (`only_registered_identities_reserve_a_handle`);
+  THREAT_MODEL.md T42. The original finding: `POST /id/{account}/events` stores an unknown account's log, even one of only
   the inception, and the stored identity reserves its handle (`insert(.., false)` still enters the handle index), so
   registration of a colliding handle fails with `handle_taken`. About 2^20 cheap requests cover every tag of one
   username at a host without rate limits. [HST-4] allows this today; decide in the spec, for example that an identity
@@ -75,18 +83,22 @@ keeps the release workflow out of release pull requests, so this was not part of
   event differs, without verifying the submitted events. Verify first, so that garbage is `bad_*` and only a valid
   diverging log is `fork`.
 - [ ] `peer::verify_peer_request` computes `(headers.time - now).abs()`, which overflows in debug builds for an extreme
-  header time (anyone can send a peer's public key from the descriptor). Use a saturating difference.
+  header time (anyone can send a peer's public key from the descriptor). Use a saturating difference. The receipt check
+  (`Host::receipt`, [HST-6]) has the same expression; it is safe today only because `verify_pending` bounds `time` to
+  `0..=2^53-1` first, and gets the same fix.
 - [ ] `MemoryChallengeStore` never drops expired challenges, and `POST /id/{account}/challenge` needs no
   authentication, so the example host's memory grows without bound. Purge on insert; document the same duty for the
   SQL schema (ARCHITECTURE.md §3.1).
 
 **Format and both cores**
-- [ ] `check_base_url` ([HST-22]) accepts `.` and `..` path segments, so a version segment can enter a base URL as
-  `https://example.com/v0/..`. Reject dot segments (and decide on percent-encoded ones) in the spec, both cores and
-  the vectors in `proof.json`.
-- [ ] Decide whether the cores enforce [LCK-8] in every function that creates a password lock (`change_password`,
-  `add_slot`, `new_password_lock`), not only in `register`. Today the key tools and applications must call
-  `check_password` themselves.
+- [x] `check_base_url` ([HST-22]) accepted `.` and `..` path segments, so a version segment could enter a base URL as
+  `https://example.com/v0/..`. **Decided:** path segments have only unreserved characters (RFC 3986 §2.3), so no
+  percent-encoding at all (which also closes `/%76%30`), and are never `.` or `..`. Both cores and seven new vectors
+  in `proof.json`; THREAT_MODEL.md T43.
+- [x] **Decided:** the cores enforce [LCK-8] in every function that creates a password lock (`new_password_lock` and
+  therefore `add_slot`, `instance_vault` and `new_instance`; and `change_password`), not only `register`. `NewSlot`
+  gains `username`, `change_password` a `username` parameter; `new_instance` refuses a slot for another username
+  (`bad_field`) and checks the password before drawing anything. Vectors in `vault.json`; THREAT_MODEL.md T44.
 - [ ] Rust `aes_gcm_encrypt` turns an encryption failure into an empty vector (`unwrap_or_default`); return an error.
 
 **Testing and tools**
@@ -99,8 +111,10 @@ keeps the release workflow out of release pull requests, so this was not part of
   offline tests of `crates/rootcard-cli/tests/key_tool.rs`.
 
 **Documentation**
-- [ ] SPEC §5: the `rootcard/fetch/v1` row of the label table is indented and may not render in the table; SPEC §11.1:
-  `"locks"` is indented one level too deep.
+- [x] SPEC §5: the `rootcard/fetch/v1` row of the label table was indented and might not render in the table; SPEC
+  §11.1: `"locks"` was indented one level too deep.
+- [x] Documents that name the current version (README status, SECURITY.md supported versions) were left at 0.1.0 by
+  0.2.0 and 0.2.1. They are updated, and `xtask repo-check` now fails when they do not match the workspace version.
 
 ---
 
@@ -261,7 +275,7 @@ logs the same way.
 - [x] Release workflow: tag `vX.Y.Z` → crates published in dependency order with crates.io trusted publishing, npm published
   with trusted publishing and `--provenance`, GitHub release with checksums (`.github/workflows/release.yml`, prepared
   ahead of phase 6; the owner's one-time setup is docs/RELEASING.md §2)
-- [x] Release preparation for agents (docs/RELEASING.md, AGENTS.md rule 9) and `xtask release-check` (versions,
+- [x] Release preparation for agents (docs/RELEASING.md, AGENTS.md rule 10) and `xtask release-check` (versions,
   changelogs, tag, vectors); CI packages every crate and the npm package on each pull request (dry run)
 - [ ] Documentation: crate docs, `README` per package, a "getting started" for apps and for hosts
 - [ ] External review of the spec and the crypto use before `1.0.0`
@@ -270,7 +284,8 @@ logs the same way.
 - [ ] Decide which "Later" items, if any, are in `1.0.0` (the sign-in flow of docs/proposals/signin.md adds a label and
   can also come after `1.0.0` without breaking it)
 
-**Acceptance:** `0.1.0` published on crates.io and npm from CI, with provenance, and the docs build on docs.rs.
+**Acceptance:** `1.0.0` published on crates.io and npm from CI, with provenance, and the docs build on docs.rs. The
+publishing part was first met by `0.1.0` and has held for every release since.
 
 ## Later
 

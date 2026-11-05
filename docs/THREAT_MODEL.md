@@ -146,7 +146,7 @@ and side channels on the user's device beyond constant-time comparisons ([IMP-4]
 | T29 | Linking identities of one person across realms by their recovery public key | X2–X5 | Recovery keys are derived per realm and username | RK-4 | Network addresses, timing and the primary host link them (non-goal) |
 | T30 | AES-GCM nonce reuse | – | Random 96-bit nonces, a fresh vault key per instance, a fresh wrap key per wrap, at most 2³² encryptions per key | CRY-7, LCK-9, VLT-4 | Negligible collision probability |
 | T31 | Secret material left in memory or exported from WebCrypto | malware after the fact | Zeroization; non-extractable keys | IMP-2, LGN-2 | Garbage-collected copies in JavaScript cannot be fully controlled |
-| T32 | Supply-chain compromise of the packages | X11 | Zero npm dependencies; audited Rust crates; `cargo deny`; releases only from CI with trusted publishing and provenance | AGENTS.md rule 6 | Compromise of the CI or registry accounts |
+| T32 | Supply-chain compromise of the packages | X11 | Zero npm dependencies; audited Rust crates; `cargo deny`; releases only from CI with trusted publishing and provenance; every third-party action pinned to a commit SHA and npm to an exact version, enforced by `xtask repo-check` | AGENTS.md rule 6 | Compromise of the CI or registry accounts, or of a pinned action's own repository before a pin is updated |
 | T33 | Session theft | X1, X5 | Random tokens stored hashed (or the host's own session mechanism), bound to host, account and instance; checked against the current instance on every use; idle expiry | HST-10, HST-11 | A thief with a session has low power until it expires or the owner makes a new instance |
 | T34 | A host claims an instance that names it without the owner (or names another host) | X3–X5 | The instance must be signed by the recovery key; the receipt must be by `home.key` itself | LOG-8, LOG-12 | – |
 | T35 | A host's key leaks, or the host rotates it | X5 | Host keys sign nothing that creates or changes an identity without the recovery key; hosts rotate by making a new key current and keeping the old one as retired | HST-17, LOG-8 | A leaked key lets an attacker impersonate the host towards its peers until it rotates |
@@ -156,6 +156,9 @@ and side channels on the user's device beyond constant-time comparisons ([IMP-4]
 | T39 | A retried request after a lost response fails, or creates a second receipt or session | X1 | Identical resubmissions return the original answer | HST-20 | – |
 | T40 | A password thief changes the password and locks the owner out | X7 | – (a password change needs only the old password, by design) | CHG-1 | The owner resets with the recovery card, which ends the thief's access (AR12) |
 | T41 | A stolen session (without the password) changes the password | X1, X5 | A change needs a proof by the old password's lock key, and every login a current lock proof | CHG-2, LGN-5 | – |
+| T42 | Handle squatting: push cheap inception-only logs to a host's public `/events` until every tag of a username is taken there, so the real user cannot register it | X2 | Only identities registered at a host reserve a handle there; pushed and propagated identities may collide and are told apart by extended tags (found in the review of 0.2.0, fixed in 0.3.0) | HST-4, HDL-5, HDL-6 | – |
+| T43 | A host address that reaches another path after normalization (`/v0/..`, `/%76%30`) puts an API version or a foreign path into `home.url` | X2, X4 | Base URLs have only unreserved characters in their path and no dot segments; hosts, clients and the key tool check every address | HST-22 | Verifiers of a log do not apply the check (LOG-4 alone defines `home.url`) |
+| T44 | A weak password is set after registration (a change, an added slot, a reset), where no host can check it | owner, X10 | Every core function that creates a password lock enforces the password rules, not only registration (0.3.0) | LCK-8 | A modified client can skip the library (low power, own identity only) |
 
 ---
 
@@ -236,4 +239,6 @@ For every change, reviewers check:
    recovery key (spec §16).
 3. Does any new input reach a parser or verifier? Then it has limits, reject vectors and (before 1.0) a fuzz target.
 4. Does any secret cross a trust boundary (§4)? It must not.
-5. Is the threat table still true? Update it in the same change.
+5. Is the threat table still true? Update it in the same change. A review finding that is not fixed at once is recorded
+   here as a threat with its residual risk, or as an accepted risk (§8), in the same pull request that records it in
+   docs/PLAN.md.

@@ -2,7 +2,7 @@
 
 **A portable, self-certifying identity for online logins — an ID card you own.**
 
-> Status: **0.1.0, pre-1.0.** Published on crates.io and npm. The format (format version 1) is a draft and has not had
+> Status: **0.2.1, pre-1.0.** Published on crates.io and npm. The format (format version 1) is a draft and has not had
 > an external security review yet ([docs/PLAN.md](docs/PLAN.md), phase 6). Do not rely on it for high-value accounts
 > before `1.0.0`.
 
@@ -41,7 +41,7 @@ The same identity can be your login at other services:
 - Your account at those services is keyed by your **account id**, which never changes. Move to another home, or reset
   your password, and every service still knows you.
 
-The proofs that make this work (`prove`, `verify_proof`) are in 0.1.0. A standard sign-in flow for websites and command
+The proofs that make this work (`prove`, `verify_proof`) are in the core. A standard sign-in flow for websites and command
 line tools, built on them, is a **proposal**: [docs/proposals/signin.md](docs/proposals/signin.md).
 
 ### You are in control
@@ -203,7 +203,10 @@ bytes for the same inputs.
 
 ## Roadmap
 
-Planned after 0.1.0 (details in [docs/PLAN.md](docs/PLAN.md)):
+Planned (details in [docs/PLAN.md](docs/PLAN.md)):
+
+- **0.3.0:** the findings of the 0.2.0 review: host reject-case tests, the shared vectors and `keytool.html` in real
+  browsers, end-to-end tests of the key tools against a host, and hardening of the host library.
 
 - **Before 1.0:** fuzzing of every parser and verifier, supply-chain checks, getting-started guides, an external review.
 - **Sign-in at other services:** the relying-party flow and `rootcard signin` ([proposal](docs/proposals/signin.md)).

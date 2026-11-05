@@ -38,6 +38,9 @@ jobs:
         run: cargo test --workspace
       - name: Vectors are up to date
         run: cargo run -p xtask -- vectors --check
+      - name: Repository checks (pinned workflow dependencies, documents that name the version)
+        if: matrix.os == 'ubuntu-latest'
+        run: cargo run -p xtask -- repo-check
 
   package:
     name: Packages build from their tarballs

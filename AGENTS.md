@@ -35,6 +35,7 @@ cargo fmt --all
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 cargo run -p xtask -- vectors --check     # Rust output matches spec/vectors
+cargo run -p xtask -- repo-check          # pinned workflow dependencies, documents that name the version
 (cd packages/rootcard && npm test)        # node --test, Node >= 20, no dependencies
 ```
 
@@ -89,6 +90,9 @@ Run all of them before every commit. CI runs them too.
 - New crates need a justification in the PR and must pass `cargo deny` (licenses, advisories, duplicates).
 - Releases are built and published only from CI with trusted publishing (crates.io and npm OIDC) and npm provenance. No
   long-lived tokens in the repository or in CI secrets once trusted publishing is set up.
+- Every third-party action in `.github/workflows` is pinned to a full commit SHA with its tag in a comment
+  (`uses: actions/checkout@<40 hex> # v4.4.0`), and tools installed in CI have exact versions. `xtask repo-check` fails
+  otherwise. To update a pin, resolve the tag with `git ls-remote` and change SHA and comment together.
 
 ### 7. Tests
 - Every rule in the spec has a test that proves it is enforced (accept and reject cases).
@@ -102,7 +106,29 @@ Run all of them before every commit. CI runs them too.
 - `rustfmt` (`max_width = 120`), `clippy -D warnings`. Small, focused commits.
 - Public API changes are recorded in `CHANGELOG.md` (one per package), under `## Unreleased` until a release.
 
-### 9. Releases
+### 9. Documentation is part of the change
+A change is not done until every document that describes it says so, in the same commit. The 0.2.0 and 0.2.1 releases
+shipped with a README that still said 0.1.0, a `SECURITY.md` that said nothing was released, and review findings in
+PLAN.md that THREAT_MODEL.md did not know about. So, for every change:
+
+| If the change touches… | …also update |
+|---|---|
+| a public function, type or CLI command | the package's `CHANGELOG.md` (`## Unreleased`) and its README if the README shows it |
+| a spec rule, label or error code | SPEC (and §20 for codes), vectors, THREAT_MODEL.md if a threat or its mitigation changes |
+| an endpoint, status or header | HOST_PROTOCOL.md, and the router's tests |
+| a component, store trait, schema or dependency | ARCHITECTURE.md (§3.1 for the SQL schema, §5 for the budget) |
+| a plan item | tick it in PLAN.md and say what was decided, with the rule ids |
+| a review finding that is not fixed now | PLAN.md **and** THREAT_MODEL.md (a threat with its residual risk, or an accepted risk) |
+| the released version | README status line and `SECURITY.md` supported versions (RELEASING.md §3 step 4) |
+
+- Prose does not name versions ("in 0.1.0", "planned after 0.1.0") except in changelogs, history notes and the two
+  places `xtask repo-check` verifies. Write "in the core" or "in 0.3.0 (planned)" and let the plan carry the schedule.
+- When a plan item says it must happen before something else ("before 0.2.1 is published"), the agent preparing that
+  something checks it first and tells the owner if it is still open (RELEASING.md §3 step 1).
+- Before finishing, search the docs for what you changed (`grep -rn` the function, rule id or old behaviour) and fix
+  every stale mention.
+
+### 10. Releases
 - All packages are released together with one version and a tag `vX.Y.Z`. Follow [docs/RELEASING.md](docs/RELEASING.md)
   exactly, and only when the owner asks for a release.
 - Agents prepare the release pull request and stop. They never tag, create a GitHub release, publish (`cargo publish`
