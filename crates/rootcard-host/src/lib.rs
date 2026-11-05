@@ -392,7 +392,7 @@ impl<S: IdentityStore, C: ChallengeStore, T: SessionStore> Host<S, C, T> {
             return Err(Error::WrongHost.into());
         }
         let time = field(m, "time")?.as_int().ok_or(Error::BadField)?;
-        if (time - now).abs() > RECEIPT_WINDOW {
+        if time.abs_diff(now) > RECEIPT_WINDOW.unsigned_abs() {
             return Err(Error::BadTime.into());
         }
         if self.config.realm(&state.realm).is_none() {
@@ -539,6 +539,10 @@ impl<S: IdentityStore, C: ChallengeStore, T: SessionStore> Host<S, C, T> {
                 return Ok(Some((all, st)));
             }
             if canonical(e) != canonical(&stored.events[i]) {
+                // Only a valid diverging log is a fork: the submitted events are verified on top of the stored prefix
+                // they extend, so that garbage gets its own code ([VER-3]).
+                let candidate: Vec<Value> = stored.events[..s].iter().chain(events).cloned().collect();
+                verify_log(&candidate, &self.config.options(now))?;
                 return Err(behind(Error::Fork, stored, i));
             }
         }

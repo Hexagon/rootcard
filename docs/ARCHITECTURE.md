@@ -174,7 +174,14 @@ CREATE TABLE sessions (token_hash BYTEA PRIMARY KEY, account TEXT NOT NULL, inst
 ```
 
 A session check reads the session and the identity's `state` (or a 10 s cache of the current instance hash, [HST-11]);
-challenges and sessions past their expiry can be deleted by a periodic job.
+challenges and sessions past their expiry must be deleted, by a periodic job or on insert: anyone can request a
+challenge without authentication, so a store that keeps expired ones grows without bound (`MemoryChallengeStore` drops
+them on insert, keeping a just-expired one for one more lifetime so that it still answers `challenge_expired`):
+
+```sql
+DELETE FROM challenges WHERE expires < $now - 60;
+DELETE FROM sessions WHERE last_used < $now - 86400;
+```
 
 ---
 

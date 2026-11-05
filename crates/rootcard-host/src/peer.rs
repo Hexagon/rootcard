@@ -59,7 +59,7 @@ pub fn verify_peer_request(
     now: i64,
 ) -> Result<[u8; 32], Error> {
     let key = parse_key(&headers.key, KeyType::Ed25519).map_err(|_| Error::Unauthorized)?;
-    if !peers.contains(&key) || (headers.time - now).abs() > PEER_WINDOW {
+    if !peers.contains(&key) || headers.time.abs_diff(now) > PEER_WINDOW.unsigned_abs() {
         return Err(Error::Unauthorized);
     }
     let sig = base64url_decode(&headers.sig).map_err(|_| Error::Unauthorized)?;
@@ -96,5 +96,19 @@ mod tests {
             verify_peer_request(&h, &[pa], &pa, "POST", "/v0/peer/push", b"{}", 130),
             Err(Error::Unauthorized)
         );
+        // Regression (0.2.x): `(time - now).abs()` overflowed (a panic in debug builds) for an extreme header time,
+        // which anyone can send with a peer's public key from the descriptor.
+        for (time, now) in [
+            (i64::MIN, 130),
+            (i64::MAX, -130),
+            (i64::MIN, i64::MAX),
+            (i64::MAX, i64::MIN),
+        ] {
+            let h = sign_peer_request(&a, "POST", "/v0/peer/push", time, &pb, b"{}");
+            assert_eq!(
+                verify_peer_request(&h, &[pa], &pb, "POST", "/v0/peer/push", b"{}", now),
+                Err(Error::Unauthorized)
+            );
+        }
     }
 }

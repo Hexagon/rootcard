@@ -1024,7 +1024,10 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
   passwords never leave the primary host ([VLT-5]).
 - **[HST-14]** A host accepts events and logs from anyone (clients, peers) and verifies them itself ([LOG-12], [LOG-15]
   with `now`); it never trusts another host's claim. It adopts a received log only if it is newer ([VER-2]); otherwise
-  it answers `stale_version` (older or equal) or `fork` with its version.
+  it answers `stale_version` (older or equal) or `fork` with its version. It answers `fork` only for a valid diverging
+  log: events that differ from stored ones at the same `seq` are verified on top of the stored events before them, and
+  answer their own error code if they do not verify. Events whose first `prev` is not the hash of a stored event cannot
+  be verified without the events before them and answer `stale_version`, so that the sender fetches the log.
 - **[HST-15]** Hosts that serve the same realm MAY be configured as **peers** by exchanging host keys. A host SHOULD
   push new events and profiles to its peers, MUST push a new `instance` to the previous primary host when it can reach
   it, and SHOULD pull from its peers periodically. Collisions revealed by sharing are shown with extended tags
