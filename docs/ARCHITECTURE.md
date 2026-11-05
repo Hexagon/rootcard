@@ -234,6 +234,7 @@ libraries are not (duplicate members, number forms, canonical padding), and they
 | [docs/DESIGN.md](DESIGN.md) | Motivation | Requirements and the original design (superseded where SPEC differs) |
 | [spec/SPEC.md](../spec/SPEC.md) | **Normative** | The format and the rules for every party |
 | [spec/vectors/](../spec/vectors/) | **Normative** | Shared test vectors |
+| [docs/CONCEPTS.md](CONCEPTS.md) | Guide | The log, vault, recovery card, proofs and verification, citing SPEC rules |
 | [docs/THREAT_MODEL.md](THREAT_MODEL.md) | Security | Goals, attackers, threats, accepted risks |
 | [docs/HOST_PROTOCOL.md](HOST_PROTOCOL.md) | Binding | Recommended HTTP endpoints for hosts |
 | docs/ARCHITECTURE.md | Overview | This document: components, server usage, dependencies |

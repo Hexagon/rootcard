@@ -145,6 +145,9 @@ from audited crates and WebCrypto.
    same server or another one. Every old password, vault and session stops working at once. Your id and handle stay.
    No server can do this for you, so keep the card.
 
+The log, the vault, the recovery card, proofs and verification are explained in more depth in
+[docs/CONCEPTS.md](docs/CONCEPTS.md).
+
 ## The map
 
 ```
@@ -220,6 +223,7 @@ Planned (details in [docs/PLAN.md](docs/PLAN.md)):
 | | |
 |---|---|
 | [spec/SPEC.md](spec/SPEC.md) | The normative specification, with [test vectors](spec/vectors/) |
+| [docs/CONCEPTS.md](docs/CONCEPTS.md) | The log, the vault, the recovery card, proofs and verification: how and when they are used |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, server usage, dependencies |
 | [docs/HOST_PROTOCOL.md](docs/HOST_PROTOCOL.md) | Recommended HTTP binding for hosts |
 | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | Goals, attackers, threats, accepted risks |
