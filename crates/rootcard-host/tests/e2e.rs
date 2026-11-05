@@ -207,6 +207,23 @@ fn endpoints_live_under_the_api_version() {
 }
 
 #[test]
+fn host_addresses_are_base_urls_without_a_version() {
+    assert!(config([1; 32], "https://a.example").check().is_ok());
+    assert!(config([1; 32], "https://example.com/rootcard").check().is_ok());
+    for bad in [
+        "https://a.example/v0",
+        "https://a.example/rootcard/v1",
+        "https://a.example/",
+        "http://a.example",
+    ] {
+        assert_eq!(config([1; 32], bad).check(), Err(rootcard::Error::BadField), "{bad}");
+    }
+    let mut none = config([1; 32], "https://a.example");
+    none.urls.clear();
+    assert!(none.check().is_err());
+}
+
+#[test]
 fn peer_requests_sign_the_versioned_path() {
     let (sa, sb) = ([1u8; 32], [2u8; 32]);
     let mut cfg = config(sb, "https://b.example");

@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { FORMAT_VERSION, LABEL_PREFIX, label } from "../src/index.js";
+import { API_VERSION, FORMAT_VERSION, LABEL_PREFIX, label } from "../src/index.js";
 
 const vectors = (name) => JSON.parse(readFileSync(new URL(`../../../spec/vectors/${name}`, import.meta.url), "utf8"));
 
@@ -10,6 +10,7 @@ test("format version and label prefix match the Rust crate", () => {
   const meta = vectors("meta.json");
   assert.equal(FORMAT_VERSION, meta.format_version);
   assert.equal(LABEL_PREFIX, meta.label_prefix);
+  assert.equal(API_VERSION, meta.api_version);
 });
 
 test("labels match the Rust crate", () => {

@@ -1048,6 +1048,14 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
   signatures are deterministic, [CRY-8]). A host therefore never fails a client that retries after a lost response.
 - **[HST-21]** **Time.** A host takes `now` from its own clock for every check that needs it ([LOG-12], [HST-6],
   [CHL-2]) and keeps its clock synchronized. The cores take time as a parameter ([IMP-1]).
+- **[HST-22]** **Base URLs of the HTTP binding.** A host that uses the HTTP binding (HOST_PROTOCOL.md) has addresses
+  of the form `https://` and a host name or IP literal, an optional port and an optional path of non-empty segments,
+  without a trailing slash, query, fragment or user info; plain `http://` only for `localhost`, `127.0.0.1` and
+  `[::1]`. The last path segment is never an API version segment (`v` or `V` followed by digits), because endpoints are
+  under `<base URL>/<API version>` (`API_VERSION`, `v0` before 1.0.0) and the version must not enter `home.url`.
+  `check_base_url(url)` checks this → `bad_field`. Hosts check their configured addresses with it, and clients and the
+  key tool check every host address they are given before using it or putting it into an instance. Verifiers of a log
+  do not apply it: [LOG-4] alone defines a valid `home.url`.
 
 ---
 
@@ -1218,10 +1226,10 @@ its code ([CNV-4]).
 - **[VEC-2]** Each vector file is a JSON object with a `vectors` array. Each vector has a `name`, the `rules` it
   exercises, its inputs (secrets and random bytes included, so that outputs are deterministic, [IMP-1]) and either the
   expected output or the expected `error` code.
-- **[VEC-3]** Files: `meta.json` (format version and the label registry, [DS-3]), `primitives.json` (canonical JSON,
+- **[VEC-3]** Files: `meta.json` (format version, API version and the label registry, [DS-3]), `primitives.json` (canonical JSON,
   base64url, base32, recovery keys, strict Ed25519 including every rejected class of [CRY-3], X25519, HKDF, Argon2id),
   `log.json` (inceptions, ids, handles, extended tags, logs, incremental verification, extension and fork detection),
-  `vault.json`, `profile.json`, `proof.json` (login and fetch messages, proofs), `file.json` (account files and cards).
+  `vault.json`, `profile.json`, `proof.json` (base URLs, login and fetch messages, proofs), `file.json` (account files and cards).
 - **[VEC-4]** Every rule that a verifier checks has at least one accept and one reject vector, and every
   security-relevant fix adds a regression vector.
 

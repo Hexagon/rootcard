@@ -5,6 +5,10 @@ crate holds the formats of `spec/SPEC.md` and everything that verifies them: can
 inceptions and account ids, handles, the identity log (`verify_log`, `extend_log`, `compare_logs`), vault checks, public
 profiles, login, fetch and change messages, proofs, account files and recovery cards.
 
+> **New to rootcard?** Start with the [project README](https://github.com/Hexagon/rootcard#readme): what rootcard is,
+> the two ways to use it (a safer username-and-password login for your own service, or an ID card across services),
+> how it compares with other login methods, and the roadmap.
+
 It is pure: no I/O, no clock and no randomness of its own. Time and random bytes are parameters. It produces and checks
 exactly the bytes of the npm package `rootcard`; both are tested against the shared vectors in `spec/vectors/`.
 
@@ -28,3 +32,7 @@ verify_proof(&proof, &events, &challenge, "example.org", &VerifyOptions::new(["g
 
 Errors are the stable codes of SPEC §20 (`rootcard::Error::code`). Status: `0.x`; nothing is stable before `1.0.0`, but
 everything hashed or signed follows the format versioning of SPEC §22.
+
+## License
+
+Licensed under either of MIT or Apache-2.0, at your option (`LICENSE-MIT`, `LICENSE-APACHE`).

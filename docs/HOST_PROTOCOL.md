@@ -15,6 +15,10 @@ refer to the specification.
   `home.url` of an instance is the address the host had when it receipted it; a host that moves keeps answering
   `GET /host` at old addresses with its current ones. Plain `http://` is allowed only
   for loopback addresses during development.
+- **Choosing a base URL.** A host on a domain of its own uses the domain (`https://id.example.com`). A host that shares
+  a domain with an application SHOULD use a path of its own, preferably `/rootcard` (`https://example.com/rootcard`,
+  endpoints at `https://example.com/rootcard/v0/…`), so that its endpoints cannot collide with the application's. A
+  base URL never ends in a version segment ([HST-22]): the version is added after it (§1.3).
 - **Address binding.** The `url` in login and fetch messages ([LGN-4]) is the base URL the client sent the request to,
   without the API version segment, exactly as configured in the client (for a browser client served by the host,
   derived from `location`). The host compares it with its list of base URLs.

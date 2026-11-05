@@ -8,9 +8,9 @@ use rootcard::Error;
 use rootcard::json::{Map, Value, canonical, parse_json};
 use rootcard::messages::Purpose;
 
-/// The version segment of the HTTP binding this router serves (HOST_PROTOCOL.md §1.3). Every endpoint lives under
-/// `<base URL>/v0`; `v0` is the pre-1.0 binding and may change between 0.x releases. `v1` arrives with 1.0.0.
-pub const API_VERSION: &str = "v0";
+/// The version segment of the HTTP binding this router serves (HOST_PROTOCOL.md §1.3), from the core. Every endpoint
+/// lives under `<base URL>/v0`; `v0` is the pre-1.0 binding and may change between 0.x releases. `v1` arrives with 1.0.0.
+pub use rootcard::API_VERSION;
 
 /// The largest request body, checked before parsing (HOST_PROTOCOL.md §1).
 pub const MAX_BODY: usize = 6 * 1024 * 1024;

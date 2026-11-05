@@ -4,6 +4,10 @@
 logins. Zero dependencies, no build step, WebCrypto only; runs in browsers and Node 20 or later. It produces and checks
 exactly the bytes of the Rust crate `rootcard`; both are tested against the shared vectors of the specification.
 
+> **New to rootcard?** Start with the [project README](https://github.com/Hexagon/rootcard#readme): what rootcard is,
+> the two ways to use it (a safer username-and-password login for your own service, or an ID card across services),
+> how it compares with other login methods, and the roadmap.
+
 ```js
 import { verifyLog, verifyProof } from "rootcard";             // verification: hosts, relying parties, clients
 import { register, unlockVault, changePassword } from "rootcard/vault"; // passwords, Argon2id, vault encryption
@@ -22,3 +26,14 @@ const state = await verifyLog(events, { realms: ["global"], now: Math.floor(Date
 
 Functions that need randomness take `random(n)`; pass `systemRandom` (WebCrypto `getRandomValues`). Errors are
 `RootcardError` with the stable `code` of SPEC §20.
+
+## HTTP binding
+
+The core makes no requests. Application clients that talk to a host build URLs as `` `${base}/${API_VERSION}/…` ``
+(`API_VERSION` is `"v0"` until 1.0.0, HOST_PROTOCOL.md §1.3) and check host addresses with `checkBaseUrl` (SPEC
+[HST-22]) before using them or putting them into an instance. `keytool.html` does both; a `keytool.html` from 0.1.0
+does not reach hosts of 0.2.0.
+
+## License
+
+Licensed under either of MIT or Apache-2.0, at your option (`LICENSE-MIT`, `LICENSE-APACHE`).

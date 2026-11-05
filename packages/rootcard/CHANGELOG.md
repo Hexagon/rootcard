@@ -8,6 +8,9 @@ All notable changes to this package are recorded here.
   `LICENSE-APACHE`.
 - **Breaking (HTTP binding):** `keytool.html` calls hosts under `<base URL>/v0` (HOST_PROTOCOL.md §1.3). The core
   library makes no requests and is unchanged.
+- `API_VERSION` (`"v0"`), `checkBaseUrl` and `isVersionSegment`, equal to the Rust crate's ([HST-22], shared vectors).
+- `keytool.html` checks every host address as a base URL; a trailing slash is still removed from typed addresses.
+- README points to the project README.
 
 ## 0.1.0 - 2026-11-04
 

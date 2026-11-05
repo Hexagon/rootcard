@@ -138,7 +138,8 @@ pub fn http::route(host, &Request, now, random) -> Response;       // the bindin
 - **In-memory implementations** of the traits ship with the crate for tests and the example host; §3.1 is a SQL schema.
 - **No framework, no async runtime.** Handlers are plain functions over JSON values; `http::route` maps the binding onto
   them under the API version `http::API_VERSION` (`v0` until 1.0.0, HOST_PROTOCOL.md §1.3) and `examples/host.rs`
-  serves it with `std::net` for development. The traits are synchronous; async storage can
+  serves it with `std::net` for development. `HostConfig::check` refuses addresses that are not base URLs or that end
+  in a version segment ([HST-22]), since they go into signed logs as `home.url`. The traits are synchronous; async storage can
   wrap them.
 
 ### 3.1 A SQL schema for the store

@@ -53,7 +53,8 @@ Run all of them before every commit. CI runs them too.
   another purpose. A new label goes into the registry (SPEC §5) and `xtask`'s `LABEL_PURPOSES` in the same commit; the
   vector check fails otherwise.
 - The HTTP binding is versioned by a path segment (`<base URL>/v0`, HOST_PROTOCOL.md §1.3), separately from the format.
-  `v0` until 1.0.0, then `v1`. The segment never goes into a base URL, `home.url` or anything signed and stored.
+  `v0` until 1.0.0, then `v1` (`API_VERSION` in both cores). The segment never goes into a base URL, `home.url` or
+  anything signed and stored; `check_base_url` ([HST-22]) enforces this wherever an address is configured or typed.
 - Rules have stable identifiers (`[LOG-12]`). Tests and vectors name the rules they exercise; a removed rule leaves a gap.
 
 ### 2. Rust and JS must agree byte for byte

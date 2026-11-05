@@ -16,6 +16,7 @@
 
 #[cfg(feature = "vault")]
 pub mod account;
+pub mod binding;
 pub mod crypto;
 pub mod encoding;
 pub mod error;
@@ -31,6 +32,7 @@ pub mod recovery;
 pub mod testing;
 pub mod vault;
 
+pub use binding::{API_VERSION, check_base_url};
 pub use error::{Error, Result};
 pub use json::{Map, Value, canonical, parse_json};
 

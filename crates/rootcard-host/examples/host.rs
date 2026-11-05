@@ -4,6 +4,9 @@
 //! ```text
 //! ROOTCARD_HOST_SEED=<64 hex> ROOTCARD_HOST_PORT=8787 cargo run -p rootcard-host --example host
 //! ```
+//!
+//! `ROOTCARD_HOST_URL` sets the base URL (default `http://127.0.0.1:<port>`); it may have a path, such as
+//! `http://127.0.0.1:8787/rootcard`, and then the endpoints are at `http://127.0.0.1:8787/rootcard/v0/…`.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use rootcard::encoding::hex_decode;
@@ -37,6 +40,12 @@ fn main() {
         }],
         peers: Vec::new(),
     };
+    config
+        .check()
+        .expect("ROOTCARD_HOST_URL is a base URL without an API version ([HST-22])");
+    // The path part of the base URL (`/rootcard` in `http://127.0.0.1:8787/rootcard`): requests arrive with it, and the
+    // router expects paths relative to the base URL (`/v0/host`).
+    let base_path = url.splitn(4, '/').nth(3).map(|p| format!("/{p}")).unwrap_or_default();
     let host = Host::new(
         config,
         MemoryIdentityStore::new(),
@@ -58,6 +67,11 @@ fn main() {
             parts.next().unwrap_or("/").to_string(),
         );
         let mut length = 0usize;
+        let path = match path.strip_prefix(base_path.as_str()) {
+            Some(rest) if rest.starts_with('/') || rest.starts_with('?') => rest.to_string(),
+            _ if base_path.is_empty() => path,
+            _ => String::from("/"),
+        };
         let mut req = Request {
             method,
             path,
