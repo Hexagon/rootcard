@@ -20,9 +20,9 @@ with trusted publishing, never from a laptop and never with a registry token (AG
 
 1. **Names exist** (PLAN D2): trusted publishing can only be configured for packages that already exist, so the owner
    publishes the `0.0.0` placeholders once by hand.
-2. **crates.io:** for each of the three crates, add a trusted publisher: repository `Hexagon/rootcard`, workflow
+2. **crates.io:** for each of the three crates, add a trusted publisher: repository `rootcard/rootcard`, workflow
    `release.yml`, environment `release`.
-3. **npm:** for `rootcard`, add a trusted publisher: GitHub Actions, repository `Hexagon/rootcard`, workflow
+3. **npm:** for `rootcard`, add a trusted publisher: GitHub Actions, repository `rootcard/rootcard`, workflow
    `release.yml`, environment `release`. Then disallow token publishing in the package settings.
 4. **GitHub:** create the environment `release` with the owner as required reviewer and deployments limited to tags
    `v*`. Protect `main` and the tag pattern `v*`.

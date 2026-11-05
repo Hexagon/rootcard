@@ -1,11 +1,11 @@
 # rootcard
 
-The core of [rootcard](https://github.com/Hexagon/rootcard): a portable, self-certifying identity for online logins. This
+The core of [rootcard](https://github.com/rootcard/rootcard): a portable, self-certifying identity for online logins. This
 crate holds the formats of `spec/SPEC.md` and everything that verifies them: canonical JSON, keys, the recovery key,
 inceptions and account ids, handles, the identity log (`verify_log`, `extend_log`, `compare_logs`), vault checks, public
 profiles, login, fetch and change messages, proofs, account files and recovery cards.
 
-> **New to rootcard?** Start with the [project README](https://github.com/Hexagon/rootcard#readme): what rootcard is,
+> **New to rootcard?** Start with the [project README](https://github.com/rootcard/rootcard#readme): what rootcard is,
 > the two ways to use it (a safer username-and-password login for your own service, or an ID card across services),
 > how it compares with other login methods, and the roadmap.
 

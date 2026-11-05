@@ -1,9 +1,9 @@
 # rootcard-cli
 
-The key tool for [rootcard](https://github.com/Hexagon/rootcard) identities, binary `rootcard`. It is the only place
+The key tool for [rootcard](https://github.com/rootcard/rootcard) identities, binary `rootcard`. It is the only place
 besides `keytool.html` where a recovery key is entered (SPEC [PWR-6]).
 
-> **New to rootcard?** Start with the [project README](https://github.com/Hexagon/rootcard#readme): what rootcard is,
+> **New to rootcard?** Start with the [project README](https://github.com/rootcard/rootcard#readme): what rootcard is,
 > the two ways to use it (a safer username-and-password login for your own service, or an ID card across services),
 > how it compares with other login methods, and the roadmap.
 
