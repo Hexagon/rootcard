@@ -115,8 +115,10 @@ unpinned actions (the run was green, nothing suggests a compromise). The review 
   Firefox and WebKit are untested.
 - [ ] Drive `keytool.html` end to end in a browser against the example host in CI: create, load, add a password,
   rotate (with the host up and gone), retire. The 0.2.0 page could not reach any host and no test noticed.
-- [ ] An end-to-end test of the CLI against the example host (`new --host`, `rotate-recovery`, `restore`), beside the
-  offline tests of `crates/rootcard-cli/tests/key_tool.rs`.
+- [x] An end-to-end test of the CLI against a host (`new --host`, `rotate-recovery`, `restore`), beside the offline
+  tests of `crates/rootcard-cli/tests/key_tool.rs`: `tests/against_host.rs` runs `http::route` behind a minimal HTTP
+  server in the test process and checks what the host stores after each command, including that the vault still
+  verifies after a rotation (the 0.2.0 `/events` bug).
 
 **Documentation**
 - [x] SPEC §5: the `rootcard/fetch/v1` row of the label table was indented and might not render in the table; SPEC
