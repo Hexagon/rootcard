@@ -35,30 +35,36 @@ An agent prepares a release only when the owner asks for one. Do exactly these s
 nothing else.
 
 1. **Start from a green `main`.** Fetch `main`, check that CI is green on it, and branch from it (use the branch you were
-   given, otherwise `release/vX.Y.Z`).
+   given, otherwise `release/vX.Y.Z`). Read the open items of docs/PLAN.md: if one must land before this release (it says
+   "before X.Y.Z", "before the release" or "before it is published"), tell the owner before continuing. 0.2.1 went out
+   without the release-pipeline pins that were planned for it because nobody checked.
 2. **Choose the version** by §1 from the changelogs' `Unreleased` sections. If any entry is a format change or breaking,
    say so in the pull request. If unsure between minor and patch, choose minor and ask.
 3. **Bump the version** in all three places:
    - `Cargo.toml`: `[workspace.package] version` and the `version` of `rootcard` in `[workspace.dependencies]`;
    - `packages/rootcard/package.json`: `version`;
    - `Cargo.lock`: run `cargo update --workspace` (it changes only the workspace's own entries).
-4. **Write the changelogs.** In each of the four `CHANGELOG.md` files, move the `Unreleased` entries under a new heading
+4. **Update the documents that name the version:** the status line of `README.md` (`Status: **X.Y.Z, ...**`) and, for a
+   new minor (or major) version, the supported versions table of `SECURITY.md` (the new line `Yes`, the previous one
+   `No`). `xtask repo-check`, which `release-check` runs, fails until both match. Then search the docs for the previous
+   version number and fix any mention that is not history.
+5. **Write the changelogs.** In each of the four `CHANGELOG.md` files, move the `Unreleased` entries under a new heading
    `## X.Y.Z - YYYY-MM-DD` (today's date, UTC) and leave an empty `## Unreleased` above it. A package without changes gets
    the line `No changes.` Entries describe user-visible changes; format changes say which structure and `v`.
-5. **Run every check:**
+6. **Run every check:**
    ```bash
    cargo fmt --all --check
    cargo clippy --workspace --all-targets --locked -- -D warnings
    cargo test --workspace --locked
    (cd packages/rootcard && npm test)
-   cargo run -p xtask -- release-check --tag vX.Y.Z     # versions, changelogs, tag, vectors and the label registry
+   cargo run -p xtask -- release-check --tag vX.Y.Z     # versions, changelogs, tag, vectors, label registry, repo-check
    cargo publish --workspace --locked --dry-run         # packages every crate and builds it from its tarball
    (cd packages/rootcard && npm publish --dry-run)      # lists exactly the files that would be published
    ```
    Read the file lists of both dry runs: nothing outside `src/`, the README, the changelog and the license may be in them.
-6. **Commit** as `Release vX.Y.Z` and open a pull request with the same title. Its description has the changelog
+7. **Commit** as `Release vX.Y.Z` and open a pull request with the same title. Its description has the changelog
    entries, the result of every check above, and whether the release contains a format change.
-7. **Stop.** Tell the owner the pull request is ready and that, after merging, they publish a GitHub release with tag
+8. **Stop.** Tell the owner the pull request is ready and that, after merging, they publish a GitHub release with tag
    `vX.Y.Z` on the merge commit (marked pre-release for a `-` version), using the changelog entries as release notes.
 
 Agents never: create or push tags, create or publish GitHub releases, run `cargo publish` or `npm publish` without

@@ -61,7 +61,12 @@ pub fn register(
                 known: None,
             },
             keep: Vec::new(),
-            add: Some(NewSlot { label, password, kdf }),
+            add: Some(NewSlot {
+                label,
+                password,
+                username,
+                kdf,
+            }),
         },
         random,
     )?;
@@ -113,6 +118,13 @@ pub fn new_instance(
     random: Random<'_>,
 ) -> Result<NewInstance> {
     crate::log::check_recovery_key(state, &recovery.sign_seed)?;
+    if let InstanceMode::Reset(slot) | InstanceMode::Fresh(slot) = &mode {
+        // The new password is checked before anything is drawn ([LCK-8]); its username must be this identity's.
+        if slot.username != state.username {
+            return Err(crate::Error::BadField);
+        }
+        check_password(slot.password, &state.username)?;
+    }
     let mut seed = Zeroizing::new([0u8; 32]);
     random(seed.as_mut());
     let reason = match mode {

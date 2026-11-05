@@ -146,6 +146,69 @@
       "rules": ["HST-22"]
     },
     {
+      "error": "bad_field",
+      "input": {
+        "url": "https://example.com/v0/.."
+      },
+      "name": "base URL \"https://example.com/v0/..\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "https://example.com/rootcard/."
+      },
+      "name": "base URL \"https://example.com/rootcard/.\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "https://example.com/../rootcard"
+      },
+      "name": "base URL \"https://example.com/../rootcard\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "https://example.com/%76%30"
+      },
+      "name": "base URL \"https://example.com/%76%30\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "https://example.com/root%2Fcard"
+      },
+      "name": "base URL \"https://example.com/root%2Fcard\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "input": {
+        "url": "https://example.com/my_root-card.v2~x"
+      },
+      "name": "base URL \"https://example.com/my_root-card.v2~x\"",
+      "op": "check_base_url",
+      "output": true,
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "https://example.com/root;v=0"
+      },
+      "name": "base URL \"https://example.com/root;v=0\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
       "input": {
         "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
         "host": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",

@@ -191,8 +191,9 @@ async function hostHome(base) {
 
 function newSlot() {
   const password = $("newPassword").value;
-  rc.checkPassword(password, current.state.username);
-  return { label: $("label").value.trim() || "Password", password, kdf: rc.KDF_DEFAULT };
+  const username = current.state.username;
+  rc.checkPassword(password, username);
+  return { label: $("label").value.trim() || "Password", password, username, kdf: rc.KDF_DEFAULT };
 }
 
 async function submitInstance(base, mode, old) {

@@ -143,16 +143,16 @@ async function vaultOp(op, i) {
   const u = await vault.unlockVault(i.vault, st, { recovery: keys });
   const random = rng(i);
   if (op === "change_password") {
-    const r = await vault.changePassword(u, i.vault, i.lock, i.password, kdf(i.kdf), random);
+    const r = await vault.changePassword(u, i.vault, i.lock, i.password, st.username, kdf(i.kdf), random);
     return { vault: r.vault, new: b64(r.new) };
   }
-  if (op === "add_slot") return vault.addSlot(u, i.vault, keys, { label: i.label, password: i.password, kdf: kdf(i.kdf) }, random);
+  if (op === "add_slot") return vault.addSlot(u, i.vault, keys, { label: i.label, password: i.password, username: st.username, kdf: kdf(i.kdf) }, random);
   if (op === "update_contents") return vault.updateContents(u, i.vault, { ...u.contents, data: i.data }, random);
   if (op === "rotate_recovery") {
     const r = await vault.rotateRecovery(st, i.events, keys, hx(i.new_key), i.vault, u, i.time, random);
     return { event: r.event, vault: r.vault, card: r.card };
   }
-  const slot = i.slot ? { label: i.slot.label, password: i.slot.password, kdf: kdf(i.slot.kdf) } : undefined;
+  const slot = i.slot ? { label: i.slot.label, password: i.slot.password, username: st.username, kdf: kdf(i.slot.kdf) } : undefined;
   const mode = i.mode === "restore" ? { restore: true } : i.mode === "revoke" ? { revoke: i.drop ?? [] } : i.mode === "reset" ? { reset: slot } : { fresh: slot };
   const pub = i.public ? (await rc.verifyPublic(i.public, st)).data : undefined;
   const r = await vault.newInstance(st, keys, u, pub, mode, await home(i.home), i.time, random);

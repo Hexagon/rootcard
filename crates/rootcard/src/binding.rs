@@ -33,7 +33,7 @@ pub fn check_base_url(url: &str) -> Result<()> {
     }
     if let Some(path) = path {
         let segments: Vec<&str> = path.split('/').collect();
-        if segments.iter().any(|s| s.is_empty()) {
+        if segments.iter().any(|s| !is_path_segment(s)) {
             return Err(Error::BadField);
         }
         if segments.last().is_some_and(|s| is_version_segment(s)) {
@@ -41,6 +41,17 @@ pub fn check_base_url(url: &str) -> Result<()> {
         }
     }
     Ok(())
+}
+
+/// Whether a base URL path segment is allowed ([HST-22]): non-empty, only unreserved characters (no percent-encoding),
+/// and not a dot segment.
+fn is_path_segment(segment: &str) -> bool {
+    !segment.is_empty()
+        && segment != "."
+        && segment != ".."
+        && segment
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"-._~".contains(&b))
 }
 
 /// Whether a path segment has the form of an API version (`v0`, `V12`).

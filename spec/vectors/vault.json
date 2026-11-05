@@ -4598,6 +4598,362 @@
       "rules": ["KT-3"]
     },
     {
+      "error": "weak_password",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "kdf": {
+          "m": 47104,
+          "t": 2
+        },
+        "lock": "HdQYNrFMhPc",
+        "password": "too short",
+        "random": "change",
+        "recovery_key": "e61f773247f8e0aaa9495a772bc972e00e7064490341072e94b13cae18c54954",
+        "vault": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "ct": "3ghpjQ5ufJ2ya-Z2OiKTkIF_qfjmuqkbi0_zkdnwyXbQsExeycNR8KvepMG6PAC4-CRQrYrfDCoc7pBA-WM_uB0nCTs5nxPu65ROBIDvo-pJITuonFYLmvVykBElIA",
+          "instance": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "locks": {
+            "grant": {
+              "gen": 1,
+              "recovery": "x25519:8Lb8mjp9V-9k0KgQRnDbS137a9sOVfsO31wBuj_S8DA",
+              "sig": "XNzYOztY0U24qB_YvidnaSM9-gJa879d6CzWZ9kHG34spjCAVMvCyaqibtE9faqW_YvRPrv941ia5ZwSh52fAw",
+              "slots": [
+                {
+                  "id": "HdQYNrFMhPc",
+                  "label": "Laptop"
+                }
+              ]
+            },
+            "list": [
+              {
+                "box": "x25519:8Lb8mjp9V-9k0KgQRnDbS137a9sOVfsO31wBuj_S8DA",
+                "id": "recovery",
+                "kind": "recovery",
+                "wrap": {
+                  "ct": "wlDF42FjWekjDoWp1gx58f1d30_QBOV3QhPgAHP_9xQR9pooTbnEjPWJ8uIb8yDI",
+                  "epk": "x25519:5JviXnCC8PYtFPWZ4Nzf7vtZlMLkuStveGTsFf99jTo",
+                  "nonce": "sWj5O84UvD7av6SX"
+                }
+              },
+              {
+                "auth": "ed25519:sUjEXGoCpVa7DbPyaTYJHvpWcLNJKcb5yZ5M9Vyut7U",
+                "box": "x25519:aOicedYr3e2_gEs1XG53EUOwPagt_MBSQy0kWz9AVWA",
+                "id": "HdQYNrFMhPc",
+                "kdf": {
+                  "alg": "argon2id",
+                  "m": 47104,
+                  "p": 1,
+                  "salt": "I9RfT25cIFqFpUNC5y5E_w",
+                  "t": 2
+                },
+                "kind": "password",
+                "wrap": {
+                  "ct": "VY_pmqLf1QfJ1Fu6vLhekCT7LYIJAEn6ZZxdCfxv_THbfSBZVQ1ANRicsimsIwjq",
+                  "epk": "x25519:4L9dbiVVb9XIrPAWOje1Mz_dmWq3gfzVgxOyi-C811s",
+                  "nonce": "xOALDVRolka9ro0R"
+                }
+              }
+            ]
+          },
+          "nonce": "u0oeIWNKowhP3L6q",
+          "rev": 1,
+          "sig": "1yKEiNJSa9ztZ7KNAxW4ECKh4q5SJxjU12lSqLU_HnBw7FG2v_pKh2FkwPx0HeAdO2_9ssmmleqNgnwM4oR5Cw",
+          "v": 1
+        }
+      },
+      "name": "password change to a weak password",
+      "op": "change_password",
+      "rules": ["LCK-8","CHG-1"]
+    },
+    {
+      "error": "weak_password",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "kdf": {
+          "m": 47104,
+          "t": 2
+        },
+        "label": "Phone",
+        "password": "phone",
+        "random": "add",
+        "recovery_key": "e61f773247f8e0aaa9495a772bc972e00e7064490341072e94b13cae18c54954",
+        "vault": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "ct": "3ghpjQ5ufJ2ya-Z2OiKTkIF_qfjmuqkbi0_zkdnwyXbQsExeycNR8KvepMG6PAC4-CRQrYrfDCoc7pBA-WM_uB0nCTs5nxPu65ROBIDvo-pJITuonFYLmvVykBElIA",
+          "instance": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "locks": {
+            "grant": {
+              "gen": 1,
+              "recovery": "x25519:8Lb8mjp9V-9k0KgQRnDbS137a9sOVfsO31wBuj_S8DA",
+              "sig": "XNzYOztY0U24qB_YvidnaSM9-gJa879d6CzWZ9kHG34spjCAVMvCyaqibtE9faqW_YvRPrv941ia5ZwSh52fAw",
+              "slots": [
+                {
+                  "id": "HdQYNrFMhPc",
+                  "label": "Laptop"
+                }
+              ]
+            },
+            "list": [
+              {
+                "box": "x25519:8Lb8mjp9V-9k0KgQRnDbS137a9sOVfsO31wBuj_S8DA",
+                "id": "recovery",
+                "kind": "recovery",
+                "wrap": {
+                  "ct": "wlDF42FjWekjDoWp1gx58f1d30_QBOV3QhPgAHP_9xQR9pooTbnEjPWJ8uIb8yDI",
+                  "epk": "x25519:5JviXnCC8PYtFPWZ4Nzf7vtZlMLkuStveGTsFf99jTo",
+                  "nonce": "sWj5O84UvD7av6SX"
+                }
+              },
+              {
+                "auth": "ed25519:sUjEXGoCpVa7DbPyaTYJHvpWcLNJKcb5yZ5M9Vyut7U",
+                "box": "x25519:aOicedYr3e2_gEs1XG53EUOwPagt_MBSQy0kWz9AVWA",
+                "id": "HdQYNrFMhPc",
+                "kdf": {
+                  "alg": "argon2id",
+                  "m": 47104,
+                  "p": 1,
+                  "salt": "I9RfT25cIFqFpUNC5y5E_w",
+                  "t": 2
+                },
+                "kind": "password",
+                "wrap": {
+                  "ct": "VY_pmqLf1QfJ1Fu6vLhekCT7LYIJAEn6ZZxdCfxv_THbfSBZVQ1ANRicsimsIwjq",
+                  "epk": "x25519:4L9dbiVVb9XIrPAWOje1Mz_dmWq3gfzVgxOyi-C811s",
+                  "nonce": "xOALDVRolka9ro0R"
+                }
+              }
+            ]
+          },
+          "nonce": "u0oeIWNKowhP3L6q",
+          "rev": 1,
+          "sig": "1yKEiNJSa9ztZ7KNAxW4ECKh4q5SJxjU12lSqLU_HnBw7FG2v_pKh2FkwPx0HeAdO2_9ssmmleqNgnwM4oR5Cw",
+          "v": 1
+        }
+      },
+      "name": "add a slot with a weak password",
+      "op": "add_slot",
+      "rules": ["LCK-8","KT-4"]
+    },
+    {
+      "error": "weak_password",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "home": {
+          "seed": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+          "url": "https://a.example"
+        },
+        "mode": "reset",
+        "random": "reset",
+        "recovery_key": "e61f773247f8e0aaa9495a772bc972e00e7064490341072e94b13cae18c54954",
+        "slot": {
+          "kdf": {
+            "m": 47104,
+            "t": 2
+          },
+          "label": "New",
+          "password": "short"
+        },
+        "time": 1800000100,
+        "vault": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "ct": "3ghpjQ5ufJ2ya-Z2OiKTkIF_qfjmuqkbi0_zkdnwyXbQsExeycNR8KvepMG6PAC4-CRQrYrfDCoc7pBA-WM_uB0nCTs5nxPu65ROBIDvo-pJITuonFYLmvVykBElIA",
+          "instance": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+          "locks": {
+            "grant": {
+              "gen": 1,
+              "recovery": "x25519:8Lb8mjp9V-9k0KgQRnDbS137a9sOVfsO31wBuj_S8DA",
+              "sig": "XNzYOztY0U24qB_YvidnaSM9-gJa879d6CzWZ9kHG34spjCAVMvCyaqibtE9faqW_YvRPrv941ia5ZwSh52fAw",
+              "slots": [
+                {
+                  "id": "HdQYNrFMhPc",
+                  "label": "Laptop"
+                }
+              ]
+            },
+            "list": [
+              {
+                "box": "x25519:8Lb8mjp9V-9k0KgQRnDbS137a9sOVfsO31wBuj_S8DA",
+                "id": "recovery",
+                "kind": "recovery",
+                "wrap": {
+                  "ct": "wlDF42FjWekjDoWp1gx58f1d30_QBOV3QhPgAHP_9xQR9pooTbnEjPWJ8uIb8yDI",
+                  "epk": "x25519:5JviXnCC8PYtFPWZ4Nzf7vtZlMLkuStveGTsFf99jTo",
+                  "nonce": "sWj5O84UvD7av6SX"
+                }
+              },
+              {
+                "auth": "ed25519:sUjEXGoCpVa7DbPyaTYJHvpWcLNJKcb5yZ5M9Vyut7U",
+                "box": "x25519:aOicedYr3e2_gEs1XG53EUOwPagt_MBSQy0kWz9AVWA",
+                "id": "HdQYNrFMhPc",
+                "kdf": {
+                  "alg": "argon2id",
+                  "m": 47104,
+                  "p": 1,
+                  "salt": "I9RfT25cIFqFpUNC5y5E_w",
+                  "t": 2
+                },
+                "kind": "password",
+                "wrap": {
+                  "ct": "VY_pmqLf1QfJ1Fu6vLhekCT7LYIJAEn6ZZxdCfxv_THbfSBZVQ1ANRicsimsIwjq",
+                  "epk": "x25519:4L9dbiVVb9XIrPAWOje1Mz_dmWq3gfzVgxOyi-C811s",
+                  "nonce": "xOALDVRolka9ro0R"
+                }
+              }
+            ]
+          },
+          "nonce": "u0oeIWNKowhP3L6q",
+          "rev": 1,
+          "sig": "1yKEiNJSa9ztZ7KNAxW4ECKh4q5SJxjU12lSqLU_HnBw7FG2v_pKh2FkwPx0HeAdO2_9ssmmleqNgnwM4oR5Cw",
+          "v": 1
+        }
+      },
+      "name": "reset to a weak password",
+      "op": "new_instance",
+      "rules": ["LCK-8","KT-8"]
+    },
+    {
       "input": {
         "events": [
           {

@@ -172,8 +172,29 @@ fn register_login_change_password() {
 
     // [CHG-1] a password change: a new lock for the slot, proven with the old auth key.
     let mut random = |b: &mut [u8]| rng.fill(b);
-    let (v2, new_hash) =
-        change_password(&u, &w.vault, &id, "a new and better passphrase", &Kdf::MIN, &mut random).unwrap();
+    // [LCK-8] holds in every function that creates a password lock, not only at registration.
+    let name = w.state.username.as_str();
+    for weak in ["too short", "ASTRA", ""] {
+        let weak = if weak == "ASTRA" {
+            name.to_ascii_uppercase()
+        } else {
+            weak.to_string()
+        };
+        assert_eq!(
+            change_password(&u, &w.vault, &id, &weak, name, &Kdf::MIN, &mut random).err(),
+            Some(Error::WeakPassword)
+        );
+    }
+    let (v2, new_hash) = change_password(
+        &u,
+        &w.vault,
+        &id,
+        "a new and better passphrase",
+        name,
+        &Kdf::MIN,
+        &mut random,
+    )
+    .unwrap();
     verify_vault(&v2, &w.state).unwrap();
     assert_eq!(
         vault_change(&w.vault, &v2),
@@ -225,6 +246,16 @@ fn register_login_change_password() {
     // [KT-4] add a password slot with the recovery key.
     assert_eq!(update_contents(&u2, &v3, &c, &mut random).err(), Some(Error::StaleRev));
     let u3 = unlock_vault(&v3, &w.state, &Secret::Recovery(&keys)).unwrap();
+    let weak = NewSlot {
+        label: "Phone",
+        password: "short",
+        username: &w.state.username,
+        kdf: Kdf::MIN,
+    };
+    assert_eq!(
+        add_slot(&u3, &v3, &keys, &weak, &mut random).err(),
+        Some(Error::WeakPassword)
+    );
     let v4 = add_slot(
         &u3,
         &v3,
@@ -232,6 +263,7 @@ fn register_login_change_password() {
         &NewSlot {
             label: "Phone",
             password: "phone passphrase 123",
+            username: &w.state.username,
             kdf: Kdf::MIN,
         },
         &mut random,

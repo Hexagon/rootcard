@@ -3,5 +3,18 @@
 rootcard is security software. Please report vulnerabilities **privately** through GitHub's
 [private vulnerability reporting](https://github.com/Hexagon/rootcard/security/advisories/new). Do not open a public issue.
 
-Status: placeholder. The disclosure policy and response times are decided in decision D6 of [docs/PLAN.md](docs/PLAN.md).
-No version has been released, so there are no supported versions yet.
+## Supported versions
+
+rootcard is pre-1.0: only the newest minor release line gets fixes, as a new patch release of every package together
+(docs/RELEASING.md). Identities, logs and signatures made by any release stay valid in later ones (format version 1).
+
+| Version | Supported |
+|---|---|
+| 0.2.x | Yes |
+| 0.1.x | No: upgrade to 0.2.x |
+
+## Disclosure
+
+Response times and the disclosure policy are still to be decided (decision D6 in [docs/PLAN.md](docs/PLAN.md)). Until
+then: reports are acknowledged on a best-effort basis, fixes are released before details are published, and the
+advisory credits the reporter unless they ask otherwise.

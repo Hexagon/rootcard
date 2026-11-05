@@ -294,7 +294,7 @@ Everything that is hashed or signed is canonical JSON. The encoding is the JSON 
   | `rootcard/wrap/v1` | Key wrapping of the vault key to a lock | §11.4 |
   | `rootcard/public/v1` | The account key's signature on the public profile | §12.1 |
   | `rootcard/login/v1` | Answer to a login challenge | §13.3 |
-    | `rootcard/fetch/v1` | Answer to a vault fetch challenge | §13.2 |
+  | `rootcard/fetch/v1` | Answer to a vault fetch challenge | §13.2 |
   | `rootcard/change/v1` | Old-password proof for a password change | §13.4 |
   | `rootcard/proof/v1` | Proof of identity | §14 |
   | `rootcard/statement/v1` | Challenge derived from a statement | §14.2 |
@@ -408,7 +408,7 @@ and entered only in the key tool ([PWR-6]).
 ### 8.2 Collisions and extended tags
 
 - **[HDL-4]** Two identities **collide** when they have the same realm, similar usernames ([USR-2]) and equal tags.
-- **[HDL-5]** A host never registers an identity that collides with one it already stores in that realm, retired
+- **[HDL-5]** A host never registers an identity that collides with one it registered in that realm, retired
   identities included ([HST-4]). → `handle_taken`
 - **[HDL-6]** When a verifier knows a set `C` of two or more colliding identities (collisions can arrive by propagation,
   [HST-15]), it displays each of them with an **extended tag**: let `n` be the smallest integer ≥ 5 such that the first
@@ -570,7 +570,7 @@ Vault {
   "account":  "<account id>",
   "instance": "<b64u event hash of the instance event>",
   "rev":      n,                                       1 … 2^32, increases with every change within the instance
-    "locks": {
+  "locks": {
     "grant": {                                         who may unlock: set by the recovery key only, [LCK-3]
       "gen":      g,                                   1 … 2^32, increases with every change of the grant
       "slots":    [ { "id": "<b64u 8 bytes>", "label": "<1–64 characters>" }, ... ],    0 … 15 password slots
@@ -973,9 +973,14 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
   ([VLT-3]) and profile ([DAT-2]) verify → their codes; the vault has a password slot → `bad_locks`. It then adds the
   receipt, stores everything atomically ([HST-19]) and answers with the account id, the handle, the version and the
   receipt.
-- **[HST-4]** **Handle uniqueness:** a host never stores two identities of one realm that collide ([HDL-4]) unless the
-  collision arrived by propagation ([HST-15]). Retired identities keep their handle reserved. *Note:* a unique index on
-  `(realm, lower-case username, tag)` implements this rule.
+- **[HST-4]** **Handle uniqueness:** only identities **registered** at a host ([HST-3]) reserve a handle there, and a
+  host never registers an identity that collides ([HDL-4]) with one it registered in that realm. A registered identity
+  keeps its handle reserved when it is retired or moves away. Identities the host stores for any other reason (a log
+  received at `/events` or from a peer, a new instance moving in; [HST-5], [HST-14], [HST-15]) reserve nothing and may
+  collide with each other and with registered ones; verifiers tell them apart by extended tags ([HDL-6]). *Rationale:*
+  anyone can make an inception and push it, so a pushed log that reserved its handle would let about 2^20 requests block
+  every tag of a username (THREAT_MODEL.md T42). *Note:* a unique index on `(realm, lower-case username, tag)` over the
+  registered identities only implements this rule (ARCHITECTURE.md §3.1).
 - **[HST-5]** **New instance** submits a pending instance, the events the host may be missing before it, a vault and
   optionally a profile. The host extends its log with the missing events ([HST-14]) and then requires the pending
   instance's `prev` to be the hash of its current version → otherwise `stale_version` (the submitter is behind) or
@@ -1051,7 +1056,10 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
 - **[HST-22]** **Base URLs of the HTTP binding.** A host that uses the HTTP binding (HOST_PROTOCOL.md) has addresses
   of the form `https://` and a host name or IP literal, an optional port and an optional path of non-empty segments,
   without a trailing slash, query, fragment or user info; plain `http://` only for `localhost`, `127.0.0.1` and
-  `[::1]`. The last path segment is never an API version segment (`v` or `V` followed by digits), because endpoints are
+  `[::1]`. Path segments consist of unreserved characters only (`A`–`Z`, `a`–`z`, `0`–`9`, `-`, `.`, `_`, `~`; RFC 3986
+  §2.3), so a base URL has no percent-encoding, and are never the dot segments `.` or `..`: an address must not reach
+  another path, or a version segment, after normalization (`https://example.com/v0/..`, `https://example.com/%76%30`).
+  The last path segment is never an API version segment (`v` or `V` followed by digits), because endpoints are
   under `<base URL>/<API version>` (`API_VERSION`, `v0` before 1.0.0) and the version must not enter `home.url`.
   `check_base_url(url)` checks this → `bad_field`. Hosts check their configured addresses with it, and clients and the
   key tool check every host address they are given before using it or putting it into an instance. Verifiers of a log
@@ -1180,7 +1188,7 @@ its code ([CNV-4]).
 | `bad_username` | Not a valid username | USR-1 |
 | `username_policy` | A valid username the realm's policy refuses | USR-3 |
 | `bad_handle` | Not a valid handle | HDL-3 |
-| `handle_taken` | The handle collides with a stored identity | HDL-5, HST-4 |
+| `handle_taken` | The handle collides with an identity registered at the host | HDL-5, HST-4 |
 | `ambiguous_handle` | A plain handle matches several identities | HDL-7 |
 | `account_mismatch` | Data of another account | LOG-12, VER-2, FIL-3, CRD-3 |
 | `wrong_recovery_key` | The recovery key is not the current one | RK-5, CRD-3 |

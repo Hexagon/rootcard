@@ -10,7 +10,8 @@ refer to the specification.
 ## 1. General
 
 - **Addresses.** A host is reached at one or more base URLs ([HST-18]): `https://` followed by a host name, an optional
-  port and an optional path without a trailing slash (`https://id.example.com`, `https://example.com/rootcard`). Every
+  port and an optional path without a trailing slash, whose segments use only `A`–`Z`, `a`–`z`, `0`–`9`, `-`, `.`, `_`
+  and `~` and are never `.` or `..` ([HST-22]; `https://id.example.com`, `https://example.com/rootcard`). Every
   path below is relative to the **API root** `<base URL>/v0` (§1.3): `GET /host` means `GET <base URL>/v0/host`. The
   `home.url` of an instance is the address the host had when it receipted it; a host that moves keeps answering
   `GET /host` at old addresses with its current ones. Plain `http://` is allowed only

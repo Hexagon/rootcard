@@ -4,6 +4,13 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- **Breaking:** every function that creates a password lock enforces the password rules of SPEC [LCK-8]
+  (`weak_password`), not only `register`: `newPasswordLock` (and so `addSlot`, `instanceVault`, `newInstance`) and
+  `changePassword`. Slots (`{ label, password, kdf }`) need `username`, and `changePassword` has a new parameter
+  `username` after `password`. `newInstance` refuses a slot whose `username` is not the identity's (`bad_field`).
+- **Breaking:** `checkBaseUrl` ([HST-22]) refuses dot segments and anything but unreserved characters in the path
+  (no percent-encoding), as in the Rust crate. `keytool.html` is rebuilt with both changes.
+
 ## 0.2.1 - 2026-11-05
 
 - **Fixed:** `keytool.html` 0.2.0 refused every host address ("not a host base URL"), because the page did not include
