@@ -579,6 +579,32 @@
     },
     {
       "input": {
+        "msg": "72",
+        "seed": "004ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6"
+      },
+      "name": "seed with a zero first byte",
+      "op": "ed25519_sign",
+      "output": {
+        "public": "a10bb1fca87b929460b69c34f1258796bc328d59eed0126480683a929bdbf2ce",
+        "sig": "00118f0184fafd546738a10929efd8ad9ba1e90d946e5f5814a4fcd614c7a7a8346e691224d90bdaac5b44ed0591c18c98c988787e6bf3e3478891a292ec1908"
+      },
+      "rules": ["CRY-1","CRY-8"]
+    },
+    {
+      "input": {
+        "msg": "72",
+        "seed": "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a600"
+      },
+      "name": "seed with a zero last byte",
+      "op": "ed25519_sign",
+      "output": {
+        "public": "e969da8746900ce4fa77bcb6dc2bc3dc7a50ef3c92191b07ff6734328b22e0cb",
+        "sig": "68b40995e532adafbcb68a0263317bf9d39127defd8495d5ec78bac1c42e36e55cac7957e39002df53e8a2140de5de2b34db4303dd2de22ebf21c8e7d8b44902"
+      },
+      "rules": ["CRY-1","CRY-8"]
+    },
+    {
+      "input": {
         "msg": "726f6f7463617264",
         "public": "33f08605d4bf2c3026e3646390540bc078230769d4e3f9abcb1ae6ea0dcd3a5c",
         "sig": "0af8e1939058a3065b16131340488013a2418736e431b9715aea6dd2c7eb1ffd4b2ed66e6be5f46ee63acbe823a5fb2c8267d3fcbd093f5ad1273ad715793c06"
@@ -866,6 +892,45 @@
         "shared": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742"
       },
       "rules": ["CRY-1"]
+    },
+    {
+      "input": {
+        "peer": "e6db6867583030db3594c1a424b15f7c726624ec26b3353b10a903a6d0ab1c4c",
+        "secret": "0046e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449ac4"
+      },
+      "name": "X25519 secret with a zero first byte",
+      "op": "x25519",
+      "output": {
+        "public": "e07016263f5ff192da8891c1ac291a918f2b4c9e4df15dae47b6d4e982078e76",
+        "shared": "40ad6bc9f5fc1cc5c6af89678ccfa7496f42acefa999bb53034c0beec4f0047c"
+      },
+      "rules": ["CRY-1","CRY-2"]
+    },
+    {
+      "input": {
+        "peer": "e6db6867583030db3594c1a424b15f7c726624ec26b3353b10a903a6d0ab1c4c",
+        "secret": "a546e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449a00"
+      },
+      "name": "X25519 secret with a zero last byte",
+      "op": "x25519",
+      "output": {
+        "public": "d4b9599586ac9a9f498754892ae422210803cda0e1a92b776d63f0abd8dd9f1c",
+        "shared": "cd3f0901073a448e40bca3519d5ce47cd9d86a3ee8ea6f1ac88dfa1660e8b716"
+      },
+      "rules": ["CRY-1","CRY-2"]
+    },
+    {
+      "input": {
+        "peer": "e6db6867583030db3594c1a424b15f7c726624ec26b3353b10a903a6d0ab1c4c",
+        "secret": "0046e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449a00"
+      },
+      "name": "X25519 secret with zero first and last bytes",
+      "op": "x25519",
+      "output": {
+        "public": "75c5fbb0b1717b79093f52cbb12b2e55c6f28f190d0876d7b2da34285a99fc15",
+        "shared": "72a71b7ecb009c474559cd2b4ebab59a4587bcd1ec365fc64be56ed251ea4d61"
+      },
+      "rules": ["CRY-1","CRY-2"]
     },
     {
       "error": "bad_key",

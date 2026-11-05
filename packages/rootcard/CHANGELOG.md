@@ -10,6 +10,12 @@ All notable changes to this package are recorded here.
   `username` after `password`. `newInstance` refuses a slot whose `username` is not the identity's (`bad_field`).
 - **Breaking:** `checkBaseUrl` ([HST-22]) refuses dot segments and anything but unreserved characters in the path
   (no percent-encoding), as in the Rust crate. `keytool.html` is rebuilt with both changes.
+- Fixed: in Safari (WebKit), about 1 in 256 X25519 secrets failed with a `DataError`: WebKit's WebCrypto rejects a
+  secret whose first byte is zero. Creating locks, wrapping the vault key and unlocking could fail at random, and a
+  password whose box secret started with a zero byte could never unlock there. X25519 secrets are now given to
+  WebCrypto with a zero first byte as 1 and a zero last byte as 0x40, the same scalar after clamping (RFC 7748 §5),
+  so no key, result or vector changes. New vectors in `spec/vectors/primitives.json` cover secrets and seeds with a
+  zero byte at either end. `keytool.html` is rebuilt.
 
 ## 0.2.1 - 2026-11-05
 

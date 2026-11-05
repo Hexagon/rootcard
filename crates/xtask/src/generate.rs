@@ -450,6 +450,18 @@ fn primitives() -> Vec<V> {
             "c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7",
             "af82",
         ),
+        // Seeds with a zero byte at either end: an implementation that handles keys as big integers can drop it
+        // (WebKit's WebCrypto on Linux rejected such an X25519 secret).
+        (
+            "seed with a zero first byte",
+            "004ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6",
+            "72",
+        ),
+        (
+            "seed with a zero last byte",
+            "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a600",
+            "72",
+        ),
     ] {
         out.push(v(
             name,
@@ -486,6 +498,32 @@ fn primitives() -> Vec<V> {
             "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f",
         ),
     ));
+    // Secrets with a zero byte at either end (WebKit's WebCrypto on Linux rejected the first kind); clamping makes
+    // them the same scalars as secrets whose low bits of the first byte or whose last byte are set.
+    for (name, secret) in [
+        (
+            "X25519 secret with a zero first byte",
+            "0046e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449ac4",
+        ),
+        (
+            "X25519 secret with a zero last byte",
+            "a546e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449a00",
+        ),
+        (
+            "X25519 secret with zero first and last bytes",
+            "0046e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449a00",
+        ),
+    ] {
+        out.push(v(
+            name,
+            &["CRY-1", "CRY-2"],
+            "x25519",
+            m().with("secret", secret).with(
+                "peer",
+                "e6db6867583030db3594c1a424b15f7c726624ec26b3353b10a903a6d0ab1c4c",
+            ),
+        ));
+    }
     out.push(v(
         "X25519 with a small-order peer fails",
         &["CRY-4"],

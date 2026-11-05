@@ -150,20 +150,41 @@ export async function ed25519Verify(publicKey, m, sig) {
   if (!ok) fail("bad_signature");
 }
 
+// An X25519 secret as WebCrypto imports it. WebKit's WebCrypto on Linux rejects a secret whose first byte is zero
+// (DataError), probably because it handles the key as a big integer, so ~1 in 256 secrets failed there. X25519 clamps
+// every secret (RFC 7748 §5: the low 3 bits of the first byte cleared, the top bit of the last cleared and the next
+// set), so a zero first byte is given as 1 and a zero last byte as 0x40: the same scalar, the same keys and results.
+function x25519Secret(secret) {
+  const c = Uint8Array.from(secret);
+  if (c.length === 32) {
+    if (c[0] === 0) c[0] = 1;
+    if (c[31] === 0) c[31] = 0x40;
+  }
+  return c;
+}
+
 /** The X25519 public key of a 32-byte secret ([CRY-2]). */
 export async function x25519Public(secret) {
-  return publicOf(X_PKCS8, "X25519", secret, ["deriveBits"]);
+  const c = x25519Secret(secret);
+  try {
+    return await publicOf(X_PKCS8, "X25519", c, ["deriveBits"]);
+  } finally {
+    c.fill(0);
+  }
 }
 
 /** X25519 key agreement; an all-zero result fails ([CRY-4]). → bad_key */
 export async function x25519(secret, publicKey) {
   let bits;
+  const c = x25519Secret(secret);
   try {
-    const priv = await importPrivate(X_PKCS8, "X25519", secret, false, ["deriveBits"]);
+    const priv = await importPrivate(X_PKCS8, "X25519", c, false, ["deriveBits"]);
     const pub = await subtle.importKey("raw", publicKey, { name: "X25519" }, false, []);
     bits = new Uint8Array(await subtle.deriveBits({ name: "X25519", public: pub }, priv, 256));
   } catch {
     fail("bad_key");
+  } finally {
+    c.fill(0);
   }
   if (bits.every((b) => b === 0)) fail("bad_key");
   return bits;
