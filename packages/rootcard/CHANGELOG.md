@@ -4,6 +4,11 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.1 - 2026-11-05
+
+- The package metadata (`homepage`, `repository`, `bugs`) points to `github.com/rootcard/rootcard`, the repository it
+  is built and published from, so npm provenance matches.
+
 ## 0.3.0 - 2026-11-05
 
 - `keytool.html` is redesigned in the rootcard.org theme, with the same operations and checks. It has tabs (open,

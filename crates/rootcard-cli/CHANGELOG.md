@@ -4,6 +4,10 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.1 - 2026-11-05
+
+No changes.
+
 ## 0.3.0 - 2026-11-05
 
 - `new` and `rotate-recovery` generate recovery keys with `new_recovery_key`, so the signing key works in every

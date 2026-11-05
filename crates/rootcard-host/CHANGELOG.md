@@ -4,6 +4,10 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.1 - 2026-11-05
+
+No changes.
+
 ## 0.3.0 - 2026-11-05
 
 - **Fixed:** `POST /id/{account}/events` and `/instance` answered `fork` for any event that differed from a stored
