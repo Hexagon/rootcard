@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.0 - 2026-11-05
+
 - **Fixed:** `POST /id/{account}/events` and `/instance` answered `fork` for any event that differed from a stored
   one, valid or not. The submitted events are now verified first: garbage gets its own error code, and only a valid
   diverging log is a `fork` ([HST-14]).

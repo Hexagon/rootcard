@@ -4,7 +4,7 @@ This is the plan for agents that set up the monorepo and build the first release
 phase is done when every acceptance criterion is checked, with tests where possible. Record deviations under the phase.
 
 **Current phase: 6 (hardening and release).** Phases 0 to 5 are done, with the deviations recorded under each. Released:
-0.1.0, 0.2.0 and 0.2.1; next: 0.3.0 (below).
+0.1.0, 0.2.0, 0.2.1 and 0.3.0 (its review items below).
 
 Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is application-neutral here (labels `rootcard/...`,
 `realm`, *host*). Xigna's own integration plan lives in the Xigna repository.
@@ -46,7 +46,7 @@ Three version numbers move independently. None of them may break what an earlier
 
 ---
 
-## Planned for 0.3.0 (review of 0.2.0)
+## 0.3.0 (review of 0.2.0) ✅
 
 A review of 0.2.0 found two bugs that could lose a recovery key or break the key tool, fixed in 0.2.1 (the key tool
 saved new cards only after sending; `keytool.html` lacked `binding.js`; `POST /events` dropped a rotation's vault).

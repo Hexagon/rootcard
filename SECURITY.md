@@ -10,8 +10,9 @@ rootcard is pre-1.0: only the newest minor release line gets fixes, as a new pat
 
 | Version | Supported |
 |---|---|
-| 0.2.x | Yes |
-| 0.1.x | No: upgrade to 0.2.x |
+| 0.3.x | Yes |
+| 0.2.x | No: upgrade to 0.3.x |
+| 0.1.x | No: upgrade to 0.3.x |
 
 ## Disclosure
 

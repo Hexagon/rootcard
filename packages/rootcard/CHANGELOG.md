@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.0 - 2026-11-05
+
 - `keytool.html` is redesigned in the rootcard.org theme, with the same operations and checks. It has tabs (open,
   create, verify a proof). An opened identity is shown as a card with its host, and each action says whether it
   works offline, sends to the primary host or to a host you enter. Actions the identity cannot do yet are disabled,
