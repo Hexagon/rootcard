@@ -64,24 +64,24 @@ for (const name of names) {
           out[name] = `ERR ${e.name}: ${e.message}`;
         }
       };
-      let k8;
-      await step("pkcs8 import", async () => ((k8 = await crypto.subtle.importKey("pkcs8", hx(derHex), { name: "Ed25519" }, true, ["sign"])), "ok"));
-      await step("pkcs8 export jwk", async () => {
-        const j = await crypto.subtle.exportKey("jwk", k8);
-        return `x ${j.x === jwk.x ? "matches" : "DIFFERS " + j.x} d ${j.d === jwk.d ? "matches" : "DIFFERS " + j.d}`;
-      });
-      await step("pkcs8 export pkcs8", async () => toHex(await crypto.subtle.exportKey("pkcs8", k8)));
-      await step("pkcs8 sign", async () => {
-        const s = toHex(await crypto.subtle.sign("Ed25519", k8, msg));
-        return s === expectSig ? "matches" : "DIFFERS " + s;
-      });
-      let kj;
-      await step("jwk import (d, x)", async () => ((kj = await crypto.subtle.importKey("jwk", jwk, { name: "Ed25519" }, true, ["sign"])), "ok"));
-      await step("jwk sign", async () => {
-        const s = toHex(await crypto.subtle.sign("Ed25519", kj, msg));
-        return s === expectSig ? "matches" : "DIFFERS " + s;
-      });
-      await step("jwk export jwk", async () => JSON.stringify(await crypto.subtle.exportKey("jwk", kj)).slice(0, 200));
+      const variants = {
+        "d only": { kty: "OKP", crv: "Ed25519", d: jwk.d, ext: true },
+        "d, x of zeros": { kty: "OKP", crv: "Ed25519", d: jwk.d, x: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", ext: true },
+        "d, x of another key": { kty: "OKP", crv: "Ed25519", d: jwk.d, x: "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo", ext: true },
+      };
+      for (const [n, j] of Object.entries(variants)) {
+        let k;
+        await step(`${n}: import`, async () => ((k = await crypto.subtle.importKey("jwk", j, { name: "Ed25519" }, true, ["sign"])), "ok"));
+        if (!k) continue;
+        await step(`${n}: export x`, async () => {
+          const e = await crypto.subtle.exportKey("jwk", k);
+          return e.x === jwk.x ? "correct" : "WRONG " + e.x;
+        });
+        await step(`${n}: sign`, async () => {
+          const s = toHex(await crypto.subtle.sign("Ed25519", k, msg));
+          return s === expectSig ? "matches" : "DIFFERS";
+        });
+      }
       return out;
     }, { derHex: der.toString("hex"), jwk: { kty: "OKP", crv: "Ed25519", d: nj.d, x: nj.x, ext: true }, expectSig });
     console.log(`  PROBE ${name}: ${JSON.stringify(probe)}`);
