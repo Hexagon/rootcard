@@ -46,6 +46,45 @@ for (const name of names) {
     console.log(`${name} (${r.userAgent ?? "?"}): ${r.pass} passed, ${r.fail} failed`);
     for (const f of r.failures) console.log(`  FAIL ${f}`);
     if (r.fail > 0 || r.pass === 0) failed = true;
+    // TEMPORARY diagnostic (PR #11): which WebCrypto step rejects an Ed25519 seed with a zero first byte. Never fails.
+    const seedHex = "004ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6";
+    const der = Buffer.concat([Buffer.from("302e020100300506032b657004220420", "hex"), Buffer.from(seedHex, "hex")]);
+    const nk = (await import("node:crypto")).createPrivateKey({ key: der, format: "der", type: "pkcs8" });
+    const nj = nk.export({ format: "jwk" });
+    const expectSig = (await import("node:crypto")).sign(null, Buffer.from("72", "hex"), nk).toString("hex");
+    const probe = await page.evaluate(async ({ derHex, jwk, expectSig }) => {
+      const hx = (h) => Uint8Array.from(h.match(/../g), (b) => parseInt(b, 16));
+      const toHex = (b) => [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
+      const msg = hx("72");
+      const out = {};
+      const step = async (name, f) => {
+        try {
+          out[name] = await f();
+        } catch (e) {
+          out[name] = `ERR ${e.name}: ${e.message}`;
+        }
+      };
+      let k8;
+      await step("pkcs8 import", async () => ((k8 = await crypto.subtle.importKey("pkcs8", hx(derHex), { name: "Ed25519" }, true, ["sign"])), "ok"));
+      await step("pkcs8 export jwk", async () => {
+        const j = await crypto.subtle.exportKey("jwk", k8);
+        return `x ${j.x === jwk.x ? "matches" : "DIFFERS " + j.x} d ${j.d === jwk.d ? "matches" : "DIFFERS " + j.d}`;
+      });
+      await step("pkcs8 export pkcs8", async () => toHex(await crypto.subtle.exportKey("pkcs8", k8)));
+      await step("pkcs8 sign", async () => {
+        const s = toHex(await crypto.subtle.sign("Ed25519", k8, msg));
+        return s === expectSig ? "matches" : "DIFFERS " + s;
+      });
+      let kj;
+      await step("jwk import (d, x)", async () => ((kj = await crypto.subtle.importKey("jwk", jwk, { name: "Ed25519" }, true, ["sign"])), "ok"));
+      await step("jwk sign", async () => {
+        const s = toHex(await crypto.subtle.sign("Ed25519", kj, msg));
+        return s === expectSig ? "matches" : "DIFFERS " + s;
+      });
+      await step("jwk export jwk", async () => JSON.stringify(await crypto.subtle.exportKey("jwk", kj)).slice(0, 200));
+      return out;
+    }, { derHex: der.toString("hex"), jwk: { kty: "OKP", crv: "Ed25519", d: nj.d, x: nj.x, ext: true }, expectSig });
+    console.log(`  PROBE ${name}: ${JSON.stringify(probe)}`);
   } finally {
     await browser.close();
   }
