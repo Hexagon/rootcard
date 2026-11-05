@@ -4,6 +4,11 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- License: MIT OR Apache-2.0, at the user's option (0.1.0 was MIT only). The package now ships `LICENSE-MIT` and
+  `LICENSE-APACHE`.
+- **Breaking (HTTP binding):** `keytool.html` calls hosts under `<base URL>/v0` (HOST_PROTOCOL.md §1.3). The core
+  library makes no requests and is unchanged.
+
 ## 0.1.0 - 2026-11-04
 
 - First release of the JavaScript implementation of format version 1, byte for byte equal to the Rust crate on every

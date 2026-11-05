@@ -52,7 +52,7 @@ at registration and is then kept offline, on the card. The password has low powe
 | You have | If you forget the password | If your home server disappears |
 |---|---|---|
 | Password only | The identity is lost | The identity is lost |
-| Account file, no recovery card | Lost: the file is locked with the same password | You can still read your data with the password, but no host can become your new home without the card |
+| Account file, no recovery card | Lost: the file is locked with the same password | Data readable with the password; no new home without the card |
 | Recovery card | Reset in the key tool; data and profile carry over | Your id and handle survive on a new host; private data and profile are lost |
 | Recovery card and account file | Reset | Everything moves to a new host |
 
@@ -118,12 +118,15 @@ from audited crates and WebCrypto.
   forever.
 - **New algorithms without a new identity.** Post-quantum keys (for example ML-DSA, ML-KEM) and passkeys arrive as new
   key types and lock kinds, adopted by a recovery-key rotation or a new instance. The account id stays the same.
+- **A versioned HTTP API.** Endpoints live under `<base URL>/v0` until 1.0.0, then under a frozen `/v1`. Addresses
+  stored in identities never contain the version, so the API can evolve without touching any identity.
 - **Not tied to a company or a transport.** The HTTP binding is a recommendation, any host can be your home, and the
   key tool works offline from a file on your own disk.
 - **Known limits.** Ed25519 and X25519 are not quantum-safe: the move to post-quantum keys has to happen before a
   quantum attacker exists, and stored vaults could be attacked later (THREAT_MODEL T37). Forks of a log are detected but
-  not resolved in format version 1, and a stolen recovery key gives control until witnesses and pre-rotation arrive in
-  a later format version (AR3, AR11). Before `1.0.0` the format can still change; every change follows §22.
+  not resolved in format version 1, and a stolen recovery key gives control until witnesses and pre-rotation arrive in a
+  later format version (AR3, AR11). Before `1.0.0` the packages and the `v0` API can still change; changes to the format
+  follow §22.
 
 ## How it works
 
@@ -223,7 +226,11 @@ Planned after 0.1.0 (details in [docs/PLAN.md](docs/PLAN.md)):
 
 ## License
 
-[MIT](LICENSE).
+Licensed under either of [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option. Release 0.1.0 was
+published under MIT alone.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in rootcard by you, as
+defined in the Apache-2.0 license, is dual licensed as above, without any additional terms or conditions.
 
 ## Origin
 

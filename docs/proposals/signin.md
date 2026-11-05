@@ -141,6 +141,10 @@ logs and proofs made so far stay valid.
 
 ## 6. HTTP binding (sketch for HOST_PROTOCOL.md)
 
+Host paths are relative to the host's API root `<base URL>/v0` (HOST_PROTOCOL.md §1.3). The RP's sign-in API is
+versioned the same way: `<signin>` below ends in its own version segment (`https://shop.example/rootcard/v0`), which
+becomes `v1` when the binding is stable. Well-known URLs carry no version: they only point to versioned ones.
+
 ### 6.1 Descriptor
 
 `GET /host` gains an optional member `"signin": "<https URL of the sign-in page>"`. A host without it does not offer
@@ -165,11 +169,11 @@ The RP answers with its own session (cookie) and a redirect. Errors are shown to
 ### 6.4 Discovery with well-known URLs
 
 - **The RP**, not the home, is what a non-browser client needs to discover: `GET
-  https://<rp>/.well-known/rootcard-rp` → `{ "v": 1, "signin": "<https base URL of the RP's sign-in API>", "realms":
-  [ … ] }` (RFC 8615).
-- **The home** MAY answer `GET https://<domain>/.well-known/rootcard` with its descriptor (`GET /host`), so that a user
-  can name a host by its domain. It is a convenience only: the address an RP or client relies on is `home.url` in the
-  verified log ([SIN-6]).
+  https://<rp>/.well-known/rootcard-rp` → `{ "v": 1, "signin": { "v0": "<https URL of the RP's sign-in API, v0>" },
+  "realms": [ … ] }` (RFC 8615). Listing the API versions lets a client pick the newest one both sides serve.
+- **The home** MAY answer `GET https://<domain>/.well-known/rootcard` with `{ "v": 1, "base": "<base URL>", "api":
+  [ "v0" ] }`, so that a user can name a host by its domain; the descriptor is then at `<base>/v0/host`. It is a
+  convenience only: the address an RP or client relies on is `home.url` in the verified log ([SIN-6]).
 - **The challenge always comes from the RP.** Freshness is the verifier's own guarantee ([PRF-5]): a nonce issued by
   the home would make the RP trust the home's word that it is fresh and unused, which [HST-14] rules out. The home
   serves the sign-in page; it never issues challenges for RPs.

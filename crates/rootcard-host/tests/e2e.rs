@@ -15,7 +15,8 @@ use rootcard::profile::sign_public;
 use rootcard::recovery::derive_recovery_keys;
 use rootcard::testing::TestRandom;
 use rootcard::vault::{Kdf, Secret, change_password, derive_lock_secrets, unlock_vault, verify_vault};
-use rootcard_host::http::{Request, route};
+use rootcard_host::http::{API_VERSION, Request, route};
+use rootcard_host::peer::sign_peer_request;
 use rootcard_host::store::{MemoryChallengeStore, MemoryIdentityStore, MemorySessionStore};
 use rootcard_host::{Host, HostConfig, RealmConfig, UsernamePolicy};
 use std::cell::RefCell;
@@ -57,7 +58,20 @@ fn fill(b: &mut [u8]) {
     RNG.with(|r| r.borrow_mut().fill(b));
 }
 
+/// Call an endpoint; `path` is relative to the API root `<base URL>/v0` (HOST_PROTOCOL.md §1.3).
 fn call(h: &TestHost, method: &str, path: &str, body: Option<Value>, bearer: Option<&str>, now: i64) -> (u16, Value) {
+    call_raw(h, method, &format!("/{API_VERSION}{path}"), body, bearer, now)
+}
+
+/// Call a path relative to the base URL, without adding the API version.
+fn call_raw(
+    h: &TestHost,
+    method: &str,
+    path: &str,
+    body: Option<Value>,
+    bearer: Option<&str>,
+    now: i64,
+) -> (u16, Value) {
     let req = Request {
         method: method.into(),
         path: path.into(),
@@ -176,6 +190,47 @@ fn login(h: &TestHost, account: &str, url: &str, password: &str, now: i64) -> Re
         return Err((s, err(&v).to_string()));
     }
     Ok(get(&v, "token").as_str().unwrap().to_string())
+}
+
+#[test]
+fn endpoints_live_under_the_api_version() {
+    let a = host([1; 32], "https://a.example");
+    assert_eq!(API_VERSION, "v0");
+    let (s, desc) = call_raw(&a, "GET", "/v0/host", None, None, T0);
+    assert_eq!(s, 200);
+    assert!(desc.as_object().unwrap().get("key").is_some());
+    for path in ["/host", "/v1/host", "/v00/host", "/V0/host", "/host/v0", "/v0"] {
+        let (s, v) = call_raw(&a, "GET", path, None, None, T0);
+        assert_eq!(s, 404, "{path}");
+        assert_eq!(err(&v), "unknown_account", "{path}");
+    }
+}
+
+#[test]
+fn peer_requests_sign_the_versioned_path() {
+    let (sa, sb) = ([1u8; 32], [2u8; 32]);
+    let mut cfg = config(sb, "https://b.example");
+    cfg.peers = vec![ed25519_public(&sa)];
+    let b = Host::new(
+        cfg,
+        MemoryIdentityStore::new(),
+        MemoryChallengeStore::new(),
+        MemorySessionStore::new(),
+    );
+    let pb = ed25519_public(&sb);
+    let send = |signed: &str, sent: &str| {
+        let req = Request {
+            method: "GET".into(),
+            path: sent.into(),
+            peer: Some(sign_peer_request(&sa, "GET", signed, T0, &pb, b"")),
+            ..Request::default()
+        };
+        route(&b, &req, T0, &mut fill).status
+    };
+    let path = format!("/{API_VERSION}/peer/changes?since=0");
+    assert_eq!(send(&path, &path), 200);
+    // A signature over the unversioned path does not authorize the versioned request.
+    assert_eq!(send("/peer/changes?since=0", &path), 401);
 }
 
 #[test]

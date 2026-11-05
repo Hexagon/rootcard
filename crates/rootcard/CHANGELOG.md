@@ -4,6 +4,9 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- License: MIT OR Apache-2.0, at the user's option (0.1.0 was MIT only). The package now ships `LICENSE-MIT` and
+  `LICENSE-APACHE`.
+
 ## 0.1.0 - 2026-11-04
 
 - First release of the core, implementing format version 1 of `spec/SPEC.md` (no format change: everything is `v: 1`).

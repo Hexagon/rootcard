@@ -52,6 +52,8 @@ Run all of them before every commit. CI runs them too.
 - Domain-separation labels start with `rootcard/` and end with a version (`rootcard/id/v1`). Never reuse a label for
   another purpose. A new label goes into the registry (SPEC §5) and `xtask`'s `LABEL_PURPOSES` in the same commit; the
   vector check fails otherwise.
+- The HTTP binding is versioned by a path segment (`<base URL>/v0`, HOST_PROTOCOL.md §1.3), separately from the format.
+  `v0` until 1.0.0, then `v1`. The segment never goes into a base URL, `home.url` or anything signed and stored.
 - Rules have stable identifiers (`[LOG-12]`). Tests and vectors name the rules they exercise; a removed rule leaves a gap.
 
 ### 2. Rust and JS must agree byte for byte

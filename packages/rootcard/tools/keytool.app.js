@@ -67,6 +67,10 @@ function checkUrl(url) {
   return url.replace(/\/+$/, "");
 }
 
+// The version segment of the HTTP binding (HOST_PROTOCOL.md §1.3): every endpoint is under `<base URL>/v0` until the
+// stable `v1` arrives with 1.0.0. Base URLs (`home.url`, and `url` in signed messages) never include it.
+const API = "v0";
+
 async function http(method, url, body) {
   const res = await fetch(checkUrl(url), {
     method,
@@ -126,7 +130,7 @@ async function gather() {
   const notes = [];
   for (const h of [...new Set(hosts)]) {
     try {
-      const v = await http("GET", `${h}/id/${card.account}/log`);
+      const v = await http("GET", `${h}/${API}/id/${card.account}/log`);
       await consider(v.events, h);
     } catch (e) {
       notes.push(`${h}: ${explain(e)}`);
@@ -160,14 +164,14 @@ async function currentVault() {
   if (!current.state.instance) throw new Error("No instance found: load the account file or enter the primary host.");
   const base = current.state.instance.home.url;
   const account = current.state.account;
-  const ch = rc.parseChallenge(await http("POST", `${base}/id/${account}/challenge`, { purpose: "fetch" }));
+  const ch = rc.parseChallenge(await http("POST", `${base}/${API}/id/${account}/challenge`, { purpose: "fetch" }));
   const sig = await rc.ed25519Sign(current.keys.signSeed, rc.fetchMessage(account, ch.host, "recovery", ch.nonce, base));
-  const v = await http("POST", `${base}/id/${account}/fetch`, { lock: "recovery", nonce: ch.nonce, url: base, sig: rc.base64urlEncode(sig) });
+  const v = await http("POST", `${base}/${API}/id/${account}/fetch`, { lock: "recovery", nonce: ch.nonce, url: base, sig: rc.base64urlEncode(sig) });
   return { vault: v.vault, u: await rc.unlockVault(v.vault, current.state, { recovery: current.keys }) };
 }
 
 async function hostHome(base) {
-  const d = await http("GET", `${base}/host`);
+  const d = await http("GET", `${base}/${API}/host`);
   rc.parseKey(d.key, "ed25519");
   return { key: d.key, url: base };
 }
@@ -188,14 +192,14 @@ async function submitInstance(base, mode, old) {
   }
   const ni = await rc.newInstance(current.state, current.keys, old, publicData, mode, home, now(), random);
   const account = current.state.account;
-  await http("POST", `${base}/id/${account}/instance`, { events: current.log, instance: ni.event, vault: ni.vault, public: ni.public });
-  const v = await http("GET", `${base}/id/${account}/log`);
+  await http("POST", `${base}/${API}/id/${account}/instance`, { events: current.log, instance: ni.event, vault: ni.vault, public: ni.public });
+  const v = await http("GET", `${base}/${API}/id/${account}/log`);
   const state = await rc.verifyLog(v.events, { realms: [current.state.realm], now: now() });
   const oldHome = current.state.instance?.home.url;
   let note = "";
   if (oldHome && oldHome !== base) {
     try {
-      await http("POST", `${oldHome}/id/${account}/events`, { events: v.events.slice(current.log.length) });
+      await http("POST", `${oldHome}/${API}/id/${account}/events`, { events: v.events.slice(current.log.length) });
     } catch (e) {
       note = `\nCould not tell the previous primary host: ${explain(e)}`;
     }
@@ -239,7 +243,7 @@ const ops = {
   async add() {
     const { vault, u } = await currentVault();
     const v = await rc.addSlot(u, vault, current.keys, newSlot(), random);
-    await http("PUT", `${current.state.instance.home.url}/id/${current.state.account}/vault`, { vault: v });
+    await http("PUT", `${current.state.instance.home.url}/${API}/id/${current.state.account}/vault`, { vault: v });
     current.vault = v;
     const info = await rc.verifyVault(v, current.state);
     refreshSlots(info);
@@ -249,7 +253,7 @@ const ops = {
     const { vault, u } = await currentVault();
     const newKey = random(32);
     const r = await rc.rotateRecovery(current.state, current.log, current.keys, newKey, vault, u, now(), random);
-    await http("POST", `${current.state.instance.home.url}/id/${current.state.account}/events`, { events: [r.event], vault: r.vault });
+    await http("POST", `${current.state.instance.home.url}/${API}/id/${current.state.account}/events`, { events: [r.event], vault: r.vault });
     download(`${current.state.username}-new.card.json`, r.card);
     const text = await rc.cardText(r.card);
     newKey.fill(0);
@@ -262,7 +266,7 @@ const ops = {
     const ev = await rc.retireEvent(current.state, current.keys.signSeed, now());
     const base = current.state.instance?.home.url ?? hostList()[0];
     if (!base) throw new Error("Enter a host.");
-    await http("POST", `${base}/id/${current.state.account}/events`, { events: [ev] });
+    await http("POST", `${base}/${API}/id/${current.state.account}/events`, { events: [ev] });
     return `${current.state.handle} is retired.`;
   },
   async card() {
@@ -304,8 +308,8 @@ $("create").addEventListener("click", () =>
     if (base) {
       const home = await hostHome(checkUrl(base));
       const reg = await rc.register(rk, realm, username, $("nPassword").value, "Password", home, now(), rc.KDF_DEFAULT, random);
-      await http("POST", `${home.url}/id/register`, { log: reg.log, vault: reg.vault, public: reg.public });
-      const v = await http("GET", `${home.url}/id/${reg.account}/log`);
+      await http("POST", `${home.url}/${API}/id/register`, { log: reg.log, vault: reg.vault, public: reg.public });
+      const v = await http("GET", `${home.url}/${API}/id/${reg.account}/log`);
       state = await rc.verifyLog(v.events, { realms: [realm], now: now() });
       card = reg.card;
       file = rc.exportAccount(state, v.events, reg.public, reg.vault);

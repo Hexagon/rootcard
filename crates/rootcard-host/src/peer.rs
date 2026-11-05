@@ -75,25 +75,25 @@ mod tests {
     fn peer_requests() {
         let (a, b) = ([1u8; 32], [2u8; 32]);
         let (pa, pb) = (ed25519_public(&a), ed25519_public(&b));
-        let h = sign_peer_request(&a, "POST", "/peer/push", 100, &pb, b"{}");
+        let h = sign_peer_request(&a, "POST", "/v0/peer/push", 100, &pb, b"{}");
         assert_eq!(
-            verify_peer_request(&h, &[pa], &pb, "POST", "/peer/push", b"{}", 130),
+            verify_peer_request(&h, &[pa], &pb, "POST", "/v0/peer/push", b"{}", 130),
             Ok(pa)
         );
         assert_eq!(
-            verify_peer_request(&h, &[pa], &pb, "POST", "/peer/push", b"{} ", 130),
+            verify_peer_request(&h, &[pa], &pb, "POST", "/v0/peer/push", b"{} ", 130),
             Err(Error::Unauthorized)
         );
         assert_eq!(
-            verify_peer_request(&h, &[], &pb, "POST", "/peer/push", b"{}", 130),
+            verify_peer_request(&h, &[], &pb, "POST", "/v0/peer/push", b"{}", 130),
             Err(Error::Unauthorized)
         );
         assert_eq!(
-            verify_peer_request(&h, &[pa], &pb, "POST", "/peer/push", b"{}", 200),
+            verify_peer_request(&h, &[pa], &pb, "POST", "/v0/peer/push", b"{}", 200),
             Err(Error::Unauthorized)
         );
         assert_eq!(
-            verify_peer_request(&h, &[pa], &pa, "POST", "/peer/push", b"{}", 130),
+            verify_peer_request(&h, &[pa], &pa, "POST", "/v0/peer/push", b"{}", 130),
             Err(Error::Unauthorized)
         );
     }
