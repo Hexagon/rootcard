@@ -14,7 +14,7 @@ Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is applica
 
 | # | Question | Proposal |
 |---|---|---|
-| D1 | License | ✅ **MIT** (decided) |
+| D1 | License | ✅ **MIT OR Apache-2.0** (decided; 0.1.0 was MIT only, the dual license applies from the next release) |
 | D2 | Reserve the names now with placeholder releases? | Yes: `rootcard`, `rootcard-cli`, `rootcard-host` on crates.io and `rootcard` on npm, version `0.0.0`, published by the owner |
 | D3 | npm scope as well (`@rootcard/*`)? | Create the `rootcard` org on npm to block look-alikes, publish the main package unscoped |
 | D4 | Minimum supported Rust version | Latest stable minus two releases, checked in CI |
@@ -23,6 +23,25 @@ Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is applica
 | D7 | Unicode dependency for passwords (NFC) | ✅ **`unicode-normalization`** in Rust, behind the core's `vault` feature so hosts do not build it; JS uses `String.prototype.normalize` (decided) |
 | D8 | Scope of v1 | ✅ **Good for servers first** (decided): hosts are simple, multi-server safe and need no password handling; forks are detected, not resolved, and fork resolution waits for a later format version |
 | D9 | Recovery key and passwords | ✅ **The user keeps the recovery key**, generated at registration (decided). No escrow and no reset by the host. Passwords can be changed in the browser with the old password; a forgotten password is reset with the recovery key in the key tool |
+
+---
+
+## Versioning and stability
+
+Three version numbers move independently. None of them may break what an earlier one promised.
+
+| What | Now | Rule |
+|---|---|---|
+| **Packages** (all crates and the npm package, one tag `vX.Y.Z`) | 0.x | Semantic versioning. Breaking changes are allowed between 0.x releases and recorded in the changelogs. `1.0.0` after phase 6's acceptance and the external review |
+| **Format** (`v` of every structure, labels `rootcard/<purpose>/v<n>`) | 1 | SPEC §22: anything hashed or signed changes only by a new `v` or label, and `v: 1` is accepted forever. Ids, logs and signatures made by 0.1.0 stay valid in every later release |
+| **HTTP binding** (path segment after the base URL, HOST_PROTOCOL.md §1.3) | `v0` | `/v0` until 1.0.0 and may change between 0.x releases. At 1.0.0 the binding is frozen as `/v1`; a later breaking change gets `/v2`, served beside `/v1` for an announced transition |
+
+- The API version never enters a base URL, `home.url` or a signed message, so moving the binding from `v0` to `v1` needs
+  no new instance and no format change. Peer request signatures cover the versioned path, so they do not cross
+  versions.
+- New capabilities (sign-in at other services, passkeys, post-quantum keys, witnesses) arrive as new labels, kinds,
+  key types or format versions beside the old ones (SPEC [EXT-1]–[EXT-3]), never by changing the meaning of what exists.
+- Licensing: MIT OR Apache-2.0 from the release after 0.1.0 (D1).
 
 ---
 
@@ -45,8 +64,8 @@ Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is applica
 
 **Deviations**
 - The `./keytool` export is left out of `package.json` until the page exists (phase 5).
-- The license is MIT (D1). The published crates and the npm package carry `license = "MIT"`, and `LICENSE` is included in
-  the npm tarball. `xtask` stays `publish = false`. Nothing is published before the release workflow (phase 6), except
+- The license is MIT OR Apache-2.0 (D1; 0.1.0 was published under MIT alone). The published crates carry `license = "MIT OR
+  Apache-2.0"`, the npm package `"(MIT OR Apache-2.0)"`, and `LICENSE-MIT` and `LICENSE-APACHE` are in every package. `xtask` stays `publish = false`. Nothing is published before the release workflow (phase 6), except
   the placeholder releases the owner may make for D2.
 - MSRV (D4) is set to 1.95, the stable release two versions back at the time of writing.
 - The parity mechanism is in place from the start: `xtask vectors` writes `spec/vectors/meta.json` (format version and labels),
@@ -187,12 +206,22 @@ logs the same way.
   changelogs, tag, vectors); CI packages every crate and the npm package on each pull request (dry run)
 - [ ] Documentation: crate docs, `README` per package, a "getting started" for apps and for hosts
 - [ ] External review of the spec and the crypto use before `1.0.0`
+- [ ] HTTP binding: freeze `/v0` as `/v1` for `1.0.0` (HOST_PROTOCOL.md §1.3) and decide how long hosts keep serving
+  `/v0`
+- [ ] Decide which "Later" items, if any, are in `1.0.0` (the sign-in flow of docs/proposals/signin.md adds a label and
+  can also come after `1.0.0` without breaking it)
 
 **Acceptance:** `0.1.0` published on crates.io and npm from CI, with provenance, and the docs build on docs.rs.
 
 ## Later
 
 - Passkeys (WebAuthn PRF) as a lock type
+- Sign-in at other services (relying parties): the flow, the `rootcard/signin/v1` label and `rootcard signin` in the key
+  tool, from [proposals/signin.md](proposals/signin.md); an agent for other command line programs after that
+- Standard profile keys (a display name, a small avatar image) with display rules: raster images only, never SVG or
+  URLs to load (SPEC [DAT-8] needs a clarification for images)
+- An additional host secret (OPAQUE or a pepper) as a lock layer against offline guessing (THREAT_MODEL.md AR1), and a
+  signed client not served by the host (AR2)
 - Witnesses and pre-rotation (`v: 2`) against a stolen recovery key, together with deterministic fork resolution (SPEC
   Appendix A)
 - Host helpers for JavaScript servers (`rootcard/host`), if there is demand; the JS core already verifies everything a

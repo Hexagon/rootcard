@@ -8,6 +8,10 @@ use rootcard::Error;
 use rootcard::json::{Map, Value, canonical, parse_json};
 use rootcard::messages::Purpose;
 
+/// The version segment of the HTTP binding this router serves (HOST_PROTOCOL.md §1.3), from the core. Every endpoint
+/// lives under `<base URL>/v0`; `v0` is the pre-1.0 binding and may change between 0.x releases. `v1` arrives with 1.0.0.
+pub use rootcard::API_VERSION;
+
 /// The largest request body, checked before parsing (HOST_PROTOCOL.md §1).
 pub const MAX_BODY: usize = 6 * 1024 * 1024;
 
@@ -16,7 +20,7 @@ pub const MAX_BODY: usize = 6 * 1024 * 1024;
 pub struct Request {
     /// `GET`, `POST`, `PUT`, `OPTIONS`.
     pub method: String,
-    /// The path relative to the base URL, with the query (`/id/lookup?handle=…`).
+    /// The path relative to the base URL, with the API version and the query (`/v0/id/lookup?handle=…`).
     pub path: String,
     /// The bearer token of `Authorization: Bearer <token>`, if any.
     pub bearer: Option<String>,
@@ -126,7 +130,12 @@ pub fn route<S: IdentityStore, C: ChallengeStore, T: SessionStore>(
     random: &mut dyn FnMut(&mut [u8]),
 ) -> Response {
     let (path, q) = req.path.split_once('?').unwrap_or((req.path.as_str(), ""));
-    let parts: Vec<&str> = path.trim_start_matches('/').split('/').collect();
+    let all: Vec<&str> = path.trim_start_matches('/').split('/').collect();
+    // Every endpoint is under the API version; anything else, including other versions, is not found.
+    let parts: &[&str] = match all.split_first() {
+        Some((&v, rest)) if v == API_VERSION => rest,
+        _ => &[],
+    };
     let is_peer = parts.first() == Some(&"peer");
     if req.method == "OPTIONS" {
         return Response {
@@ -147,7 +156,7 @@ pub fn route<S: IdentityStore, C: ChallengeStore, T: SessionStore>(
         b
     };
     let ok = |v: HostResult<Value>| v.map(|v| Response::json(200, &v));
-    let result: HostResult<Response> = match (req.method.as_str(), parts.as_slice()) {
+    let result: HostResult<Response> = match (req.method.as_str(), parts) {
         ("GET", ["host"]) => Ok(Response::json(200, &host.descriptor())),
         ("GET", ["id", "lookup"]) => match query(q, "handle") {
             Some(h) => ok(host.lookup(query(q, "realm").as_deref(), &h)),

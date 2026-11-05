@@ -1791,6 +1791,31 @@ fn profile_vectors(s: &Scenario) -> Vec<V> {
 
 fn proof_vectors(s: &Scenario) -> Vec<V> {
     let mut out = Vec::new();
+    for url in [
+        "https://id.example.com",
+        "https://example.com/rootcard",
+        "https://api.example.com:8443/auth/rootcard",
+        "https://example.com/v0x",
+        "http://127.0.0.1:8787",
+        "http://localhost:8787/rootcard",
+        "http://[::1]:8787",
+        "id.example.com",
+        "http://example.com",
+        "http://localhost.example.com",
+        "https://example.com/",
+        "https://example.com//rootcard",
+        "https://example.com/v0",
+        "https://example.com/rootcard/V12",
+        "https://example.com/rootcard?x=1",
+        "https://user@example.com",
+    ] {
+        out.push(v(
+            &format!("base URL {url:?}"),
+            &["HST-22"],
+            "check_base_url",
+            m().with("url", url),
+        ));
+    }
     let st1 = verify_log(&s.log1, &opts());
     let Ok(st1) = st1 else { return out };
     let host = format_key(KeyType::Ed25519, &ed25519_public(&HOST_A));

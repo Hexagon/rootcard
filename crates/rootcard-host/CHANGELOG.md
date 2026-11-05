@@ -4,6 +4,20 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.2.0 - 2026-11-05
+
+- License: MIT OR Apache-2.0, at the user's option (0.1.0 was MIT only). The package now ships `LICENSE-MIT` and
+  `LICENSE-APACHE`.
+- **Breaking (HTTP binding):** `http::route` serves every endpoint under the API version segment `/v0`
+  (`<base URL>/v0/host`, `<base URL>/v0/id/…`, HOST_PROTOCOL.md §1.3) and answers paths without it, or with another
+  version, with `404`. New constant `http::API_VERSION`. Peer request signatures cover the versioned path. Base URLs,
+  `home.url` and every signed message are unchanged; no format change.
+- `HostConfig::check`: every configured address must pass `rootcard::check_base_url` ([HST-22]); call it at startup.
+  `http::API_VERSION` is now the core's constant.
+- The example host accepts a base URL with a path (`ROOTCARD_HOST_URL=http://127.0.0.1:8787/rootcard`) and checks its
+  configuration.
+- README: the HTTP binding, choosing a base URL, and a pointer to the project README.
+
 ## 0.1.0 - 2026-11-04
 
 - First release: the host rules of SPEC §17 as framework-independent handlers (registration, new instances, log

@@ -360,6 +360,10 @@ pub fn run(op: &str, input: &Map) -> R<Outcome> {
             tryr!(check_password(i.str("password")?, i.str("username")?));
             true.into()
         }
+        "check_base_url" => {
+            tryr!(rootcard::check_base_url(i.str("url")?));
+            true.into()
+        }
         "check_data_key" => {
             tryr!(check_data_key(i.str("key")?));
             true.into()

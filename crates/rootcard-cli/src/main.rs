@@ -162,6 +162,15 @@ fn new_password(username: &str) -> R<Zeroizing<String>> {
 
 // --- HTTP (HOST_PROTOCOL.md) ---
 
+/// The API root of a host: its base URL, checked ([HST-22]), and the version segment of the HTTP binding
+/// (HOST_PROTOCOL.md §1.3, `v0` until 1.0.0). Base URLs (`home.url`, and `url` in signed messages) never include it.
+fn api(base: &str) -> R<String> {
+    rootcard::check_base_url(base).map_err(|_| {
+        format!("{base}: not a host base URL (https://host[:port][/path], no trailing slash and no /v0 at the end)")
+    })?;
+    Ok(format!("{base}/{}", rootcard::API_VERSION))
+}
+
 struct Http(ureq::Agent);
 
 impl Http {
@@ -294,7 +303,7 @@ fn gather(args: &Args, http: &Http, extra_hosts: &[String]) -> R<Identity> {
     }
     hosts.dedup();
     for h in &hosts {
-        match http.call("GET", &format!("{h}/id/{}/log", card.account), None) {
+        match http.call("GET", &format!("{}/id/{}/log", api(h)?, card.account), None) {
             Ok((200, v)) => {
                 let events = get(&v, "events")?.as_array().cloned().unwrap_or_default();
                 consider(&mut log, events, h, &opts)?;
@@ -334,7 +343,7 @@ fn current_vault(id: &Identity, http: &Http) -> R<(Value, rootcard::vault::Unloc
     let account = &id.state.account;
     let ch = http.ok(
         "POST",
-        &format!("{base}/id/{account}/challenge"),
+        &format!("{}/id/{account}/challenge", api(&base)?),
         Some(&obj(vec![("purpose", "fetch".into())])),
     )?;
     let ch = Challenge::from_value(&ch).map_err(code)?;
@@ -348,14 +357,14 @@ fn current_vault(id: &Identity, http: &Http) -> R<(Value, rootcard::vault::Unloc
         ("url", base.as_str().into()),
         ("sig", base64url_encode(&sig).into()),
     ]);
-    let v = http.ok("POST", &format!("{base}/id/{account}/fetch"), Some(&body))?;
+    let v = http.ok("POST", &format!("{}/id/{account}/fetch", api(&base)?), Some(&body))?;
     let vault = get(&v, "vault")?.clone();
     let u = unlock_vault(&vault, &id.state, &Secret::Recovery(&id.keys)).map_err(code)?;
     Ok((vault, u))
 }
 
 fn host_home(http: &Http, base: &str) -> R<Home> {
-    let d = http.ok("GET", &format!("{base}/host"), None)?;
+    let d = http.ok("GET", &format!("{}/host", api(base)?), None)?;
     let key = parse_key(get(&d, "key")?.as_str().unwrap_or(""), KeyType::Ed25519).map_err(code)?;
     Ok(Home {
         key,
@@ -402,8 +411,8 @@ fn submit_instance(
         ("vault", ni.vault),
         ("public", ni.public),
     ]);
-    http.ok("POST", &format!("{base}/id/{account}/instance"), Some(&body))?;
-    let log = http.ok("GET", &format!("{base}/id/{account}/log"), None)?;
+    http.ok("POST", &format!("{}/id/{account}/instance", api(base)?), Some(&body))?;
+    let log = http.ok("GET", &format!("{}/id/{account}/log", api(base)?), None)?;
     let events = get(&log, "events")?.as_array().cloned().unwrap_or_default();
     let st = verify_log(&events, &options(&id.state.realm)).map_err(code)?;
     if let Some(old_home) = id.state.instance.as_ref().map(|i| i.home.url.clone())
@@ -412,7 +421,7 @@ fn submit_instance(
         let new = Value::Array(events[id.log.len()..].to_vec());
         if let Err(e) = http.ok(
             "POST",
-            &format!("{old_home}/id/{account}/events"),
+            &format!("{}/id/{account}/events", api(&old_home)?),
             Some(&obj(vec![("events", new)])),
         ) {
             eprintln!("warning: could not tell the previous primary host: {e}");
@@ -457,8 +466,8 @@ fn run(cmd: &str, args: &Args) -> R<()> {
                         ("vault", reg.vault.clone()),
                         ("public", reg.public.clone()),
                     ]);
-                    http.ok("POST", &format!("{base}/id/register"), Some(&body))?;
-                    let log = http.ok("GET", &format!("{base}/id/{}/log", reg.account), None)?;
+                    http.ok("POST", &format!("{}/id/register", api(&base)?), Some(&body))?;
+                    let log = http.ok("GET", &format!("{}/id/{}/log", api(&base)?, reg.account), None)?;
                     let events = get(&log, "events")?.as_array().cloned().unwrap_or_default();
                     let st = verify_log(&events, &options(&realm)).map_err(code)?;
                     let file = export_account(&st, &events, Some(&reg.public), Some(&reg.vault), None);
@@ -668,7 +677,7 @@ fn run(cmd: &str, args: &Args) -> R<()> {
             let info = verify_vault(&v, &id.state).map_err(code)?;
             http.ok(
                 "PUT",
-                &format!("{base}/id/{}/vault", id.state.account),
+                &format!("{}/id/{}/vault", api(&base)?, id.state.account),
                 Some(&obj(vec![("vault", v)])),
             )?;
             for s in &info.slots {
@@ -689,7 +698,11 @@ fn run(cmd: &str, args: &Args) -> R<()> {
                 ("events", Value::Array(vec![rot.event.clone().into()])),
                 ("vault", rot.vault),
             ]);
-            http.ok("POST", &format!("{base}/id/{}/events", id.state.account), Some(&body))?;
+            http.ok(
+                "POST",
+                &format!("{}/id/{}/events", api(&base)?, id.state.account),
+                Some(&body),
+            )?;
             let dir = args.opt("--dir").unwrap_or_else(|| ".".into());
             let path = format!(
                 "{dir}/{}-{}.card.json",
@@ -710,7 +723,11 @@ fn run(cmd: &str, args: &Args) -> R<()> {
             let ev = retire_event(&id.state, &id.keys.sign_seed, now()).map_err(code)?;
             let base = home_url(&id)?;
             let body = obj(vec![("events", Value::Array(vec![ev.into()]))]);
-            http.ok("POST", &format!("{base}/id/{}/events", id.state.account), Some(&body))?;
+            http.ok(
+                "POST",
+                &format!("{}/id/{}/events", api(&base)?, id.state.account),
+                Some(&body),
+            )?;
             println!("{} is retired", id.state.handle);
             Ok(())
         }

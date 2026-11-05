@@ -11,12 +11,17 @@ refer to the specification.
 
 - **Addresses.** A host is reached at one or more base URLs ([HST-18]): `https://` followed by a host name, an optional
   port and an optional path without a trailing slash (`https://id.example.com`, `https://example.com/rootcard`). Every
-  path below is relative to a base URL. The `home.url` of an instance is the address the host had when it receipted it;
-  a host that moves keeps answering `GET /host` at old addresses with its current ones. Plain `http://` is allowed only
+  path below is relative to the **API root** `<base URL>/v0` (§1.3): `GET /host` means `GET <base URL>/v0/host`. The
+  `home.url` of an instance is the address the host had when it receipted it; a host that moves keeps answering
+  `GET /host` at old addresses with its current ones. Plain `http://` is allowed only
   for loopback addresses during development.
+- **Choosing a base URL.** A host on a domain of its own uses the domain (`https://id.example.com`). A host that shares
+  a domain with an application SHOULD use a path of its own, preferably `/rootcard` (`https://example.com/rootcard`,
+  endpoints at `https://example.com/rootcard/v0/…`), so that its endpoints cannot collide with the application's. A
+  base URL never ends in a version segment ([HST-22]): the version is added after it (§1.3).
 - **Address binding.** The `url` in login and fetch messages ([LGN-4]) is the base URL the client sent the request to,
-  exactly as configured in the client (for a browser client served by the host, derived from `location`). The host
-  compares it with its list of base URLs.
+  without the API version segment, exactly as configured in the client (for a browser client served by the host,
+  derived from `location`). The host compares it with its list of base URLs.
 - **Encoding.** Request and response bodies are JSON (`Content-Type: application/json`, UTF-8). Clients SHOULD send
   canonical JSON; hosts parse strictly ([CJ-6]) and always verify over canonical bytes ([CJ-7]). Hosts send canonical
   JSON for every rootcard structure.
@@ -65,6 +70,22 @@ Every error is a JSON object with the specification's error code (spec §20):
 Wherever a response carries `version`, it is the host's newest version for the account ([VER-4]). A `stale_version` or
 `fork` answer carries `events`: the host's events from the first `seq` the request did not share with the host (the end
 of the shorter log, or the fork point), so the client can extend its log and retry, or show the fork ([KT-7]).
+
+### 1.3 API version
+
+The binding is versioned by the first path segment after the base URL, separately from the format version (spec §22).
+
+- **`/v0`** is the binding of the 0.x releases. It is the only version until 1.0.0, and it may change between 0.x
+  releases; every change is recorded in the changelogs.
+- **`/v1`** will be the stable binding from 1.0.0. After that, a breaking change to an endpoint needs a new version
+  segment (`/v2`), and a host keeps serving the older one for a transition period that it announces.
+- A host answers a version it does not serve, or a path without a version, with `404 unknown_account` (`"message": "no
+  such endpoint"`). A host MAY serve several versions side by side over the same storage.
+- The version segment is **never part of a base URL**: `home.url` in the log, `url` in login, fetch and change messages,
+  and the host's list of addresses ([HST-18]) stay the same when the binding changes. Nothing that is signed and stored
+  depends on the API version.
+- Peer request signatures (§5) cover the path relative to the base URL, **including** the version segment, so that a
+  signed request for one version is not accepted by another.
 
 ---
 
@@ -220,12 +241,12 @@ Peers are hosts that serve the same realm and have added each other's host keys 
 Rootcard-Peer-Key:  ed25519:<sender host key>
 Rootcard-Peer-Time: <Unix seconds>
 Rootcard-Peer-Sig:  b64u(Ed25519.sign(sender host key, frame("rootcard/peer/v1",
-                      { "method": "GET" | "POST", "path": "<path and query as sent>", "time": t,
+                      { "method": "GET" | "POST", "path": "<path and query after the base URL>", "time": t,
                         "to": "ed25519:<receiver host key>", "body": "<b64u SHA-256 of the request body bytes>" })))
 ```
-The receiver accepts a peer request only if the key is one of its peers, `|time − now| ≤ 60`, and the signature verifies
-strictly. Peer authentication only decides who may use the peer endpoints and their rate limits: everything a peer sends
-is verified like data from anyone ([HST-14]).
+`path` includes the API version (`/v0/peer/push`, §1.3). The receiver accepts a peer request only if the key is one of
+its peers, `|time − now| ≤ 60`, and the signature verifies strictly. Peer authentication only decides who may use the
+peer endpoints and their rate limits: everything a peer sends is verified like data from anyone ([HST-14]).
 
 ### `GET /peer/changes?since=<cursor>`
 

@@ -4,6 +4,15 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.2.0 - 2026-11-05
+
+- License: MIT OR Apache-2.0, at the user's option (0.1.0 was MIT only). The package now ships `LICENSE-MIT` and
+  `LICENSE-APACHE`.
+- `API_VERSION` (`"v0"`), the version segment of the HTTP binding, and `check_base_url` / `binding::is_version_segment`:
+  host addresses are base URLs without a trailing version segment (SPEC [HST-22]), with shared vectors in
+  `spec/vectors/proof.json` and the API version in `meta.json`. No format change: log verification is unchanged.
+- README points to the project README.
+
 ## 0.1.0 - 2026-11-04
 
 - First release of the core, implementing format version 1 of `spec/SPEC.md` (no format change: everything is `v: 1`).

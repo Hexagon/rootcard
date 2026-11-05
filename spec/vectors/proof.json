@@ -3,6 +3,150 @@
   "vectors": [
     {
       "input": {
+        "url": "https://id.example.com"
+      },
+      "name": "base URL \"https://id.example.com\"",
+      "op": "check_base_url",
+      "output": true,
+      "rules": ["HST-22"]
+    },
+    {
+      "input": {
+        "url": "https://example.com/rootcard"
+      },
+      "name": "base URL \"https://example.com/rootcard\"",
+      "op": "check_base_url",
+      "output": true,
+      "rules": ["HST-22"]
+    },
+    {
+      "input": {
+        "url": "https://api.example.com:8443/auth/rootcard"
+      },
+      "name": "base URL \"https://api.example.com:8443/auth/rootcard\"",
+      "op": "check_base_url",
+      "output": true,
+      "rules": ["HST-22"]
+    },
+    {
+      "input": {
+        "url": "https://example.com/v0x"
+      },
+      "name": "base URL \"https://example.com/v0x\"",
+      "op": "check_base_url",
+      "output": true,
+      "rules": ["HST-22"]
+    },
+    {
+      "input": {
+        "url": "http://127.0.0.1:8787"
+      },
+      "name": "base URL \"http://127.0.0.1:8787\"",
+      "op": "check_base_url",
+      "output": true,
+      "rules": ["HST-22"]
+    },
+    {
+      "input": {
+        "url": "http://localhost:8787/rootcard"
+      },
+      "name": "base URL \"http://localhost:8787/rootcard\"",
+      "op": "check_base_url",
+      "output": true,
+      "rules": ["HST-22"]
+    },
+    {
+      "input": {
+        "url": "http://[::1]:8787"
+      },
+      "name": "base URL \"http://[::1]:8787\"",
+      "op": "check_base_url",
+      "output": true,
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "id.example.com"
+      },
+      "name": "base URL \"id.example.com\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "http://example.com"
+      },
+      "name": "base URL \"http://example.com\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "http://localhost.example.com"
+      },
+      "name": "base URL \"http://localhost.example.com\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "https://example.com/"
+      },
+      "name": "base URL \"https://example.com/\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "https://example.com//rootcard"
+      },
+      "name": "base URL \"https://example.com//rootcard\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "https://example.com/v0"
+      },
+      "name": "base URL \"https://example.com/v0\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "https://example.com/rootcard/V12"
+      },
+      "name": "base URL \"https://example.com/rootcard/V12\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "https://example.com/rootcard?x=1"
+      },
+      "name": "base URL \"https://example.com/rootcard?x=1\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "url": "https://user@example.com"
+      },
+      "name": "base URL \"https://user@example.com\"",
+      "op": "check_base_url",
+      "rules": ["HST-22"]
+    },
+    {
+      "input": {
         "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
         "host": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
         "lock": "HdQYNrFMhPc",

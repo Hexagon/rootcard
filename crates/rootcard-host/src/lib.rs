@@ -93,6 +93,15 @@ impl HostConfig {
         ed25519_public(&self.key_seed)
     }
 
+    /// Check the configuration before serving: at least one address, and every address a base URL of the HTTP binding
+    /// ([HST-22], [`rootcard::check_base_url`]). → `bad_field`
+    pub fn check(&self) -> Result<(), Error> {
+        if self.urls.is_empty() {
+            return Err(Error::BadField);
+        }
+        self.urls.iter().try_for_each(|u| rootcard::check_base_url(u))
+    }
+
     /// Whether `key` is one of the host's keys, current or retired ([HST-17]).
     pub fn is_own_key(&self, key: &[u8; 32]) -> bool {
         *key == self.key() || self.retired_keys.contains(key)

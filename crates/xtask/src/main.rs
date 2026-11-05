@@ -52,8 +52,9 @@ fn vector_files() -> Result<Vec<VectorFile>, String> {
         .collect::<Vec<_>>()
         .join(",\n");
     let meta = format!(
-        "{{\n  \"format_version\": {},\n  \"label_prefix\": \"{}\",\n  \"labels\": [\n{}\n  ]\n}}\n",
+        "{{\n  \"format_version\": {},\n  \"api_version\": \"{}\",\n  \"label_prefix\": \"{}\",\n  \"labels\": [\n{}\n  ]\n}}\n",
         rootcard::FORMAT_VERSION,
+        rootcard::API_VERSION,
         rootcard::LABEL_PREFIX,
         label_list
     );
