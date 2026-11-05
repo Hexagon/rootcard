@@ -40,8 +40,9 @@ function explain(e) {
 
 async function run(f) {
   for (const b of document.querySelectorAll("button")) b.disabled = true;
-  $("status").className = "";
+  $("status").className = "busy";
   $("status").textContent = "Working…";
+  $("out").textContent = "";
   try {
     await rc.checkSupport();
     show(await f());
@@ -49,6 +50,8 @@ async function run(f) {
     show(explain(e), false);
   } finally {
     for (const b of document.querySelectorAll("button")) b.disabled = false;
+    render();
+    $("result").scrollIntoView({ block: "nearest" });
   }
 }
 
@@ -68,17 +71,33 @@ async function readFile(input) {
 }
 
 function checkUrl(url) {
-  if (!/^https:\/\//.test(url) && !/^http:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/.test(url)) throw new Error(`${url}: hosts are reached over https`);
+  if (!/^https:\/\//.test(url) && !/^http:\/\/(127\.0\.0\.1|localhost|\[::1\])(:|\/|$)/.test(url)) throw new Error(`${url}: hosts are reached over https`);
   return url.replace(/\/+$/, "");
 }
 
-// A host address as the user typed it: trailing slashes removed, then checked as a base URL ([HST-22]).
-function checkHost(url) {
-  const base = url.replace(/\/+$/, "");
+const LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/;
+
+/**
+ * A host address as the user typed it, made into a base URL: surrounding space and trailing slashes removed, and
+ * `https://` added when no scheme is given (`http://` for this computer). The result is then checked ([HST-22]).
+ */
+function normalizeHost(text) {
+  let t = text.trim().replace(/\/+$/, "");
+  if (t && !/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(t)) t = (LOCAL.test(t) ? "http://" : "https://") + t;
+  return t;
+}
+
+function checkHost(text) {
+  const base = normalizeHost(text);
+  if (!base) throw new Error("Enter a host address, such as https://id.example.com.");
   try {
     rc.checkBaseUrl(base);
   } catch {
-    throw new Error(`${url}: not a host base URL (https://host[:port][/path], without /v0 at the end)`);
+    let why = "use the form https://host, with an optional :port and /path";
+    if (/\/[vV][0-9]+$/.test(base)) why = `leave out the /${rc.API_VERSION} at the end: enter the address without it`;
+    else if (/^http:\/\//.test(base)) why = "hosts are reached over https:// (plain http:// only on this computer)";
+    else if (/[?#]/.test(base)) why = "leave out the ? or # part";
+    throw new Error(`"${text.trim()}" is not a host address: ${why}.`);
   }
   return base;
 }
@@ -90,16 +109,26 @@ function apiRoot(base) {
 }
 
 async function http(method, url, body) {
-  const res = await fetch(checkUrl(url), {
-    method,
-    headers: body === undefined ? {} : { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : rc.canonicalString(body),
-    credentials: "omit",
-    referrerPolicy: "no-referrer",
-    cache: "no-store",
-  });
+  let res;
+  try {
+    res = await fetch(checkUrl(url), {
+      method,
+      headers: body === undefined ? {} : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : rc.canonicalString(body),
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+      cache: "no-store",
+    });
+  } catch {
+    throw new Error(`${url}: the host could not be reached. Check the address and the network connection.`);
+  }
   const text = await res.text();
-  const value = text ? rc.parseJson(text) : true;
+  let value;
+  try {
+    value = text ? rc.parseJson(text) : true;
+  } catch {
+    throw new Error(`${url}: HTTP ${res.status}, and the answer is not a rootcard host's. Check the address.`);
+  }
   if (!res.ok) {
     const code = value?.error;
     if (code && rc.ERROR_CODES.includes(code)) throw new rc.RootcardError(code);
@@ -227,6 +256,10 @@ async function submitInstance(base, mode, old) {
   current.state = state;
   current.vault = ni.vault;
   current.public = ni.public;
+  current.vaultError = undefined;
+  try {
+    refreshSlots(await rc.verifyVault(ni.vault, state));
+  } catch {}
   download(rc.accountFileName(state), rc.exportAccount(state, v.events, ni.public, ni.vault));
   return describe(state) + "\n\nThe new account file was downloaded." + note;
 }
@@ -244,10 +277,10 @@ async function challengeOf(text) {
 const ops = {
   async restore() {
     const { u } = await currentVault();
-    return submitInstance(checkHost($("targetHost").value.trim()), { restore: true }, u);
+    return submitInstance(checkHost($("targetHost").value), { restore: true }, u);
   },
   async fresh() {
-    return submitInstance(checkHost($("targetHost").value.trim()), { fresh: newSlot() }, undefined);
+    return submitInstance(checkHost($("targetHost").value), { fresh: newSlot() }, undefined);
   },
   async reset() {
     const { u } = await currentVault();
@@ -288,15 +321,12 @@ const ops = {
       );
     }
     current = null;
-    $("actions").hidden = true;
-    return text + "\nThe new card was downloaded. Destroy the old card, then load the new one.";
+    return text + "\nThe new card was downloaded. Destroy the old card, then open the identity with the new one.";
   },
   async retire() {
     if ($("retireConfirm").value !== current.state.username) throw new Error("Type the username to confirm.");
     const ev = await rc.retireEvent(current.state, current.keys.signSeed, now());
-    const base = current.state.instance?.home.url ?? hostList()[0];
-    if (!base) throw new Error("Enter a host.");
-    await http("POST", `${apiRoot(base)}/id/${current.state.account}/events`, { events: [ev] });
+    await http("POST", `${apiRoot(current.state.instance.home.url)}/id/${current.state.account}/events`, { events: [ev] });
     return `${current.state.handle} is retired.`;
   },
   async card() {
@@ -308,35 +338,291 @@ const ops = {
   },
 };
 
+// ---- The page: what each action needs, and whether the loaded identity has it ----
+
+/** Where an action sends something: "target" (the host typed for it), "home" (the primary host) or nowhere. */
+const ACTIONS = {
+  fresh: {
+    title: "Start at a host",
+    where: "target",
+    text: "Puts the identity on a host with a new, empty account: a new vault with the password below, and an empty " +
+      "profile. Use it for an identity that only exists on its card, or to start over. Data in an earlier account is " +
+      "not carried over (use “Move to another host” for that).",
+    host: "Host to start at",
+  },
+  restore: {
+    title: "Move to another host",
+    where: "target",
+    text: "Makes a new account at the host you enter, carrying over data, profile and passwords from the current " +
+      "vault. Use it to move, or to restore after a host is gone. The host may also be the current one.",
+    host: "Host to move to",
+  },
+  reset: {
+    title: "Reset a forgotten password",
+    where: "home",
+    text: "Starts a new account at the same host with one new password. Data and profile carry over; every old " +
+      "password, vault copy and session stops working.",
+  },
+  add: { title: "Add a password", where: "home", text: "Adds another password to the vault. The others keep working." },
+  revoke: {
+    title: "Revoke a password",
+    where: "home",
+    text: "Starts a new account at the same host without the chosen password. The other passwords keep working, and " +
+      "sessions signed in with the revoked one end.",
+  },
+  rotate: {
+    title: "Rotate the recovery key",
+    where: "home",
+    text: "Replaces the recovery key. The new card is downloaded before anything is sent; keep it, and destroy the old " +
+      "card once the rotation is done.",
+  },
+  card: { title: "Show the card", where: null, text: "Shows the recovery card as text, to print or copy onto paper." },
+  prove: {
+    title: "Make a root proof",
+    where: null,
+    text: "Signs a statement with the recovery key, so that anyone with your log can check that it came from you.",
+  },
+  retire: {
+    title: "Retire the identity",
+    where: "home",
+    text: "Closes the identity for good: no host will accept anything for it again, and its handle stays taken. This " +
+      "cannot be undone.",
+  },
+};
+
+const NO_HOST =
+  "The identity is not at any host that this page knows of. If it is at one, enter that host's address under " +
+  "“Host address” above (or load the account file) and open the identity again. Otherwise start it at a host first.";
+
+/** Why `op` cannot be done for the loaded identity now, or undefined. */
+function blocked(op) {
+  const st = current.state;
+  if (st.retired) return op === "card" ? undefined : "The identity is retired. Nothing can change it any more.";
+  if (op === "fresh" || op === "card" || op === "prove") return undefined;
+  const home = st.instance?.home.url;
+  if (!home) return NO_HOST;
+  if (op === "retire") return undefined;
+  if (current.vaultError) {
+    return `This needs the vault, and it could not be opened: ${current.vaultError}. Load the account file, or check ` +
+      "that the host can be reached.";
+  }
+  return undefined;
+}
+
+let picked = null;
+
+function splitHandle(handle) {
+  const i = handle.lastIndexOf("#");
+  return i < 0 ? [handle, ""] : [handle.slice(0, i), handle.slice(i)];
+}
+
+function badge(text, kind) {
+  const b = document.createElement("span");
+  b.className = `badge ${kind}`;
+  const dot = document.createElement("span");
+  dot.className = "dot";
+  b.append(dot, text);
+  return b;
+}
+
+/** Draw the loaded identity and which actions it allows. */
+function render() {
+  $("actions").hidden = !current;
+  if (!current) return;
+  const st = current.state;
+  const home = st.retired ? undefined : st.instance?.home.url;
+
+  const [name, tag] = splitHandle(st.handle);
+  const h = $("icHandle");
+  const t = document.createElement("span");
+  t.className = "tag";
+  t.textContent = tag;
+  h.replaceChildren(name, t);
+  $("icAccount").textContent = st.account;
+  $("icKind").textContent = st.retired ? "Retired" : home ? "Identity" : "Card only";
+  $("idcard").className = `idcard${st.retired ? " retired" : home ? "" : " local"}`;
+
+  const badges = [];
+  if (st.retired) badges.push(badge("Retired", "bad"));
+  else if (home) badges.push(badge("At a host", "ok"));
+  else badges.push(badge("Not at any host", "warn"));
+  if (home) badges.push(current.vaultError ? badge("Vault not available", "warn") : badge("Vault open", "teal"));
+  $("badges").replaceChildren(...badges);
+
+  const facts = [
+    ["Realm", st.realm],
+    ["Host", home ?? (st.retired ? "none (retired)" : "none")],
+    ["Version", `seq ${st.version.seq}`],
+  ];
+  $("facts").replaceChildren(
+    ...facts.flatMap(([k, v]) => {
+      const dt = document.createElement("dt");
+      dt.textContent = k;
+      const dd = document.createElement("dd");
+      dd.textContent = v;
+      return [dt, dd];
+    }),
+  );
+
+  const note = $("modeNote");
+  if (st.retired) {
+    note.className = "notice error";
+    note.textContent = "This identity is retired. You can still show its card.";
+  } else if (!home) {
+    note.className = "notice warn";
+    note.textContent =
+      "This identity exists only on its card: no host stores it, so there is no account to sign in to yet. Choose " +
+      "“Start at a host” to put it on one. Showing the card and making root proofs work offline. If the identity " +
+      "already is at a host, enter that host's address above and open it again.";
+  } else if (current.vaultError) {
+    note.className = "notice warn";
+    note.textContent = `The identity is at ${home}, but its vault could not be opened (${current.vaultError}). ` +
+      "Actions that need the vault are unavailable; load the account file or try again when the host can be reached.";
+  } else {
+    note.className = "notice ok";
+    note.textContent = `The identity is at ${home}. Changes are sent there, and after each one that makes a new ` +
+      "account the new account file is downloaded.";
+  }
+
+  for (const tile of document.querySelectorAll("[data-pick]")) {
+    const why = blocked(tile.dataset.pick);
+    tile.classList.toggle("unavailable", Boolean(why));
+    let req = tile.querySelector(".req");
+    if (!req) {
+      req = document.createElement("span");
+      tile.append(req);
+    }
+    const where = ACTIONS[tile.dataset.pick].where;
+    req.className = `req badge ${why ? "warn" : where ? "teal" : "ok"}`;
+    req.textContent = why ? (where && !home ? "Needs a host" : "Unavailable") : where ? "Uses a host" : "Offline";
+    tile.setAttribute("aria-pressed", String(tile.dataset.pick === picked));
+  }
+  $("opform").hidden = !picked;
+  if (!picked) return;
+  const a = ACTIONS[picked];
+  const why = blocked(picked);
+  $("opTitle").textContent = a.title;
+  $("opText").textContent = a.text;
+  const where = $("opWhere");
+  if (a.where === "home") {
+    where.className = "badge teal";
+    where.textContent = home ? `Sends to ${home}` : "Needs a host";
+  } else if (a.where === "target") {
+    where.className = "badge teal";
+    where.textContent = "Sends to the host you enter";
+  } else {
+    where.className = "badge ok";
+    where.textContent = "Offline";
+  }
+  $("opBlocked").hidden = !why;
+  $("opBlocked").textContent = why ?? "";
+  if (a.host) $("targetHostLabel").textContent = a.host;
+  for (const el of document.querySelectorAll("#opform [data-for]")) {
+    el.hidden = !el.dataset.for.split(" ").includes(picked);
+  }
+  for (const b of document.querySelectorAll("#opform [data-op]")) b.disabled = Boolean(blocked(b.dataset.op));
+}
+
+/** Check a host address field while it is typed, and say what will be contacted. */
+function watchHost(input) {
+  const hint = $(`${input.id}Check`);
+  const idle = hint.textContent;
+  const check = () => {
+    const parts = input.dataset.host === "list" ? input.value.split(",") : [input.value];
+    const typed = parts.map((s) => s.trim()).filter(Boolean);
+    if (typed.length === 0) {
+      hint.className = "hint";
+      hint.textContent = idle;
+      input.removeAttribute("aria-invalid");
+      return;
+    }
+    try {
+      const bases = typed.map(checkHost);
+      hint.className = "hint good";
+      hint.textContent = `✓ Will contact ${bases.join(", ")}`;
+      input.removeAttribute("aria-invalid");
+    } catch (e) {
+      hint.className = "hint bad";
+      hint.textContent = explain(e);
+      input.setAttribute("aria-invalid", "true");
+    }
+  };
+  input.addEventListener("input", check);
+  check();
+}
+
+for (const input of document.querySelectorAll("[data-host]")) watchHost(input);
+
+for (const tab of document.querySelectorAll("[role=tab]")) {
+  tab.addEventListener("click", () => {
+    for (const t of document.querySelectorAll("[role=tab]")) {
+      const on = t === tab;
+      t.setAttribute("aria-selected", String(on));
+      $(t.getAttribute("aria-controls")).hidden = !on;
+    }
+  });
+}
+
+function createMode() {
+  return $("nLocal").checked ? "local" : "host";
+}
+for (const r of document.querySelectorAll("[name=nWhere]")) {
+  r.addEventListener("change", () => {
+    for (const el of document.querySelectorAll("[data-when]")) el.hidden = el.dataset.when !== createMode();
+  });
+}
+
+for (const tile of document.querySelectorAll("[data-pick]")) {
+  tile.addEventListener("click", () => {
+    picked = tile.dataset.pick;
+    render();
+    $("opform").scrollIntoView({ block: "nearest" });
+  });
+}
+
 $("version").textContent = ROOTCARD_VERSION;
 $("load").addEventListener("click", () =>
   run(async () => {
+    current = null;
+    picked = null;
     const notes = await gather();
-    $("actions").hidden = false;
     let extra = "";
-    try {
-      const { u } = await currentVault();
-      refreshSlots(u.info);
-    } catch (e) {
-      extra = `\n(Vault not available: ${explain(e)})`;
+    if (current.state.instance && !current.state.retired) {
+      try {
+        const { u } = await currentVault();
+        refreshSlots(u.info);
+      } catch (e) {
+        current.vaultError = explain(e);
+        extra = `\n(Vault not available: ${current.vaultError})`;
+      }
+    } else {
+      $("slot").replaceChildren();
     }
     return describe(current.state) + extra + (notes.length ? "\n\n" + notes.join("\n") : "");
   }),
 );
 for (const b of document.querySelectorAll("[data-op]")) {
-  b.addEventListener("click", () => run(() => (current ? ops[b.dataset.op]() : Promise.reject(new Error("Load the identity first.")))));
+  b.addEventListener("click", () =>
+    run(() => {
+      if (!current) throw new Error("Open the identity first.");
+      const why = blocked(b.dataset.op);
+      if (why) throw new Error(why);
+      return ops[b.dataset.op]();
+    }),
+  );
 }
 $("create").addEventListener("click", () =>
   run(async () => {
     const realm = $("nRealm").value.trim();
     const username = $("nUser").value.trim();
+    const base = createMode() === "host" ? checkHost($("nHost").value) : "";
+    if (base) rc.checkPassword($("nPassword").value, username);
     const rk = await rc.newRecoveryKey(realm, username, random); // usable in every browser ([CRY-9])
-    const base = $("nHost").value.trim();
     let card;
     let file;
     let state;
     if (base) {
-      const home = await hostHome(checkHost(base));
+      const home = await hostHome(base);
       const reg = await rc.register(rk, realm, username, $("nPassword").value, "Password", home, now(), rc.KDF_DEFAULT, random);
       rk.fill(0);
       // The card is saved before anything is sent: once the host has the identity, the card is the only copy of its
@@ -357,7 +643,12 @@ $("create").addEventListener("click", () =>
     rk.fill(0);
     if (!base) download(`${username}-${rc.tag(state.account)}.card.json`, card);
     download(rc.accountFileName(state), file);
-    return (await rc.cardText(card)) + "\n" + describe(state) + "\n\nThe card and the account file were downloaded. Keep the card offline.";
+    if (base) $("hosts").value = base;
+    $("hosts").dispatchEvent(new Event("input"));
+    const next = base
+      ? `To manage it, choose “Open my identity”, load the card (the host ${base} is already filled in).`
+      : "No host has it yet. To put it on one, choose “Open my identity”, load the card, then “Start at a host”.";
+    return (await rc.cardText(card)) + "\n" + describe(state) + "\n\nThe card and the account file were downloaded. Keep the card offline.\n" + next;
   }),
 );
 $("verify").addEventListener("click", () =>
