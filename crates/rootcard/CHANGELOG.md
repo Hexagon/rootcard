@@ -4,6 +4,16 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- **Breaking:** every function that creates a password lock enforces the password rules of SPEC [LCK-8]
+  (`weak_password`), not only `register`: `new_password_lock` (and so `add_slot`, `instance_vault`, `new_instance`)
+  and `change_password`. `NewSlot` has a new field `username`, and `change_password` a new parameter `username` after
+  `password`. `new_instance` refuses a slot whose `username` is not the identity's (`bad_field`). New vectors in
+  `spec/vectors/vault.json`.
+- **Breaking:** `check_base_url` ([HST-22]) refuses path segments that are `.` or `..` or contain anything other than
+  unreserved characters (`A`–`Z`, `a`–`z`, `0`–`9`, `-`, `.`, `_`, `~`), so a base URL has no percent-encoding and
+  cannot reach a version segment after normalization (`https://example.com/v0/..`, `https://example.com/%76%30`). New
+  vectors in `spec/vectors/proof.json`. No format change: log verification is unchanged.
+
 ## 0.2.1 - 2026-11-05
 
 No changes.

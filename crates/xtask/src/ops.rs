@@ -511,6 +511,7 @@ fn vault_op(op: &str, i: &Input<'_>) -> R<Outcome> {
                 vault,
                 i.str("lock")?,
                 i.str("password")?,
+                &st.username,
                 &i.kdf("kdf")?,
                 &mut random
             ));
@@ -520,6 +521,7 @@ fn vault_op(op: &str, i: &Input<'_>) -> R<Outcome> {
             let slot = NewSlot {
                 label: i.str("label")?,
                 password: i.str("password")?,
+                username: &st.username,
                 kdf: i.kdf("kdf")?,
             };
             tryr!(add_slot(&u, vault, &keys, &slot, &mut random))
@@ -568,19 +570,20 @@ fn vault_op(op: &str, i: &Input<'_>) -> R<Outcome> {
                 }
                 None => None,
             };
-            fn new_slot(s: &Option<(String, String, Kdf)>) -> R<NewSlot<'_>> {
+            fn new_slot<'a>(s: &'a Option<(String, String, Kdf)>, username: &'a str) -> R<NewSlot<'a>> {
                 let (l, p, k) = s.as_ref().ok_or("slot")?;
                 Ok(NewSlot {
                     label: l,
                     password: p,
+                    username,
                     kdf: *k,
                 })
             }
             let mode = match i.str("mode")? {
                 "restore" => InstanceMode::Restore,
                 "revoke" => InstanceMode::Revoke(&drop_refs),
-                "reset" => InstanceMode::Reset(new_slot(&slot)?),
-                _ => InstanceMode::Fresh(new_slot(&slot)?),
+                "reset" => InstanceMode::Reset(new_slot(&slot, &st.username)?),
+                _ => InstanceMode::Fresh(new_slot(&slot, &st.username)?),
             };
             let public = match i.opt("public") {
                 Some(p) => Some(tryr!(verify_public(p, &st)).data),

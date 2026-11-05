@@ -105,8 +105,11 @@ pub trait IdentityStore {
     fn insert(&self, new: &Stored, claim: bool) -> Result<Insert, StoreError>;
     /// Replace the stored identity if it still matches `expected`. Returns whether it was replaced.
     fn swap(&self, account: &str, expected: &Expected, new: &Stored) -> Result<bool, StoreError>;
-    /// The account ids stored under a handle key, retired identities included.
+    /// The account ids stored under a handle key, retired and propagated identities included (for lookups, [HDL-7]).
     fn by_handle(&self, key: &HandleKey) -> Result<Vec<String>, StoreError>;
+    /// Whether an identity registered at this host (stored with `claim`) holds the handle key. Only such identities
+    /// reserve a handle ([HST-4]); identities that arrived by propagation never do, retired or not.
+    fn handle_claimed(&self, key: &HandleKey) -> Result<bool, StoreError>;
     /// The accounts changed after `since` (a cursor from an earlier call, 0 for all), at most `limit`, and the new cursor.
     fn changes(&self, since: u64, limit: usize) -> Result<(u64, Vec<String>), StoreError>;
 }
@@ -161,6 +164,7 @@ fn poisoned<T>(_: T) -> StoreError {
 struct MemoryInner {
     identities: HashMap<String, Stored>,
     handles: HashMap<HandleKey, Vec<String>>,
+    claims: HashMap<HandleKey, String>,
     log: Vec<String>,
 }
 
@@ -187,8 +191,11 @@ impl IdentityStore for MemoryIdentityStore {
             return Ok(Insert::Exists);
         }
         let key = HandleKey::of(&new.state);
-        if claim && g.handles.get(&key).is_some_and(|v| !v.is_empty()) {
-            return Ok(Insert::HandleTaken);
+        if claim {
+            if g.claims.contains_key(&key) {
+                return Ok(Insert::HandleTaken);
+            }
+            g.claims.insert(key.clone(), account.clone());
         }
         g.handles.entry(key).or_default().push(account.clone());
         g.identities.insert(account.clone(), new.clone());
@@ -205,6 +212,10 @@ impl IdentityStore for MemoryIdentityStore {
         g.identities.insert(account.to_string(), new.clone());
         g.log.push(account.to_string());
         Ok(true)
+    }
+
+    fn handle_claimed(&self, key: &HandleKey) -> Result<bool, StoreError> {
+        Ok(self.0.lock().map_err(poisoned)?.claims.contains_key(key))
     }
 
     fn by_handle(&self, key: &HandleKey) -> Result<Vec<String>, StoreError> {

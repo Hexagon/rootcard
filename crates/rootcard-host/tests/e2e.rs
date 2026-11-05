@@ -17,7 +17,9 @@ use rootcard::testing::TestRandom;
 use rootcard::vault::{Kdf, Secret, change_password, derive_lock_secrets, regrant, unlock_vault, verify_vault};
 use rootcard_host::http::{API_VERSION, Request, route};
 use rootcard_host::peer::sign_peer_request;
-use rootcard_host::store::{MemoryChallengeStore, MemoryIdentityStore, MemorySessionStore};
+use rootcard_host::store::{
+    HandleKey, IdentityStore, Insert, MemoryChallengeStore, MemoryIdentityStore, MemorySessionStore, Stored,
+};
 use rootcard_host::{Host, HostConfig, RealmConfig, UsernamePolicy};
 use std::cell::RefCell;
 use zeroize::Zeroizing;
@@ -423,7 +425,7 @@ fn two_hosts_end_to_end() {
     )
     .unwrap();
     let mut random = |x: &mut [u8]| rng.fill(x);
-    let (v2, new_hash) = change_password(&up, &vault, &slot, PW2, &Kdf::MIN, &mut random).unwrap();
+    let (v2, new_hash) = change_password(&up, &vault, &slot, PW2, "Astra", &Kdf::MIN, &mut random).unwrap();
     let (_, ch) = call(
         &a,
         "POST",
@@ -689,4 +691,91 @@ fn a_rotation_that_arrived_first_still_gets_its_vault() {
     );
     assert_eq!((s, &again), (200, &first));
     assert!(login(&a, &account, "https://a.example", PW, T0 + 40).is_ok());
+}
+
+/// [HST-4]: only identities registered at a host reserve their handle there. A log anyone can push to
+/// `POST /id/{account}/events` (an inception costs nothing) never blocks a registration; the collision is shown with
+/// extended tags ([HDL-6]). A registered identity, retired or not, keeps blocking colliding registrations.
+#[test]
+fn only_registered_identities_reserve_a_handle() {
+    let a = host([0xa4; 32], "https://a.example");
+    let (_, desc) = call(&a, "GET", "/host", None, None, T0);
+    let a_key = rootcard::keys::parse_key(get(&desc, "key").as_str().unwrap(), KeyType::Ed25519).unwrap();
+    let home = Home {
+        key: a_key,
+        url: "https://a.example".into(),
+    };
+    let mut rng = TestRandom::new(b"squat");
+    let mut random = |x: &mut [u8]| rng.fill(x);
+    let mut rk = [0u8; 32];
+
+    // A pushed inception-only log is stored and can be looked up, but claims nothing.
+    random(&mut rk);
+    let keys = derive_recovery_keys(&rk, "global", "Squat");
+    let inc: Value = rootcard::id::inception(&keys, "global", "Squat").unwrap().into();
+    let pushed = verify_log(std::slice::from_ref(&inc), &opts()).unwrap();
+    let body = obj(&[("events", Value::Array(vec![inc]))]);
+    let (s, v) = call(
+        &a,
+        "POST",
+        &format!("/id/{}/events", pushed.account),
+        Some(body),
+        None,
+        T0,
+    );
+    assert_eq!(s, 200, "{v:?}");
+    assert!(!a.store.handle_claimed(&HandleKey::of(&pushed)).unwrap());
+
+    // A registration whose handle collides with a propagated identity succeeds. (The colliding record is made by
+    // giving a copy of the victim's state another id with the same tag: finding a real one takes ~2^20 inceptions.)
+    random(&mut rk);
+    let reg = register(&rk, "global", "Astra", PW, "Laptop", &home, T0, Kdf::MIN, &mut random).unwrap();
+    let victim = verify_log(&reg.log[..1], &opts()).unwrap();
+    let mut squat = victim.clone();
+    squat.account = format!("{}{}", &victim.account[..4], "Z".repeat(victim.account.len() - 4));
+    squat.username = "ASTRA".into();
+    let squatter = Stored {
+        events: Vec::new(),
+        state: squat.clone(),
+        vault: None,
+        public: None,
+    };
+    assert_eq!(a.store.insert(&squatter, false).unwrap(), Insert::Done);
+    let body = obj(&[("log", Value::Array(reg.log.clone())), ("vault", reg.vault.clone())]);
+    let (s, v) = call(&a, "POST", "/id/register", Some(body), None, T0);
+    assert_eq!(s, 201, "{v:?}");
+    assert!(a.store.handle_claimed(&HandleKey::of(&victim)).unwrap());
+    assert_eq!(a.store.by_handle(&HandleKey::of(&victim)).unwrap().len(), 2);
+
+    // The other direction: an identity registered here blocks a colliding registration ([HDL-5]), whether the
+    // registered one was claimed first by the store or by the router.
+    let b = host([0xb4; 32], "https://b.example");
+    let (_, desc) = call(&b, "GET", "/host", None, None, T0);
+    let b_home = Home {
+        key: rootcard::keys::parse_key(get(&desc, "key").as_str().unwrap(), KeyType::Ed25519).unwrap(),
+        url: "https://b.example".into(),
+    };
+    random(&mut rk);
+    let reg = register(&rk, "global", "Bodil", PW, "Laptop", &b_home, T0, Kdf::MIN, &mut random).unwrap();
+    let victim = verify_log(&reg.log[..1], &opts()).unwrap();
+    let mut first = victim.clone();
+    first.account = format!("{}{}", &victim.account[..4], "Z".repeat(victim.account.len() - 4));
+    let claimed = Stored {
+        events: Vec::new(),
+        state: first,
+        vault: None,
+        public: None,
+    };
+    assert_eq!(b.store.insert(&claimed, true).unwrap(), Insert::Done);
+    let body = obj(&[("log", Value::Array(reg.log.clone())), ("vault", reg.vault.clone())]);
+    let (s, v) = call(&b, "POST", "/id/register", Some(body), None, T0);
+    assert_eq!((s, err(&v)), (409, "handle_taken"));
+    // The store's own atomic check gives the same answer when the pre-check is raced.
+    let racer = Stored {
+        events: reg.log.clone(),
+        state: victim,
+        vault: Some(reg.vault.clone()),
+        public: None,
+    };
+    assert_eq!(b.store.insert(&racer, true).unwrap(), Insert::HandleTaken);
 }

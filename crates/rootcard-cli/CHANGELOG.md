@@ -4,6 +4,9 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- Host addresses with dot segments or percent-encoding in their path are refused ([HST-22]), and new passwords are
+  checked by the core as well as by the tool ([LCK-8]).
+
 ## 0.2.1 - 2026-11-05
 
 - **Fixed (loss of the recovery key):** `rotate-recovery` sent the rotation to the primary host before it wrote the new

@@ -108,6 +108,7 @@ pub trait IdentityStore {               // shared by all servers of the host
     fn insert(&self, new: &Stored, claim: bool) -> Result<Insert, StoreError>;    // atomic handle claim   [HST-3]
     fn swap(&self, account: &str, expected: &Expected, new: &Stored) -> Result<bool, StoreError>;  //     [HST-19]
     fn by_handle(&self, key: &HandleKey) -> Result<Vec<String>, StoreError>;      // (realm, lower username, tag)
+    fn handle_claimed(&self, key: &HandleKey) -> Result<bool, StoreError>;        // registered here only  [HST-4]
     fn changes(&self, since: u64, limit: usize) -> Result<(u64, Vec<String>), StoreError>;          // peers
 }
 pub trait ChallengeStore { fn put(..); fn take(..) }      // atomic get-and-delete, 60 s       [CHL-2]
@@ -152,7 +153,7 @@ CREATE TABLE identities (
   realm       TEXT NOT NULL,
   username_lc TEXT NOT NULL,                  -- ASCII lower case
   tag         TEXT NOT NULL,                  -- first 4 characters of the id
-  claimed     BOOLEAN NOT NULL,               -- registered here (false: arrived by propagation, [HST-15])
+  claimed     BOOLEAN NOT NULL,               -- registered here (false: any other arrival reserves nothing, [HST-4])
   events      JSONB NOT NULL,                 -- the newest valid log
   state       JSONB NOT NULL,                 -- LogState::to_value, only ever written after verify/extend_log [LOG-16]
   version_seq INTEGER NOT NULL,               -- the compare-and-swap columns of Expected

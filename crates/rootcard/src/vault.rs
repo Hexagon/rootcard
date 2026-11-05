@@ -838,17 +838,21 @@ mod crypto {
         pub label: &'a str,
         /// The password ([LCK-8]).
         pub password: &'a str,
+        /// The identity's username: the password must differ from it ([LCK-8]).
+        pub username: &'a str,
         /// The Argon2id parameters.
         pub kdf: Kdf,
     }
 
-    /// Create the public part of a new password lock. Draws: the slot id (8), the salt (16). → `kdf_params`,
+    /// Create the public part of a new password lock. The password must satisfy [LCK-8] (`weak_password`), as in every
+    /// function that creates a password lock. Draws: the slot id (8), the salt (16). → `weak_password`, `kdf_params`,
     /// `bad_field`
     pub fn new_password_lock(
         account: &str,
         slot: &NewSlot<'_>,
         random: Random<'_>,
     ) -> Result<(Slot, PasswordLockPublic)> {
+        check_password(slot.password, slot.username)?;
         check_label(slot.label)?;
         let id = base64url_encode(draw::<8>(random).as_ref());
         let salt = *draw::<16>(random);
@@ -980,15 +984,18 @@ mod crypto {
     }
 
     /// A password change ([CHG-1] step 1): a new lock for slot `slot` and the new vault. Draws: the salt (16), the
-    /// wrap (32 + 12), the contents nonce (12). Returns the new vault and `SHA-256(canonical(new lock))`.
+    /// wrap (32 + 12), the contents nonce (12). Returns the new vault and `SHA-256(canonical(new lock))`. The new
+    /// password must satisfy [LCK-8] for the identity's `username` → `weak_password`.
     pub fn change_password(
         u: &Unlocked,
         vault: &Value,
         slot: &str,
         password: &str,
+        username: &str,
         kdf: &Kdf,
         random: Random<'_>,
     ) -> Result<(Value, [u8; 32])> {
+        check_password(password, username)?;
         let (account, instance, grant) = vault_ids_of(u, vault)?;
         let index = u
             .info

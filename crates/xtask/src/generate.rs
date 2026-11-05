@@ -1509,6 +1509,43 @@ fn vault_vectors(s: &Scenario) -> Vec<V> {
             .with("time", T0 + 100)
             .with("random", "fresh"),
     ));
+    // [LCK-8] in every function that creates a password lock, not only in `register`.
+    out.push(v(
+        "password change to a weak password",
+        &["LCK-8", "CHG-1"],
+        "change_password",
+        ci(&s.reg_vault, &s.log1)
+            .with("lock", s.slot.as_str())
+            .with("password", "too short")
+            .with("kdf", kdf_min())
+            .with("random", "change"),
+    ));
+    out.push(v(
+        "add a slot with a weak password",
+        &["LCK-8", "KT-4"],
+        "add_slot",
+        ci(&s.reg_vault, &s.log1)
+            .with("label", "Phone")
+            .with("password", "phone")
+            .with("kdf", kdf_min())
+            .with("random", "add"),
+    ));
+    out.push(v(
+        "reset to a weak password",
+        &["LCK-8", "KT-8"],
+        "new_instance",
+        ci(&s.reg_vault, &s.log1)
+            .with("mode", "reset")
+            .with(
+                "slot",
+                m().with("label", "New")
+                    .with("password", "short")
+                    .with("kdf", kdf_min()),
+            )
+            .with("home", home_input(&HOST_A, "https://a.example"))
+            .with("time", T0 + 100)
+            .with("random", "reset"),
+    ));
     out.push(v(
         "rotate the recovery key",
         &["KT-5", "CRD-2"],
@@ -1808,6 +1845,13 @@ fn proof_vectors(s: &Scenario) -> Vec<V> {
         "https://example.com/rootcard/V12",
         "https://example.com/rootcard?x=1",
         "https://user@example.com",
+        "https://example.com/v0/..",
+        "https://example.com/rootcard/.",
+        "https://example.com/../rootcard",
+        "https://example.com/%76%30",
+        "https://example.com/root%2Fcard",
+        "https://example.com/my_root-card.v2~x",
+        "https://example.com/root;v=0",
     ] {
         out.push(v(
             &format!("base URL {url:?}"),

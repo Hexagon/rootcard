@@ -645,6 +645,7 @@ fn run(cmd: &str, args: &Args) -> R<()> {
                 let slot = NewSlot {
                     label: &label,
                     password: &pw,
+                    username: &id.state.username,
                     kdf: Kdf::DEFAULT,
                 };
                 submit_instance(&http, &id, &base, InstanceMode::Fresh(slot), None)
@@ -660,6 +661,7 @@ fn run(cmd: &str, args: &Args) -> R<()> {
                 let slot = NewSlot {
                     label: &label,
                     password: &pw,
+                    username: &id.state.username,
                     kdf: Kdf::DEFAULT,
                 };
                 submit_instance(&http, &id, &base, InstanceMode::Reset(slot), Some(&u))
@@ -681,6 +683,7 @@ fn run(cmd: &str, args: &Args) -> R<()> {
             let slot = NewSlot {
                 label: &label,
                 password: &pw,
+                username: &id.state.username,
                 kdf: Kdf::DEFAULT,
             };
             let v = add_slot(&u, &vault, &id.keys, &slot, &mut rnd).map_err(code)?;

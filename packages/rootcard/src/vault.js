@@ -167,8 +167,13 @@ function kdfValue(kdf, salt) {
   return { alg: "argon2id", m: kdf.m, t: kdf.t, p: kdf.p, salt: base64urlEncode(salt) };
 }
 
-/** Create a new password lock's public part. Draws: slot id (8), salt (16). Returns `[slot, lockPublic]`. */
+/**
+ * Create a new password lock's public part. `slot` is `{ label, password, username, kdf }`; the password must satisfy
+ * [LCK-8] for `username` (`weak_password`), as in every function that creates a password lock. Draws: slot id (8),
+ * salt (16). Returns `[slot, lockPublic]`.
+ */
 export async function newPasswordLock(account, slot, random) {
+  checkPassword(slot.password, slot.username);
   checkLabel(slot.label);
   const id = base64urlEncode(random(8));
   const salt = random(16);
@@ -244,10 +249,12 @@ export async function updateContents(u, vault, contents, random) {
 }
 
 /**
- * A password change ([CHG-1] step 1). Draws: salt (16), wrap (32 + 12), contents nonce (12).
+ * A password change ([CHG-1] step 1); the new password must satisfy [LCK-8] for `username` (`weak_password`).
+ * Draws: salt (16), wrap (32 + 12), contents nonce (12).
  * Returns `{ vault, new }` where `new` is `SHA-256(canonical(new lock))`.
  */
-export async function changePassword(u, vault, slot, password, kdf, random) {
+export async function changePassword(u, vault, slot, password, username, kdf, random) {
+  checkPassword(password, username);
   const { account, instance, grant } = idsOf(u, vault);
   const index = u.info.locks.findIndex((l) => l.kind === "password" && l.id === slot);
   if (index < 0) fail("bad_locks");

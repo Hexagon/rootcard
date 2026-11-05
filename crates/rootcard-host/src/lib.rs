@@ -438,7 +438,7 @@ impl<S: IdentityStore, C: ChallengeStore, T: SessionStore> Host<S, C, T> {
             return self.registration_retry(&stored, &log);
         }
         let (ev, st) = self.receipt(&st0, &log[1], now)?;
-        if !self.store.by_handle(&HandleKey::of(&st))?.is_empty() {
+        if self.store.handle_claimed(&HandleKey::of(&st))? {
             return Err(Error::HandleTaken.into());
         }
         let vault = field(m, "vault")?;

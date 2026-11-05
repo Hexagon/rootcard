@@ -30,7 +30,7 @@ export async function register(recoveryKey, realm, username, password, slotLabel
       recovery: keys,
       contents: { accountSeed: seed, data: {} },
       keep: [],
-      add: { label: slotLabel, password, kdf },
+      add: { label: slotLabel, password, username, kdf },
     },
     random,
   );
@@ -50,6 +50,12 @@ export async function register(recoveryKey, realm, username, password, slotLabel
  */
 export async function newInstance(state, recovery, old, oldPublicData, mode, home, time, random) {
   await checkRecoveryKey(state, recovery.signSeed);
+  const slot = mode.reset ?? mode.fresh;
+  if (slot) {
+    // The new password is checked before anything is drawn ([LCK-8]); its username must be this identity's.
+    if (slot.username !== state.username) fail("bad_field");
+    checkPassword(slot.password, state.username);
+  }
   const seed = random(32);
   const reason = mode.restore ? "restore" : mode.fresh ? "fresh" : "revoke";
   const event = await pendingInstance(state, recovery.signSeed, seed, home, reason, time);

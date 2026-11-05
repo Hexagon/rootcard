@@ -4,6 +4,15 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- **Fixed (handle squatting):** an identity stored from `POST /id/{account}/events` (anyone can push an inception-only
+  log) reserved its handle, so about 2^20 cheap requests could block every tag of a username at a host. Only
+  identities registered at the host now reserve a handle ([HST-4], [HDL-5]); the others may collide and are shown with
+  extended tags ([HDL-6]).
+- **Breaking:** `IdentityStore` has a new method `handle_claimed`: whether an identity stored with `claim` holds the
+  handle key. The SQL schema of ARCHITECTURE.md §3.1 already had this (`WHERE claimed`); `MemoryIdentityStore`
+  implements it.
+- Host addresses follow the stricter `check_base_url` of the core ([HST-22]).
+
 ## 0.2.1 - 2026-11-05
 
 - **Fixed:** `POST /id/{account}/events` with a rotation and the new vault answered success without storing the vault
