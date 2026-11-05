@@ -17,6 +17,11 @@ function show(text, ok = true) {
   $("out").textContent = text;
 }
 
+/** Show progress during an action: the status stays "Working…" until the action ends. */
+function progress(text) {
+  $("out").textContent = text;
+}
+
 function explain(e) {
   if (e instanceof rc.RootcardError) {
     const why = {
@@ -265,14 +270,14 @@ const ops = {
   },
   async rotate() {
     const { vault, u } = await currentVault();
-    const newKey = random(32);
+    const newKey = await rc.newRecoveryKey(current.state.realm, current.state.username, random);
     const r = await rc.rotateRecovery(current.state, current.log, current.keys, newKey, vault, u, now(), random);
     newKey.fill(0);
     // The new card is saved and shown before the rotation is sent: once the host has the event, the old key no longer
     // signs and the new card is the only copy of the new key ([KT-5]).
     download(`${current.state.username}-new.card.json`, r.card);
     const text = await rc.cardText(r.card);
-    show(text + "\nSending the rotation… Keep this card.", true);
+    progress(text + "\nSending the rotation… Keep this card.");
     try {
       await http("POST", `${apiRoot(current.state.instance.home.url)}/id/${current.state.account}/events`, { events: [r.event], vault: r.vault });
     } catch (e) {
@@ -325,7 +330,7 @@ $("create").addEventListener("click", () =>
   run(async () => {
     const realm = $("nRealm").value.trim();
     const username = $("nUser").value.trim();
-    const rk = random(32);
+    const rk = await rc.newRecoveryKey(realm, username, random); // usable in every browser ([CRY-9])
     const base = $("nHost").value.trim();
     let card;
     let file;

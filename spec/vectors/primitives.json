@@ -530,6 +530,28 @@
     },
     {
       "input": {
+        "random": "new recovery key 0",
+        "realm": "global",
+        "username": "Astra"
+      },
+      "name": "a new recovery key",
+      "op": "new_recovery_key",
+      "output": "c7ea6d5ea3564c6ef59792a663c1ae84cc252f7f16465c5aa159df8f520b0757",
+      "rules": ["RK-3","CRY-9"]
+    },
+    {
+      "input": {
+        "random": "new recovery key 686",
+        "realm": "global",
+        "username": "Astra"
+      },
+      "name": "a new recovery key is drawn again while its signing seed is unusable",
+      "op": "new_recovery_key",
+      "output": "30da0da0a1104b7ff50ff8f4b1bf1c09ed47e5501835da2ffb29d2755f57b2f4",
+      "rules": ["RK-3","CRY-9"]
+    },
+    {
+      "input": {
         "len": 80,
         "random": "seed"
       },
@@ -576,6 +598,64 @@
         "sig": "6291d657deec24024827e69c3abe01a30ce548a284743a445e3680d7db5ac3ac18ff9b538d16f290ae67f760984dc6594a7c15e9716ed28dc027beceea1ec40a"
       },
       "rules": ["CRY-1","CRY-8"]
+    },
+    {
+      "input": {
+        "msg": "72",
+        "seed": "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a600"
+      },
+      "name": "seed with a zero last byte",
+      "op": "ed25519_sign",
+      "output": {
+        "public": "e969da8746900ce4fa77bcb6dc2bc3dc7a50ef3c92191b07ff6734328b22e0cb",
+        "sig": "68b40995e532adafbcb68a0263317bf9d39127defd8495d5ec78bac1c42e36e55cac7957e39002df53e8a2140de5de2b34db4303dd2de22ebf21c8e7d8b44902"
+      },
+      "rules": ["CRY-1","CRY-8"]
+    },
+    {
+      "input": {
+        "known": "d15056613e76d65566c2d95624edca418946c2f3b3f353f1594534ce52d0bc0a",
+        "msg": "72",
+        "seed": "00dc8dc05d0acfb97f5482414adae811ad3d7390961e1c97f6acdb98dc47b93f"
+      },
+      "name": "seed with a zero first byte, signed with its key on record",
+      "op": "ed25519_sign",
+      "output": {
+        "public": "d15056613e76d65566c2d95624edca418946c2f3b3f353f1594534ce52d0bc0a",
+        "sig": "f21021b98bf789651884f4e7e1854443976f3125dcbc9ea1beea7874d8057e22ccc36132e670ad2ba31d02c1097c1a5d56028dde73e78f9c118dd488f416a302"
+      },
+      "rules": ["CRY-8","CRY-9","IMP-6"]
+    },
+    {
+      "error": "bad_key",
+      "input": {
+        "known": "fd1724385aa0c75b64fb78cd602fa1d991fdebf76b13c58ed702eac835e9f618",
+        "msg": "72",
+        "seed": "00dc8dc05d0acfb97f5482414adae811ad3d7390961e1c97f6acdb98dc47b93f"
+      },
+      "name": "a key on record that is not the seed's is refused",
+      "op": "ed25519_sign",
+      "rules": ["IMP-6"]
+    },
+    {
+      "input": {
+        "public": "d15056613e76d65566c2d95624edca418946c2f3b3f353f1594534ce52d0bc0a",
+        "seed": "00dc8dc05d0acfb97f5482414adae811ad3d7390961e1c97f6acdb98dc47b93f"
+      },
+      "name": "the public key of a seed",
+      "op": "ed25519_public_is",
+      "output": true,
+      "rules": ["CRY-2","IMP-6"]
+    },
+    {
+      "input": {
+        "public": "fd1724385aa0c75b64fb78cd602fa1d991fdebf76b13c58ed702eac835e9f618",
+        "seed": "00dc8dc05d0acfb97f5482414adae811ad3d7390961e1c97f6acdb98dc47b93f"
+      },
+      "name": "another public key is not the seed's",
+      "op": "ed25519_public_is",
+      "output": false,
+      "rules": ["CRY-2","IMP-6"]
     },
     {
       "input": {
@@ -866,6 +946,45 @@
         "shared": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742"
       },
       "rules": ["CRY-1"]
+    },
+    {
+      "input": {
+        "peer": "e6db6867583030db3594c1a424b15f7c726624ec26b3353b10a903a6d0ab1c4c",
+        "secret": "0046e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449ac4"
+      },
+      "name": "X25519 secret with a zero first byte",
+      "op": "x25519",
+      "output": {
+        "public": "e07016263f5ff192da8891c1ac291a918f2b4c9e4df15dae47b6d4e982078e76",
+        "shared": "40ad6bc9f5fc1cc5c6af89678ccfa7496f42acefa999bb53034c0beec4f0047c"
+      },
+      "rules": ["CRY-1","CRY-2"]
+    },
+    {
+      "input": {
+        "peer": "e6db6867583030db3594c1a424b15f7c726624ec26b3353b10a903a6d0ab1c4c",
+        "secret": "a546e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449a00"
+      },
+      "name": "X25519 secret with a zero last byte",
+      "op": "x25519",
+      "output": {
+        "public": "d4b9599586ac9a9f498754892ae422210803cda0e1a92b776d63f0abd8dd9f1c",
+        "shared": "cd3f0901073a448e40bca3519d5ce47cd9d86a3ee8ea6f1ac88dfa1660e8b716"
+      },
+      "rules": ["CRY-1","CRY-2"]
+    },
+    {
+      "input": {
+        "peer": "e6db6867583030db3594c1a424b15f7c726624ec26b3353b10a903a6d0ab1c4c",
+        "secret": "0046e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449a00"
+      },
+      "name": "X25519 secret with zero first and last bytes",
+      "op": "x25519",
+      "output": {
+        "public": "75c5fbb0b1717b79093f52cbb12b2e55c6f28f190d0876d7b2da34285a99fc15",
+        "shared": "72a71b7ecb009c474559cd2b4ebab59a4587bcd1ec365fc64be56ed251ea4d61"
+      },
+      "rules": ["CRY-1","CRY-2"]
     },
     {
       "error": "bad_key",

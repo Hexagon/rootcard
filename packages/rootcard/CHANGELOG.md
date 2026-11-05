@@ -10,6 +10,23 @@ All notable changes to this package are recorded here.
   `username` after `password`. `newInstance` refuses a slot whose `username` is not the identity's (`bad_field`).
 - **Breaking:** `checkBaseUrl` ([HST-22]) refuses dot segments and anything but unreserved characters in the path
   (no percent-encoding), as in the Rust crate. `keytool.html` is rebuilt with both changes.
+- Fixed: in Safari (WebKit), about 1 in 256 X25519 secrets failed with a `DataError`: WebKit's WebCrypto rejects a
+  secret whose first byte is zero. Creating locks, wrapping the vault key and unlocking could fail at random, and a
+  password whose box secret started with a zero byte could never unlock there. X25519 secrets are now given to
+  WebCrypto with a zero first byte as 1 and a zero last byte as 0x40, the same scalar after clamping (RFC 7748 §5),
+  so no key, result or vector changes. New vectors in `spec/vectors/primitives.json` cover secrets and seeds with a
+  zero byte at either end. `keytool.html` is rebuilt.
+- Ed25519 seeds whose first byte is zero (SPEC [CRY-9], [IMP-6]): WebKit cannot import them at all.
+  - New keys never use one: `register` and `newInstance` draw the account seed again, `newPasswordLock`,
+    `changePassword` and `addSlot` draw the salt again, and **breaking:** `register` and `rotateRecovery` refuse a
+    recovery key whose signing seed is unusable (`bad_key`). The new `newRecoveryKey(realm, username, random)`
+    generates a usable one; `checkNewRecoveryKey` and `usableSeed` are exported. Draws change only when a first draw
+    is unusable, with vectors for each case.
+  - Older such keys keep working: `checkRecoveryKey`, `unlockVault` and `prove` check a seed against its public key on
+    record with the new `ed25519PublicIs`, and signing with that seed then imports it as a JWK with that key where
+    the platform refuses it. A key on record that is not the seed's is refused.
+- `keytool.html`: generates recovery keys with `newRecoveryKey`, and no longer reports "Done." while a rotation is
+  still being sent (the status stays "Working…" until it ends).
 
 ## 0.2.1 - 2026-11-05
 

@@ -55,6 +55,8 @@ const T0: i64 = 1_800_000_000;
 const HOST_A: [u8; 32] = [0xa1; 32];
 const HOST_B: [u8; 32] = [0xb2; 32];
 const PASSWORD: &str = "correct horse battery staple";
+/// A recovery key whose signing seed for global/Astra is unusable ([CRY-9]): SHA-256("unusable recovery key 692").
+const UNUSABLE_RK: &str = "a77a0382ec918aad9f4dda23aaeeb28875baab836c235d7a7d0719ad4e085866";
 const NEW_PASSWORD: &str = "a new and better passphrase";
 
 fn kdf_min() -> Value {
@@ -426,6 +428,23 @@ fn primitives() -> Vec<V> {
             .with("realm", "global")
             .with("username", "astra"),
     ));
+    // New recovery keys ([RK-3], [CRY-9]): the first draw of "new recovery key 686" gives an unusable signing seed.
+    for (name, random) in [
+        ("a new recovery key", "new recovery key 0"),
+        (
+            "a new recovery key is drawn again while its signing seed is unusable",
+            "new recovery key 686",
+        ),
+    ] {
+        out.push(v(
+            name,
+            &["RK-3", "CRY-9"],
+            "new_recovery_key",
+            m().with("realm", "global")
+                .with("username", "Astra")
+                .with("random", random),
+        ));
+    }
     out.push(v(
         "test random stream",
         &["VEC-2"],
@@ -450,12 +469,50 @@ fn primitives() -> Vec<V> {
             "c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7",
             "af82",
         ),
+        // A seed with a zero last byte: an implementation that handles keys as big integers can drop it.
+        (
+            "seed with a zero last byte",
+            "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a600",
+            "72",
+        ),
     ] {
         out.push(v(
             name,
             &["CRY-1", "CRY-8"],
             "ed25519_sign",
             m().with("seed", seed).with("msg", msg),
+        ));
+    }
+    // A seed with a zero first byte ([CRY-9]): WebKit's WebCrypto cannot import it, and signs with it only together
+    // with its public key on record ([IMP-6]). A key on record that is not the seed's is refused.
+    let mut zero_led = TestRandom::new(b"zero-led seed").bytes::<32>();
+    zero_led[0] = 0;
+    let other = ed25519_public(&[9; 32]);
+    out.push(v(
+        "seed with a zero first byte, signed with its key on record",
+        &["CRY-8", "CRY-9", "IMP-6"],
+        "ed25519_sign",
+        m().with("seed", h(&zero_led))
+            .with("known", h(&ed25519_public(&zero_led)))
+            .with("msg", "72"),
+    ));
+    out.push(v(
+        "a key on record that is not the seed's is refused",
+        &["IMP-6"],
+        "ed25519_sign",
+        m().with("seed", h(&zero_led))
+            .with("known", h(&other))
+            .with("msg", "72"),
+    ));
+    for (name, public) in [
+        ("the public key of a seed", ed25519_public(&zero_led)),
+        ("another public key is not the seed's", other),
+    ] {
+        out.push(v(
+            name,
+            &["CRY-2", "IMP-6"],
+            "ed25519_public_is",
+            m().with("seed", h(&zero_led)).with("public", h(&public)),
         ));
     }
     out.extend(ed25519_rejects());
@@ -486,6 +543,32 @@ fn primitives() -> Vec<V> {
             "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f",
         ),
     ));
+    // Secrets with a zero byte at either end (WebKit's WebCrypto on Linux rejected the first kind); clamping makes
+    // them the same scalars as secrets whose low bits of the first byte or whose last byte are set.
+    for (name, secret) in [
+        (
+            "X25519 secret with a zero first byte",
+            "0046e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449ac4",
+        ),
+        (
+            "X25519 secret with a zero last byte",
+            "a546e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449a00",
+        ),
+        (
+            "X25519 secret with zero first and last bytes",
+            "0046e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449a00",
+        ),
+    ] {
+        out.push(v(
+            name,
+            &["CRY-1", "CRY-2"],
+            "x25519",
+            m().with("secret", secret).with(
+                "peer",
+                "e6db6867583030db3594c1a424b15f7c726624ec26b3353b10a903a6d0ab1c4c",
+            ),
+        ));
+    }
     out.push(v(
         "X25519 with a small-order peer fails",
         &["CRY-4"],
@@ -1238,6 +1321,40 @@ fn vault_vectors(s: &Scenario) -> Vec<V> {
             .with("kdf", kdf_min())
             .with("random", "register"),
     ));
+    // [CRY-9]: an unusable recovery key is refused; an unusable account seed or password salt is drawn again. The
+    // random streams were chosen so that the first draw is unusable.
+    for (name, key, random) in [
+        (
+            "registration with an unusable recovery key",
+            UNUSABLE_RK.to_string(),
+            "register",
+        ),
+        (
+            "registration draws the account seed again",
+            hex_encode(&s.rk),
+            "account seed 329",
+        ),
+        (
+            "registration draws the password salt again",
+            hex_encode(&s.rk),
+            "password salt 132",
+        ),
+    ] {
+        out.push(v(
+            name,
+            &["CRY-9", "CLT-1", "LCK-7"],
+            "register",
+            m().with("key", key.as_str())
+                .with("realm", "global")
+                .with("username", "Astra")
+                .with("password", PASSWORD)
+                .with("label", "Laptop")
+                .with("home", home_input(&HOST_A, "https://a.example"))
+                .with("time", T0)
+                .with("kdf", kdf_min())
+                .with("random", random),
+        ));
+    }
     let vi = |vault: &Value, events: &[Value]| log_input(events).with("vault", vault.clone());
     out.push(v(
         "registered vault verifies",
@@ -1553,6 +1670,15 @@ fn vault_vectors(s: &Scenario) -> Vec<V> {
         "rotate_recovery",
         ci(&s.vault2, &s.log2)
             .with("new_key", h(&s.new_rk))
+            .with("time", T0 + 200)
+            .with("random", "rotate"),
+    ));
+    out.push(v(
+        "rotation to an unusable recovery key is refused",
+        &["KT-5", "CRY-9"],
+        "rotate_recovery",
+        ci(&s.vault2, &s.log2)
+            .with("new_key", UNUSABLE_RK)
             .with("time", T0 + 200)
             .with("random", "rotate"),
     ));

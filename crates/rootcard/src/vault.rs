@@ -844,9 +844,28 @@ mod crypto {
         pub kdf: Kdf,
     }
 
+    /// A new salt and the lock secrets it gives, drawn again while the auth seed is unusable ([CRY-9]). → `kdf_params`,
+    /// and `bad_key` only for a broken generator ([`crate::crypto::DRAW_ATTEMPTS`])
+    fn new_lock_secrets(
+        account: &str,
+        lock: &str,
+        password: &str,
+        kdf: &Kdf,
+        random: Random<'_>,
+    ) -> Result<([u8; 16], LockSecrets)> {
+        for _ in 0..crate::crypto::DRAW_ATTEMPTS {
+            let salt = *draw::<16>(random);
+            let s = derive_lock_secrets(account, lock, password, kdf, &salt)?;
+            if crate::crypto::usable_seed(&s.auth_seed) {
+                return Ok((salt, s));
+            }
+        }
+        Err(Error::BadKey)
+    }
+
     /// Create the public part of a new password lock. The password must satisfy [LCK-8] (`weak_password`), as in every
-    /// function that creates a password lock. Draws: the slot id (8), the salt (16). → `weak_password`, `kdf_params`,
-    /// `bad_field`
+    /// function that creates a password lock. Draws: the slot id (8), the salt (16, again while the auth seed is
+    /// unusable, [CRY-9]). → `weak_password`, `kdf_params`, `bad_field`
     pub fn new_password_lock(
         account: &str,
         slot: &NewSlot<'_>,
@@ -855,8 +874,7 @@ mod crypto {
         check_password(slot.password, slot.username)?;
         check_label(slot.label)?;
         let id = base64url_encode(draw::<8>(random).as_ref());
-        let salt = *draw::<16>(random);
-        let s = derive_lock_secrets(account, &id, slot.password, &slot.kdf, &salt)?;
+        let (salt, s) = new_lock_secrets(account, &id, slot.password, &slot.kdf, random)?;
         Ok((
             Slot {
                 id: id.clone(),
@@ -983,8 +1001,8 @@ mod crypto {
         )
     }
 
-    /// A password change ([CHG-1] step 1): a new lock for slot `slot` and the new vault. Draws: the salt (16), the
-    /// wrap (32 + 12), the contents nonce (12). Returns the new vault and `SHA-256(canonical(new lock))`. The new
+    /// A password change ([CHG-1] step 1): a new lock for slot `slot` and the new vault. Draws: the salt (16, again
+    /// while the auth seed is unusable, [CRY-9]), the wrap (32 + 12), the contents nonce (12). Returns the new vault and `SHA-256(canonical(new lock))`. The new
     /// password must satisfy [LCK-8] for the identity's `username` → `weak_password`.
     pub fn change_password(
         u: &Unlocked,
@@ -1003,8 +1021,7 @@ mod crypto {
             .iter()
             .position(|l| matches!(l, Lock::Password(p, _) if p.id == slot))
             .ok_or(Error::BadLocks)?;
-        let salt = *draw::<16>(random);
-        let s = derive_lock_secrets(&account, slot, password, kdf, &salt)?;
+        let (salt, s) = new_lock_secrets(&account, slot, password, kdf, random)?;
         let public = PasswordLockPublic {
             id: slot.to_string(),
             kdf: *kdf,
@@ -1031,7 +1048,7 @@ mod crypto {
     }
 
     /// Add a password slot ([KT-4]): `gen + 1` signed by the recovery key, `rev + 1`. Draws: the slot id (8), the salt
-    /// (16), the wrap (32 + 12), the contents nonce (12).
+    /// (16, again while unusable, [CRY-9]), the wrap (32 + 12), the contents nonce (12).
     pub fn add_slot(
         u: &Unlocked,
         vault: &Value,

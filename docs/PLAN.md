@@ -112,7 +112,15 @@ unpinned actions (the run was green, nothing suggests a compromise). The review 
 **Testing and tools**
 - [x] Run the shared vectors in browsers in CI (Playwright: Chromium, Firefox, WebKit): `tests/browser`, the CI job
   `browser`. The page runs the same `ops.mjs` as Node; the deterministic test stream's SHA-256 is precomputed with
-  WebCrypto. Chromium 153 passes all 331 vectors locally; Firefox and WebKit run only in CI so far.
+  WebCrypto. Chromium 153 passes every vector locally; Firefox and WebKit run in CI. WebKit's first run found a
+  bug: its WebCrypto rejects an X25519 secret with a zero first byte (about 1 in 256 secrets; a password whose box
+  secret starts with one could never unlock in Safari). The JS core gives such secrets to WebCrypto as the same
+  scalar after clamping, with regression vectors for secrets and seeds with a zero byte at either end. WebKit also
+  rejects such Ed25519 seeds and then cannot compute their public keys, but signs with one imported as a JWK with
+  its public key. **Decided:** new keys avoid them (account seed, recovery key, password salt are drawn again,
+  [CRY-9]), and the JS core signs with an older one through a public key on record that it was checked against
+  ([IMP-6]); THREAT_MODEL.md T45 holds the residual case. The key tool no longer says "Done." while a rotation is
+  still being sent (the browser job caught this race).
 - [x] Drive `keytool.html` end to end in a browser against the example host in CI (`tests/browser/keytool.mjs`, from
   `file://` as users open it): create, load, add a password, rotate with the send failing (the card is downloaded
   first, the page says to keep both) and with the host up, load the new card (the old one answers

@@ -9,7 +9,8 @@ themselves live in [spec/SPEC.md](../spec/SPEC.md). This guide only explains the
 ## The big picture
 
 An identity has one root secret, the **recovery key**: 32 random bytes the user keeps offline and types only into the
-key tool ([PWR-6]). Everything else is derived from it or signed by it (SPEC §1):
+key tool ([PWR-6]). (In about 1 case in 256 the bytes are drawn again, so that the signing key derived from them works
+in every browser: [CRY-9].) Everything else is derived from it or signed by it (SPEC §1):
 
 ```
 recovery key ─HKDF─► recovery signing key ─signs─► inception ─SHA-256─► account id ─► handle Astra#3F9C

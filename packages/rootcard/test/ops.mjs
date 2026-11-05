@@ -6,7 +6,7 @@ import * as rc from "../src/index.js";
 import * as vault from "../src/vault-index.js";
 import { testRandom } from "../src/testing.js";
 import { hexDecode as hx, hexEncode as h, base64urlEncode as b64 } from "../src/encoding.js";
-import { aesGcmDecrypt, aesGcmEncrypt, ed25519Public, ed25519Sign, ed25519Verify, hkdf, x25519, x25519Public } from "../src/crypto.js";
+import { aesGcmDecrypt, aesGcmEncrypt, ed25519Public, ed25519PublicIs, ed25519Sign, ed25519Verify, hkdf, x25519, x25519Public } from "../src/crypto.js";
 import { argon2id } from "../src/argon2.js";
 import { recoverySignPublic } from "../src/recovery.js";
 
@@ -46,7 +46,14 @@ export const ops = {
       box_public: h(await x25519Public(k.boxSecret)),
     };
   },
-  ed25519_sign: async (i) => ({ public: h(await ed25519Public(hx(i.seed))), sig: h(await ed25519Sign(hx(i.seed), hx(i.msg))) }),
+  ed25519_sign: async (i) => {
+    const seed = hx(i.seed);
+    // A public key on record that the seed is checked against first ([IMP-6]); WebKit signs zero-led seeds only so.
+    if (i.known !== undefined && !(await ed25519PublicIs(seed, hx(i.known)))) throw new rc.RootcardError("bad_key");
+    return { public: h(await ed25519Public(seed)), sig: h(await ed25519Sign(seed, hx(i.msg))) };
+  },
+  ed25519_public_is: async (i) => ed25519PublicIs(hx(i.seed), hx(i.public)),
+  new_recovery_key: async (i) => h(await rc.newRecoveryKey(i.realm, i.username, rng(i))),
   ed25519_verify: async (i) => {
     await ed25519Verify(hx(i.public), hx(i.msg), hx(i.sig));
     return true;

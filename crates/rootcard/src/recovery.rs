@@ -63,6 +63,29 @@ impl RecoveryKeys {
     }
 }
 
+/// Generate a recovery key for an identity ([RK-3]): 32 random bytes, drawn again while the derived signing seed is
+/// unusable ([CRY-9]). Draws: 32 bytes per attempt. → `bad_key` only if `random` gave an unusable key
+/// [`crate::crypto::DRAW_ATTEMPTS`] times in a row (a broken generator).
+pub fn new_recovery_key(realm: &str, username: &str, random: &mut dyn FnMut(&mut [u8])) -> Result<Zeroizing<[u8; 32]>> {
+    let mut rk = Zeroizing::new([0u8; 32]);
+    for _ in 0..crate::crypto::DRAW_ATTEMPTS {
+        random(rk.as_mut());
+        if crate::crypto::usable_seed(&derive_recovery_keys(&rk, realm, username).sign_seed) {
+            return Ok(rk);
+        }
+    }
+    Err(Error::BadKey)
+}
+
+/// A new recovery key must give a usable signing seed ([CRY-9]). → `bad_key`
+pub fn check_new_recovery_key(keys: &RecoveryKeys) -> Result<()> {
+    if crate::crypto::usable_seed(&keys.sign_seed) {
+        Ok(())
+    } else {
+        Err(Error::BadKey)
+    }
+}
+
 /// Derive an identity's recovery keys from the recovery key, its realm and its username ([RK-4]).
 pub fn derive_recovery_keys(rk: &[u8; 32], realm: &str, username: &str) -> RecoveryKeys {
     let ctx = Map::new().with("realm", realm).with("username", username);

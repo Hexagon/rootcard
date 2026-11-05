@@ -270,6 +270,19 @@ Everything that is hashed or signed is canonical JSON. The encoding is the JSON 
   ciphertext followed by the 16-byte tag. A failed tag check fails the operation. A key MUST NOT be used for more than
   2³² encryptions (this bounds [VLT-4]).
 - **[CRY-8]** Ed25519 signing is deterministic (RFC 8032). Nothing in rootcard depends on a random signature.
+- **[CRY-9]** **Usable seeds.** An Ed25519 seed whose first byte is zero is **unusable** for new keys: whoever creates
+  a key MUST NOT create one with such a seed, and draws again instead. This applies to the account seed of a new
+  instance (32 new random bytes, [CLT-1], [KT-3]), the recovery key of a new identity or rotation (a new recovery key
+  until its derived `sign_seed` is usable, [RK-3], [RK-4]; a function given an unusable one fails → `bad_key`), and a
+  new password lock (a new salt until its `auth_seed` is usable, [LCK-7]; the slot id is drawn once). Verification
+  does not change: keys made from such seeds before this rule, or by other implementations, stay valid, and a
+  verifier never sees a seed.
+
+  *Rationale:* WebKit's WebCrypto rejects importing an Ed25519 seed whose first byte is zero (about 1 seed in 256), and
+  then cannot compute its public key at all; it can still sign with such a seed when the public key is given (a JWK
+  import with `x`). Keys created under this rule work in every browser; a JavaScript implementation signs with an
+  older such key by importing it with a public key on record ([IMP-6]). X25519 secrets have no such rule: clamping
+  ([CRY-2]) lets an implementation pass a zero first byte as 1 without changing the key.
 
 ---
 
@@ -1141,6 +1154,12 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
   There is no weaker fallback.
 - **[IMP-4]** Comparisons of secrets and of session tokens are constant-time.
 - **[IMP-5]** Nothing that failed verification is used, stored, displayed as valid or passed on.
+- **[IMP-6]** Where a platform cannot import an Ed25519 seed whose first byte is zero ([CRY-9]), a JavaScript
+  implementation imports it together with a public key **on record that the seed was checked against**: the log's
+  current `recovery` key ([RK-5]), the instance's `account_key` ([VLT-8]) or the lock's `auth` (the lock it unlocked).
+  It never takes such a public key from anywhere else, and where none is on record the operation fails as before.
+  *Note:* the platform itself rejects a public key that does not belong to the seed, so a wrong key on record cannot
+  produce a signature by another key.
 
 ---
 
@@ -1184,7 +1203,7 @@ its code ([CNV-4]).
 | `bad_base64` | Not canonical unpadded base64url | B64-2 |
 | `bad_base32` | Not valid Crockford base32 | B32-3, B32-4, RK-2 |
 | `bad_checksum` | The recovery key's checksum does not match | RK-2 |
-| `bad_key` | Unknown key type, wrong length, non-canonical or small-order point, X25519 zero output | KEY-1–KEY-3, CRY-4 |
+| `bad_key` | Unknown key type, wrong length, non-canonical or small-order point, X25519 zero output, a new recovery key whose signing seed is unusable | KEY-1–KEY-3, CRY-4, CRY-9 |
 | `bad_signature` | A signature does not verify strictly | CRY-3 and every signature rule |
 | `bad_realm` | Not a valid realm | RLM-1 |
 | `realm_not_accepted` | A realm the verifier does not accept | RLM-3 |

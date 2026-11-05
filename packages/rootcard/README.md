@@ -24,8 +24,10 @@ const state = await verifyLog(events, { realms: ["global"], now: Math.floor(Date
 - `keytool.html` is the standalone key tool page: open it from your own disk (`file://`). It talks only to the hosts you
   enter. It is generated from these modules by `npm run build`.
 
-Functions that need randomness take `random(n)`; pass `systemRandom` (WebCrypto `getRandomValues`). Errors are
-`RootcardError` with the stable `code` of SPEC §20.
+Functions that need randomness take `random(n)`; pass `systemRandom` (WebCrypto `getRandomValues`). Make a new
+recovery key with `newRecoveryKey(realm, username, systemRandom)`, not with 32 bytes of your own: `register` refuses
+the rare key whose signing key some browsers cannot use (SPEC [CRY-9]). Errors are `RootcardError` with the stable
+`code` of SPEC §20.
 
 ## HTTP binding
 

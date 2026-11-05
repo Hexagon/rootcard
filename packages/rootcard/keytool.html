@@ -689,14 +689,76 @@ async function publicOf(prefix, alg, secret, usages) {
   return x;
 }
 
-/** The Ed25519 public key of a 32-byte seed ([CRY-2]). */
-async function ed25519Public(seed) {
-  return publicOf(ED_PKCS8, "Ed25519", seed, ["sign"]);
+/** How often a seed is drawn again before a generator is taken to be broken ([CRY-9]). */
+const DRAW_ATTEMPTS = 64;
+
+/** Whether an Ed25519 seed may be used for a new key: its first byte is not zero ([CRY-9]). */
+function usableSeed(seed) {
+  return seed[0] !== 0;
 }
 
-/** Import an Ed25519 seed as a non-extractable signing key ([IMP-2]). */
+// [IMP-6]: WebKit's WebCrypto rejects a pkcs8 Ed25519 seed whose first byte is zero, but signs with it when it is
+// imported as a JWK with its public key. Public keys of seeds checked against a key on record (ed25519PublicIs) are
+// kept here, keyed by the seed's buffer, so that later signatures with the same buffer can use that import. Nothing
+// here is secret, and nothing is added without the check.
+const CHECKED = new WeakMap();
+
+function b64u(bytes) {
+  let b = "";
+  for (const x of bytes) b += String.fromCharCode(x);
+  return btoa(b).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+async function importJwk(seed, publicKey, extractable) {
+  const jwk = { kty: "OKP", crv: "Ed25519", d: b64u(seed), x: b64u(publicKey), ext: extractable };
+  try {
+    return await subtle.importKey("jwk", jwk, { name: "Ed25519" }, extractable, ["sign"]);
+  } finally {
+    jwk.d = "";
+  }
+}
+
+/** The Ed25519 public key of a 32-byte seed ([CRY-2]). */
+async function ed25519Public(seed) {
+  try {
+    return await publicOf(ED_PKCS8, "Ed25519", seed, ["sign"]);
+  } catch (e) {
+    const known = CHECKED.get(seed);
+    if (known) return known.slice();
+    throw e;
+  }
+}
+
+/**
+ * Whether the Ed25519 public key of `seed` is `publicKey` (raw 32 bytes). Where the platform cannot import the seed
+ * ([IMP-6]), the import of the seed with `publicKey` answers it, since the platform rejects a public key that does
+ * not belong to the seed; the key is then remembered for signing with this seed buffer.
+ */
+async function ed25519PublicIs(seed, publicKey) {
+  let pub;
+  try {
+    pub = await publicOf(ED_PKCS8, "Ed25519", seed, ["sign"]);
+  } catch {
+    try {
+      await importJwk(seed, publicKey, false);
+    } catch {
+      return false;
+    }
+    CHECKED.set(seed, Uint8Array.from(publicKey));
+    return true;
+  }
+  return pub.length === publicKey.length && pub.every((b, i) => b === publicKey[i]);
+}
+
+/** Import an Ed25519 seed as a non-extractable signing key ([IMP-2], [IMP-6]). */
 async function ed25519SigningKey(seed) {
-  return importPrivate(ED_PKCS8, "Ed25519", seed, false, ["sign"]);
+  try {
+    return await importPrivate(ED_PKCS8, "Ed25519", seed, false, ["sign"]);
+  } catch (e) {
+    const known = CHECKED.get(seed);
+    if (known) return importJwk(seed, known, false);
+    throw e;
+  }
 }
 
 /** A deterministic Ed25519 signature ([CRY-8]). `key` is a seed or a key from ed25519SigningKey. */
@@ -761,20 +823,41 @@ async function ed25519Verify(publicKey, m, sig) {
   if (!ok) fail("bad_signature");
 }
 
+// An X25519 secret as WebCrypto imports it. WebKit's WebCrypto on Linux rejects a secret whose first byte is zero
+// (DataError), probably because it handles the key as a big integer, so ~1 in 256 secrets failed there. X25519 clamps
+// every secret (RFC 7748 §5: the low 3 bits of the first byte cleared, the top bit of the last cleared and the next
+// set), so a zero first byte is given as 1 and a zero last byte as 0x40: the same scalar, the same keys and results.
+function x25519Secret(secret) {
+  const c = Uint8Array.from(secret);
+  if (c.length === 32) {
+    if (c[0] === 0) c[0] = 1;
+    if (c[31] === 0) c[31] = 0x40;
+  }
+  return c;
+}
+
 /** The X25519 public key of a 32-byte secret ([CRY-2]). */
 async function x25519Public(secret) {
-  return publicOf(X_PKCS8, "X25519", secret, ["deriveBits"]);
+  const c = x25519Secret(secret);
+  try {
+    return await publicOf(X_PKCS8, "X25519", c, ["deriveBits"]);
+  } finally {
+    c.fill(0);
+  }
 }
 
 /** X25519 key agreement; an all-zero result fails ([CRY-4]). → bad_key */
 async function x25519(secret, publicKey) {
   let bits;
+  const c = x25519Secret(secret);
   try {
-    const priv = await importPrivate(X_PKCS8, "X25519", secret, false, ["deriveBits"]);
+    const priv = await importPrivate(X_PKCS8, "X25519", c, false, ["deriveBits"]);
     const pub = await subtle.importKey("raw", publicKey, { name: "X25519" }, false, []);
     bits = new Uint8Array(await subtle.deriveBits({ name: "X25519", public: pub }, priv, 256));
   } catch {
     fail("bad_key");
+  } finally {
+    c.fill(0);
   }
   if (bits.every((b) => b === 0)) fail("bad_key");
   return bits;
@@ -796,7 +879,7 @@ async function aesGcmDecrypt(key, nonce, ct, aad) {
   }
 }
 
-return { checkSupport, frame, frameObject, sha256, hkdf, ed25519Public, ed25519SigningKey, ed25519Sign, ed25519PointOk, ed25519Verify, x25519Public, x25519, aesGcmEncrypt, aesGcmDecrypt };
+return { checkSupport, frame, frameObject, sha256, hkdf, DRAW_ATTEMPTS, usableSeed, ed25519Public, ed25519PublicIs, ed25519SigningKey, ed25519Sign, ed25519PointOk, ed25519Verify, x25519Public, x25519, aesGcmEncrypt, aesGcmDecrypt };
 })();
 __modules["keys.js"] = (() => {
 // Keys in JSON (SPEC §3.3) and the schema helpers every structure uses ([CJ-11]–[CJ-13]).
@@ -1053,7 +1136,7 @@ __modules["log.js"] = (() => {
 
 const { fail } = __modules["errors.js"];
 const { base64urlEncode, base64urlDecode, bytesEqual } = __modules["encoding.js"];
-const { ed25519Public, ed25519Sign, ed25519Verify, frameObject, sha256 } = __modules["crypto.js"];
+const { ed25519Public, ed25519PublicIs, ed25519Sign, ed25519Verify, frameObject, sha256 } = __modules["crypto.js"];
 const { canonical, without, isObject, MAX_SAFE } = __modules["json.js"];
 const s = __modules["keys.js"];
 const { formatKey } = __modules["keys.js"];
@@ -1325,7 +1408,7 @@ async function addReceipt(e, hostSeed) {
 
 /** [RK-5] → wrong_recovery_key */
 async function checkRecoveryKey(state, seed) {
-  if (formatKey("ed25519", await ed25519Public(seed)) !== state.recovery) fail("wrong_recovery_key");
+  if (!(await ed25519PublicIs(seed, s.parseKey(state.recovery, "ed25519")))) fail("wrong_recovery_key");
 }
 
 /** A pending instance ([LOG-9]). `home` is `{ key: "ed25519:…", url }`. */
@@ -1430,7 +1513,7 @@ __modules["recovery.js"] = (() => {
 
 const { fail } = __modules["errors.js"];
 const { B32, base32Decode, base32Encode, base32Normalize, bytesEqual } = __modules["encoding.js"];
-const { ed25519Public, frame, frameObject, hkdf, sha256 } = __modules["crypto.js"];
+const { DRAW_ATTEMPTS, ed25519Public, frame, frameObject, hkdf, sha256, usableSeed } = __modules["crypto.js"];
 const { label } = __modules["labels.js"];
 
 async function checksum(key) {
@@ -1469,6 +1552,28 @@ async function deriveRecoveryKeys(rk, realm, username) {
   };
 }
 
+/**
+ * Generate a recovery key for an identity ([RK-3]): 32 random bytes, drawn again while the derived signing seed is
+ * unusable ([CRY-9]). Draws: 32 bytes per attempt. → bad_key only for a broken generator.
+ */
+async function newRecoveryKey(realm, username, random) {
+  for (let i = 0; i < DRAW_ATTEMPTS; i++) {
+    const rk = random(32);
+    const keys = await deriveRecoveryKeys(rk, realm, username);
+    const ok = usableSeed(keys.signSeed);
+    keys.signSeed.fill(0);
+    keys.boxSecret.fill(0);
+    if (ok) return rk;
+    rk.fill(0);
+  }
+  fail("bad_key");
+}
+
+/** A new recovery key must give a usable signing seed ([CRY-9]). → bad_key */
+function checkNewRecoveryKey(keys) {
+  if (!usableSeed(keys.signSeed)) fail("bad_key");
+}
+
 /** The public recovery signing key. */
 async function recoverySignPublic(keys) {
   return ed25519Public(keys.signSeed);
@@ -1476,7 +1581,7 @@ async function recoverySignPublic(keys) {
 
 
 
-return { bytesEqual, formatRecoveryKey, parseRecoveryKey, deriveRecoveryKeys, recoverySignPublic };
+return { bytesEqual, formatRecoveryKey, parseRecoveryKey, deriveRecoveryKeys, newRecoveryKey, checkNewRecoveryKey, recoverySignPublic };
 })();
 __modules["vaultcheck.js"] = (() => {
 // The vault's structure and signatures (SPEC §11), without any decryption: what hosts need ([VLT-3], [VLT-4]).
@@ -1846,7 +1951,7 @@ __modules["proof.js"] = (() => {
 
 const { fail } = __modules["errors.js"];
 const { base64urlEncode } = __modules["encoding.js"];
-const { ed25519Public, ed25519Sign, ed25519Verify, frameObject, sha256 } = __modules["crypto.js"];
+const { ed25519PublicIs, ed25519Sign, ed25519Verify, frameObject, sha256 } = __modules["crypto.js"];
 const { utf8 } = __modules["encoding.js"];
 const { validate, without } = __modules["json.js"];
 const s = __modules["keys.js"];
@@ -1868,11 +1973,10 @@ function checkRecipient(r) {
 /** Make a proof ([PRF-1], [PRF-2]). `by` is "account" or "recovery"; `challenge` is 32 bytes. */
 async function prove(state, by, seed, challenge, recipient) {
   checkRecipient(recipient);
-  const pub = formatKey("ed25519", await ed25519Public(seed));
   const p = { v: 1, by, account: state.account, challenge: base64urlEncode(challenge), recipient };
   if (by === "account") {
     if (!state.instance) fail("no_instance");
-    if (state.instance.account_key !== pub) fail("wrong_account_key");
+    if (!(await ed25519PublicIs(seed, s.parseKey(state.instance.account_key, "ed25519")))) fail("wrong_account_key");
     p.instance = state.instance.hash;
   } else {
     await checkRecoveryKey(state, seed);
@@ -2409,7 +2513,7 @@ __modules["vault.js"] = (() => {
 
 const { fail } = __modules["errors.js"];
 const { base64urlDecode, base64urlEncode, concat, utf8 } = __modules["encoding.js"];
-const { aesGcmDecrypt, aesGcmEncrypt, ed25519Public, ed25519Sign, frameObject, hkdf, sha256, x25519, x25519Public } = __modules["crypto.js"];
+const { aesGcmDecrypt, aesGcmEncrypt, DRAW_ATTEMPTS, ed25519Public, ed25519PublicIs, ed25519Sign, frameObject, hkdf, sha256, usableSeed, x25519, x25519Public } = __modules["crypto.js"];
 const { argon2id } = __modules["argon2.js"];
 const { canonical, parseLimited } = __modules["json.js"];
 const s = __modules["keys.js"];
@@ -2534,9 +2638,13 @@ async function unlockVault(vault, state, secret) {
   const contents = checkContents(parseLimited(pt, CONTENTS_LIMIT));
   pt.fill(0);
   if (!state.instance) fail("no_instance");
-  if (formatKey("ed25519", await ed25519Public(contents.accountSeed)) !== state.instance.account_key) {
+  if (!(await ed25519PublicIs(contents.accountSeed, s.parseKey(state.instance.account_key, "ed25519")))) {
     fail("wrong_account_key");
   }
+  // Check the signing seed of the lock against its key on record, so that a platform that cannot import it signs
+  // with it anyway ([IMP-6]); a mismatch is not this function's to judge (a login with it fails at the host).
+  const signKey = lockId === "recovery" ? state.recovery : lock.value.auth;
+  await ed25519PublicIs(lockSeed, s.parseKey(signKey, "ed25519"));
   return { vaultKey: vk, contents, lock: lockId, lockSeed, info };
 }
 
@@ -2565,18 +2673,29 @@ function kdfValue(kdf, salt) {
   return { alg: "argon2id", m: kdf.m, t: kdf.t, p: kdf.p, salt: base64urlEncode(salt) };
 }
 
+/** A new salt and its lock secrets, drawn again while the auth seed is unusable ([CRY-9]). → bad_key (broken generator) */
+async function newLockSecrets(account, lock, password, kdf, random) {
+  for (let i = 0; i < DRAW_ATTEMPTS; i++) {
+    const salt = random(16);
+    const ls = await deriveLockSecrets(account, lock, password, kdf, salt);
+    if (usableSeed(ls.authSeed)) return [salt, ls];
+    ls.authSeed.fill(0);
+    ls.boxSecret.fill(0);
+  }
+  fail("bad_key");
+}
+
 /**
  * Create a new password lock's public part. `slot` is `{ label, password, username, kdf }`; the password must satisfy
  * [LCK-8] for `username` (`weak_password`), as in every function that creates a password lock. Draws: slot id (8),
- * salt (16). Returns `[slot, lockPublic]`.
+ * salt (16, again while the auth seed is unusable, [CRY-9]). Returns `[slot, lockPublic]`.
  */
 async function newPasswordLock(account, slot, random) {
   checkPassword(slot.password, slot.username);
   checkLabel(slot.label);
   const id = base64urlEncode(random(8));
-  const salt = random(16);
   const kdf = { m: slot.kdf.m, t: slot.kdf.t, p: slot.kdf.p ?? 1 };
-  const ls = await deriveLockSecrets(account, id, slot.password, kdf, salt);
+  const [salt, ls] = await newLockSecrets(account, id, slot.password, kdf, random);
   const pub = {
     id,
     kdf: kdfValue(kdf, salt),
@@ -2656,9 +2775,8 @@ async function changePassword(u, vault, slot, password, username, kdf, random) {
   const { account, instance, grant } = idsOf(u, vault);
   const index = u.info.locks.findIndex((l) => l.kind === "password" && l.id === slot);
   if (index < 0) fail("bad_locks");
-  const salt = random(16);
   const k = { m: kdf.m, t: kdf.t, p: kdf.p ?? 1 };
-  const ls = await deriveLockSecrets(account, slot, password, k, salt);
+  const [salt, ls] = await newLockSecrets(account, slot, password, k, random);
   const box = await x25519Public(ls.boxSecret);
   const pub = { id: slot, kdf: kdfValue(k, salt), auth: formatKey("ed25519", await ed25519Public(ls.authSeed)), box: formatKey("x25519", box) };
   ls.authSeed.fill(0);
@@ -2709,21 +2827,33 @@ const { base64urlEncode } = __modules["encoding.js"];
 const { inception } = __modules["id.js"];
 const { checkRecoveryKey, eventHash, pendingInstance, rotateRecoveryEvent, verifyLog } = __modules["log.js"];
 const { signPublic } = __modules["profile.js"];
-const { deriveRecoveryKeys } = __modules["recovery.js"];
+const { checkNewRecoveryKey, deriveRecoveryKeys } = __modules["recovery.js"];
+const { DRAW_ATTEMPTS, usableSeed } = __modules["crypto.js"];
 const { recoveryCard } = __modules["file.js"];
 const { carriedLocks, checkPassword, instanceVault, regrant } = __modules["vault.js"];
 
+/** The account seed of a new instance: 32 random bytes, drawn again while unusable ([CRY-9]). → bad_key (broken generator) */
+function drawAccountSeed(random) {
+  for (let i = 0; i < DRAW_ATTEMPTS; i++) {
+    const seed = random(32);
+    if (usableSeed(seed)) return seed;
+  }
+  fail("bad_key");
+}
+
 /**
- * Build a registration ([CLT-1]) from a recovery key the caller generated ([RK-3]). `home` is `{ key, url }` with
- * a key string. Draws: the account seed (32), then instanceVault with one new slot.
+ * Build a registration ([CLT-1]) from a recovery key the caller generated ([RK-3]; usable by [CRY-9], see
+ * newRecoveryKey → bad_key). `home` is `{ key, url }` with a key string. Draws: the account seed (32, again while
+ * unusable, [CRY-9]), then instanceVault with one new slot.
  * @returns {Promise<{ log, vault, public, card, account }>}
  */
 async function register(recoveryKey, realm, username, password, slotLabel, home, time, kdf, random) {
   checkPassword(password, username);
   const keys = await deriveRecoveryKeys(recoveryKey, realm, username);
+  checkNewRecoveryKey(keys);
   const inc = await inception(keys, realm, username);
   const state = await verifyLog([inc], { realms: [realm] });
-  const seed = random(32);
+  const seed = drawAccountSeed(random);
   const pending = await pendingInstance(state, keys.signSeed, seed, home, "register", time);
   const instance = base64urlEncode(await eventHash(pending));
   const vault = await instanceVault(
@@ -2748,7 +2878,8 @@ async function register(recoveryKey, realm, username, password, slotLabel, home,
 /**
  * Build a new instance on top of `state` ([KT-3]). `mode` is `{ restore: true }`, `{ revoke: [slot ids] }`,
  * `{ reset: slot }` or `{ fresh: slot }`, where a slot is `{ label, password, kdf }`. `old` is the current vault
- * unlocked with the recovery lock (not needed for fresh). Draws: the account seed (32), then instanceVault.
+ * unlocked with the recovery lock (not needed for fresh). Draws: the account seed (32, again while unusable,
+ * [CRY-9]), then instanceVault.
  * @returns {Promise<{ event, vault, public }>}
  */
 async function newInstance(state, recovery, old, oldPublicData, mode, home, time, random) {
@@ -2759,7 +2890,7 @@ async function newInstance(state, recovery, old, oldPublicData, mode, home, time
     if (slot.username !== state.username) fail("bad_field");
     checkPassword(slot.password, state.username);
   }
-  const seed = random(32);
+  const seed = drawAccountSeed(random);
   const reason = mode.restore ? "restore" : mode.fresh ? "fresh" : "revoke";
   const event = await pendingInstance(state, recovery.signSeed, seed, home, reason, time);
   const instance = base64urlEncode(await eventHash(event));
@@ -2786,11 +2917,12 @@ async function newInstance(state, recovery, old, oldPublicData, mode, home, time
 }
 
 /**
- * Rotate the recovery key ([KT-5]) to `newKey`. `unlocked` is the current vault unlocked. Draws: regrant.
+ * Rotate the recovery key ([KT-5]) to `newKey` (usable by [CRY-9] → bad_key; see newRecoveryKey). `unlocked` is the current vault unlocked. Draws: regrant.
  * @returns {Promise<{ event, vault, card }>}
  */
 async function rotateRecovery(state, log, oldKeys, newKey, oldVault, unlocked, time, random) {
   const next = await deriveRecoveryKeys(newKey, state.realm, state.username);
+  checkNewRecoveryKey(next);
   const event = await rotateRecoveryEvent(state, oldKeys.signSeed, next.signSeed, time);
   const vault = await regrant(unlocked, oldVault, next, random);
   const card = await recoveryCard(state.realm, state.username, state.account, newKey, [...log, event]);
@@ -2853,6 +2985,11 @@ let current = null; // { keys, key, log, state, vault, public, realm, username, 
 function show(text, ok = true) {
   $("status").className = ok ? "ok" : "err";
   $("status").textContent = ok ? "Done." : "Failed.";
+  $("out").textContent = text;
+}
+
+/** Show progress during an action: the status stays "Working…" until the action ends. */
+function progress(text) {
   $("out").textContent = text;
 }
 
@@ -3104,14 +3241,14 @@ const ops = {
   },
   async rotate() {
     const { vault, u } = await currentVault();
-    const newKey = random(32);
+    const newKey = await rc.newRecoveryKey(current.state.realm, current.state.username, random);
     const r = await rc.rotateRecovery(current.state, current.log, current.keys, newKey, vault, u, now(), random);
     newKey.fill(0);
     // The new card is saved and shown before the rotation is sent: once the host has the event, the old key no longer
     // signs and the new card is the only copy of the new key ([KT-5]).
     download(`${current.state.username}-new.card.json`, r.card);
     const text = await rc.cardText(r.card);
-    show(text + "\nSending the rotation… Keep this card.", true);
+    progress(text + "\nSending the rotation… Keep this card.");
     try {
       await http("POST", `${apiRoot(current.state.instance.home.url)}/id/${current.state.account}/events`, { events: [r.event], vault: r.vault });
     } catch (e) {
@@ -3164,7 +3301,7 @@ $("create").addEventListener("click", () =>
   run(async () => {
     const realm = $("nRealm").value.trim();
     const username = $("nUser").value.trim();
-    const rk = random(32);
+    const rk = await rc.newRecoveryKey(realm, username, random); // usable in every browser ([CRY-9])
     const base = $("nHost").value.trim();
     let card;
     let file;

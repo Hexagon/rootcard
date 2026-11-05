@@ -10,7 +10,7 @@ use crate::log::{
     Home, LogState, Reason, VerifyOptions, event_hash, pending_instance, rotate_recovery_event, verify_log,
 };
 use crate::profile::sign_public;
-use crate::recovery::{RecoveryKeys, derive_recovery_keys};
+use crate::recovery::{RecoveryKeys, check_new_recovery_key, derive_recovery_keys};
 use crate::vault::{Contents, InstanceVault, NewSlot, Random, Unlocked, carried_locks, check_password, instance_vault};
 use zeroize::Zeroizing;
 
@@ -28,8 +28,23 @@ pub struct Registration {
     pub account: String,
 }
 
-/// Build a registration ([CLT-1]) from a recovery key the caller generated ([RK-3]). Draws: the account seed (32), then
-/// [`instance_vault`] with one new slot. → `bad_realm`, `bad_username`, `weak_password`, `kdf_params`, `bad_field`
+/// The account seed of a new instance: 32 random bytes, drawn again while unusable ([CRY-9]). → `bad_key` only for a
+/// broken generator ([`crate::crypto::DRAW_ATTEMPTS`]).
+fn draw_account_seed(random: Random<'_>) -> Result<Zeroizing<[u8; 32]>> {
+    let mut seed = Zeroizing::new([0u8; 32]);
+    for _ in 0..crate::crypto::DRAW_ATTEMPTS {
+        random(seed.as_mut());
+        if crate::crypto::usable_seed(&seed) {
+            return Ok(seed);
+        }
+    }
+    Err(crate::Error::BadKey)
+}
+
+/// Build a registration ([CLT-1]) from a recovery key the caller generated ([RK-3], usable by [CRY-9], see
+/// [`crate::recovery::new_recovery_key`]). Draws: the account seed (32, again while unusable, [CRY-9]), then
+/// [`instance_vault`] with one new slot. → `bad_realm`, `bad_username`, `weak_password`, `kdf_params`, `bad_field`,
+/// `bad_key`
 #[allow(clippy::too_many_arguments)]
 pub fn register(
     recovery_key: &[u8; 32],
@@ -44,10 +59,10 @@ pub fn register(
 ) -> Result<Registration> {
     check_password(password, username)?;
     let keys = derive_recovery_keys(recovery_key, realm, username);
+    check_new_recovery_key(&keys)?;
     let inc = inception(&keys, realm, username)?;
     let state = verify_log(&[Value::Object(inc.clone())], &VerifyOptions::new([realm]))?;
-    let mut seed = Zeroizing::new([0u8; 32]);
-    random(seed.as_mut());
+    let seed = draw_account_seed(random)?;
     let pending = pending_instance(&state, &keys.sign_seed, &seed, home, Reason::Register, time)?;
     let instance = base64url_encode(&event_hash(&pending));
     let vault = instance_vault(
@@ -104,8 +119,8 @@ pub struct NewInstance {
 }
 
 /// Build a new instance on top of `state` ([KT-3]). `old` is the current vault unlocked with the recovery lock (needed
-/// except for `Fresh`), `old_public` the current profile data to carry over. Draws: the account seed (32), then
-/// [`instance_vault`]. → `wrong_recovery_key`, `bad_locks`
+/// except for `Fresh`), `old_public` the current profile data to carry over. Draws: the account seed (32, again while
+/// unusable, [CRY-9]), then [`instance_vault`]. → `wrong_recovery_key`, `bad_locks`
 #[allow(clippy::too_many_arguments)]
 pub fn new_instance(
     state: &LogState,
@@ -125,8 +140,7 @@ pub fn new_instance(
         }
         check_password(slot.password, &state.username)?;
     }
-    let mut seed = Zeroizing::new([0u8; 32]);
-    random(seed.as_mut());
+    let seed = draw_account_seed(random)?;
     let reason = match mode {
         InstanceMode::Restore => Reason::Restore,
         InstanceMode::Revoke(_) | InstanceMode::Reset(_) => Reason::Revoke,
@@ -194,7 +208,7 @@ pub struct Rotation {
     pub card: Value,
 }
 
-/// Rotate the recovery key ([KT-5]) to `new_key` (32 random bytes the caller generated). `log` is the current log,
+/// Rotate the recovery key ([KT-5]) to `new_key` (32 random bytes the caller generated, usable by [CRY-9] → `bad_key`). `log` is the current log,
 /// `old_vault` the current vault and `unlocked` that vault unlocked. Draws: [`crate::vault::regrant`].
 #[allow(clippy::too_many_arguments)]
 pub fn rotate_recovery(
@@ -208,6 +222,7 @@ pub fn rotate_recovery(
     random: Random<'_>,
 ) -> Result<Rotation> {
     let new = derive_recovery_keys(new_key, &state.realm, &state.username);
+    check_new_recovery_key(&new)?;
     let event = rotate_recovery_event(state, &old.sign_seed, &new.sign_seed, time)?;
     let vault = crate::vault::regrant(unlocked, old_vault, &new, random)?;
     let mut full = log.to_vec();
