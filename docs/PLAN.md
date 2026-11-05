@@ -74,19 +74,26 @@ unpinned actions (the run was green, nothing suggests a compromise). The review 
   username at a host without rate limits. [HST-4] allows this today; decide in the spec, for example that an identity
   without a current instance reserves no handle, or that only identities a host registered or received from a peer
   do, and test it in both directions.
-- [ ] Reject-case tests for the host rules, through `http::route`: `handle_taken`, `username_policy`,
+- [x] Reject-case tests for the host rules, through `http::route`, in `crates/rootcard-host/tests/rejects.rs` (with the
+  e2e helpers moved to `tests/common`). Writing them found no host bug; two expectations were corrected instead: a data
+  change cannot be told apart in a password change (the contents are encrypted, [CHG-2] allows a new `ct`), so the
+  `stale_locks` case is a vault that also changes the grant; and a retirement sent with a vault is adopted
+  (`account_retired`). `bad_signature` at fetch and login stays in `e2e.rs`. The original item: `handle_taken`, `username_policy`,
   `realm_not_accepted`, `bad_locks` (registration without a slot), `fork` and `stale_version` on `/events` and
   `/instance`, `bad_signature` at fetch and login (wrong password), every `unauthorized` and `stale_locks` case of
   [HST-12] and [CHG-2] (a session that changes locks, a stolen session changing a password), session idle expiry
   ([HST-11]), and retries ([HST-20]) of `/instance` and `/events`.
-- [ ] `merge` answers `stale_version` when the first submitted `prev` does not match, and `fork` when an overlapping
-  event differs, without verifying the submitted events. Verify first, so that garbage is `bad_*` and only a valid
-  diverging log is `fork`.
-- [ ] `peer::verify_peer_request` computes `(headers.time - now).abs()`, which overflows in debug builds for an extreme
+- [x] `merge` answered `fork` when an overlapping event differed, without verifying the submitted events. It now
+  verifies them on top of the stored prefix first, so garbage gets its own code and only a valid diverging log is
+  `fork` ([HST-14]). **Decided:** events whose first `prev` is not a stored event still answer `stale_version`: they
+  cannot be verified without the events before them, and the answer carries the host's version so the sender can
+  fetch and compare.
+- [x] (Fixed with `i64::abs_diff` at both sites, with a regression test.) `peer::verify_peer_request` computes `(headers.time - now).abs()`, which overflows in debug builds for an extreme
   header time (anyone can send a peer's public key from the descriptor). Use a saturating difference. The receipt check
   (`Host::receipt`, [HST-6]) has the same expression; it is safe today only because `verify_pending` bounds `time` to
   `0..=2^53-1` first, and gets the same fix.
-- [ ] `MemoryChallengeStore` never drops expired challenges, and `POST /id/{account}/challenge` needs no
+- [x] (Purged on insert, keeping a just-expired challenge one more lifetime; the duty is in the `ChallengeStore` docs
+  and ARCHITECTURE.md §3.1 with the SQL.) `MemoryChallengeStore` never dropped expired challenges, and `POST /id/{account}/challenge` needs no
   authentication, so the example host's memory grows without bound. Purge on insert; document the same duty for the
   SQL schema (ARCHITECTURE.md §3.1).
 
@@ -99,16 +106,21 @@ unpinned actions (the run was green, nothing suggests a compromise). The review 
   therefore `add_slot`, `instance_vault` and `new_instance`; and `change_password`), not only `register`. `NewSlot`
   gains `username`, `change_password` a `username` parameter; `new_instance` refuses a slot for another username
   (`bad_field`) and checks the password before drawing anything. Vectors in `vault.json`; THREAT_MODEL.md T44.
-- [ ] Rust `aes_gcm_encrypt` turns an encryption failure into an empty vector (`unwrap_or_default`); return an error.
+- [x] Rust `aes_gcm_encrypt` turned an encryption failure into an empty vector (`unwrap_or_default`); it returns
+  `Result` now (`too_large`; unreachable within the format's size limits).
 
 **Testing and tools**
-- [ ] Run the shared vectors in browsers in CI (Playwright: Chromium, Firefox, WebKit). WebCrypto's Ed25519 and
-  X25519 differ between engines, and `keytool.html` runs there. Chromium 153 passed all 321 vectors in the review;
-  Firefox and WebKit are untested.
-- [ ] Drive `keytool.html` end to end in a browser against the example host in CI: create, load, add a password,
-  rotate (with the host up and gone), retire. The 0.2.0 page could not reach any host and no test noticed.
-- [ ] An end-to-end test of the CLI against the example host (`new --host`, `rotate-recovery`, `restore`), beside the
-  offline tests of `crates/rootcard-cli/tests/key_tool.rs`.
+- [x] Run the shared vectors in browsers in CI (Playwright: Chromium, Firefox, WebKit): `tests/browser`, the CI job
+  `browser`. The page runs the same `ops.mjs` as Node; the deterministic test stream's SHA-256 is precomputed with
+  WebCrypto. Chromium 153 passes all 331 vectors locally; Firefox and WebKit run only in CI so far.
+- [x] Drive `keytool.html` end to end in a browser against the example host in CI (`tests/browser/keytool.mjs`, from
+  `file://` as users open it): create, load, add a password, rotate with the send failing (the card is downloaded
+  first, the page says to keep both) and with the host up, load the new card (the old one answers
+  `wrong_recovery_key`), retire. It fails on the 0.2.0 page.
+- [x] An end-to-end test of the CLI against a host (`new --host`, `rotate-recovery`, `restore`), beside the offline
+  tests of `crates/rootcard-cli/tests/key_tool.rs`: `tests/against_host.rs` runs `http::route` behind a minimal HTTP
+  server in the test process and checks what the host stores after each command, including that the vault still
+  verifies after a rotation (the 0.2.0 `/events` bug).
 
 **Documentation**
 - [x] SPEC §5: the `rootcard/fetch/v1` row of the label table was indented and might not render in the table; SPEC

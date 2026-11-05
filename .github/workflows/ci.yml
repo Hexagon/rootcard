@@ -101,3 +101,32 @@ jobs:
       - name: Test (against the Rust-generated vectors in spec/vectors)
         working-directory: packages/rootcard
         run: npm test
+
+  browser:
+    name: Browser (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable branch
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: Development host (keytool.html talks to it)
+        run: cargo build -p rootcard-host --example host
+      - name: Playwright (only here; the npm package has no dependencies)
+        working-directory: tests/browser
+        run: |
+          npm install --no-save --no-package-lock playwright@1.63.0
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Shared vectors and keytool.html in ${{ matrix.browser }}
+        working-directory: tests/browser
+        run: node run.mjs ${{ matrix.browser }}

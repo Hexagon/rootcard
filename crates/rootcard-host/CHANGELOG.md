@@ -4,6 +4,14 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- **Fixed:** `POST /id/{account}/events` and `/instance` answered `fork` for any event that differed from a stored
+  one, valid or not. The submitted events are now verified first: garbage gets its own error code, and only a valid
+  diverging log is a `fork` ([HST-14]).
+- **Fixed:** `verify_peer_request` and the receipt time check computed `(time - now).abs()`, which overflows (a panic
+  in debug builds) for an extreme peer header time. They use `abs_diff`.
+- **Fixed:** `MemoryChallengeStore` kept every challenge forever, and challenges need no authentication. It drops
+  expired ones on insert. The `ChallengeStore` documentation and ARCHITECTURE.md §3.1 state the same duty for other
+  stores. New: `MemoryChallengeStore::len` and `is_empty`.
 - **Fixed (handle squatting):** an identity stored from `POST /id/{account}/events` (anyone can push an inception-only
   log) reserved its handle, so about 2^20 cheap requests could block every tag of a username at a host. Only
   identities registered at the host now reserve a handle ([HST-4], [HDL-5]); the others may collide and are shown with

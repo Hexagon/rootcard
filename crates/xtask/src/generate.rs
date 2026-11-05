@@ -570,7 +570,8 @@ fn primitives() -> Vec<V> {
             .with("plaintext", h(b"rootcard"))
             .with("aad", h(b"aad")),
     ));
-    let ct = rootcard::crypto::aes_gcm_encrypt(&key, nonce.try_into().unwrap_or(&[0; 12]), b"rootcard", b"aad");
+    let ct = rootcard::crypto::aes_gcm_encrypt(&key, nonce.try_into().unwrap_or(&[0; 12]), b"rootcard", b"aad")
+        .unwrap_or_default();
     out.push(v(
         "AES-256-GCM decrypt",
         &["CRY-7"],
@@ -1692,7 +1693,8 @@ fn wrong_seed_vault(s: &Scenario, st1: &LogState) -> Value {
         &nonce,
         &rootcard::json::canonical(&contents.to_value()),
         &contents_aad(&x),
-    );
+    )
+    .unwrap_or_default();
     x.insert("ct", base64url_encode(&ct).into());
     let sig = ed25519_sign(&s.account_seed, &vault_message(&x));
     x.insert("sig", base64url_encode(&sig).into());

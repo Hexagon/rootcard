@@ -174,7 +174,14 @@ CREATE TABLE sessions (token_hash BYTEA PRIMARY KEY, account TEXT NOT NULL, inst
 ```
 
 A session check reads the session and the identity's `state` (or a 10 s cache of the current instance hash, [HST-11]);
-challenges and sessions past their expiry can be deleted by a periodic job.
+challenges and sessions past their expiry must be deleted, by a periodic job or on insert: anyone can request a
+challenge without authentication, so a store that keeps expired ones grows without bound (`MemoryChallengeStore` drops
+them on insert, keeping a just-expired one for one more lifetime so that it still answers `challenge_expired`):
+
+```sql
+DELETE FROM challenges WHERE expires < $now - 60;
+DELETE FROM sessions WHERE last_used < $now - 86400;
+```
 
 ---
 
@@ -215,6 +222,8 @@ Few dependencies, each justified (AGENTS.md rule 6). The budget:
 | `rootcard-cli` | `rootcard`, `getrandom`, `zeroize`, `ureq` with `rustls` (HTTPS to hosts), `rpassword` (no-echo input) |
 | `packages/rootcard` | none (WebCrypto, `String.prototype.normalize`; own Argon2id and BLAKE2b) |
 | `crates/rootcard-host/examples/host.rs` (not published) | `getrandom` (development dependency) |
+| `tests/browser` (not published, CI only) | `playwright` at an exact version, installed in the CI job only: the vectors and `keytool.html` in Chromium, Firefox and WebKit |
+| `crates/rootcard-cli/tests` (not published) | `rootcard-host` by path only, so `cargo publish` drops it: the key tool's end-to-end test runs a host in the test process |
 | `xtask` (not published) | `curve25519-dalek`, `sha2`: only to construct the rejected signature classes of the vectors |
 
 None of the core's dependencies is built with its `getrandom` or `rand_core` features: the core draws no randomness.

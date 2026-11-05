@@ -220,12 +220,12 @@ pub fn run(op: &str, input: &Map) -> R<Outcome> {
         }
         "aes_gcm_encrypt" => {
             let nonce: [u8; 12] = i.hex("nonce")?.try_into().map_err(|_| "nonce")?;
-            hex(&crypto::aes_gcm_encrypt(
+            hex(&tryr!(crypto::aes_gcm_encrypt(
                 &i.hex32("key")?,
                 &nonce,
                 &i.hex("plaintext")?,
                 &i.hex("aad")?,
-            ))
+            )))
         }
         "aes_gcm_decrypt" => {
             let nonce: [u8; 12] = i.hex("nonce")?.try_into().map_err(|_| "nonce")?;

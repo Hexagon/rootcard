@@ -144,15 +144,15 @@ pub fn x25519(secret: &[u8; 32], public: &[u8; 32]) -> Result<Zeroizing<[u8; 32]
     Ok(shared)
 }
 
-/// AES-256-GCM encryption: ciphertext ‖ 16-byte tag ([CRY-7]).
+/// AES-256-GCM encryption: ciphertext ‖ 16-byte tag ([CRY-7]). It fails only for inputs beyond AES-GCM's limits
+/// (about 64 GiB), far above every size limit of the format, and then fails rather than returning anything. → `too_large`
 #[cfg(feature = "vault")]
-pub fn aes_gcm_encrypt(key: &[u8; 32], nonce: &[u8; 12], plaintext: &[u8], aad: &[u8]) -> Vec<u8> {
+pub fn aes_gcm_encrypt(key: &[u8; 32], nonce: &[u8; 12], plaintext: &[u8], aad: &[u8]) -> Result<Vec<u8>> {
     use aes_gcm::aead::{Aead, KeyInit, Payload};
     let cipher = aes_gcm::Aes256Gcm::new(&(*key).into());
-    // Encryption with a 256-bit key and a 96-bit nonce cannot fail for inputs of these sizes.
     cipher
         .encrypt(&(*nonce).into(), Payload { msg: plaintext, aad })
-        .unwrap_or_default()
+        .map_err(|_| Error::TooLarge)
 }
 
 /// AES-256-GCM decryption; a failed tag check fails. → `unlock_failed`

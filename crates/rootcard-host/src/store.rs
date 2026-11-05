@@ -125,7 +125,9 @@ pub struct Issued {
     pub expires: i64,
 }
 
-/// Challenge storage with a 60 s expiry and an atomic take ([CHL-2], [HST-19]).
+/// Challenge storage with a 60 s expiry and an atomic take ([CHL-2], [HST-19]). Issuing a challenge needs no
+/// authentication, so a store must drop expired challenges itself (on insert, or with a periodic job): otherwise it
+/// grows with every request.
 pub trait ChallengeStore {
     /// Store an issued challenge.
     fn put(&self, nonce: [u8; 32], issued: Issued) -> Result<(), StoreError>;
@@ -252,11 +254,28 @@ impl MemoryChallengeStore {
     pub fn new() -> Self {
         Self::default()
     }
+
+    /// The number of stored challenges.
+    pub fn len(&self) -> usize {
+        self.0.lock().map(|g| g.len()).unwrap_or(0)
+    }
+
+    /// Whether no challenge is stored.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 }
 
 impl ChallengeStore for MemoryChallengeStore {
+    /// Stores the challenge and drops every challenge that expired more than one lifetime ago (a challenge is issued
+    /// at `expires - CHALLENGE_LIFETIME` of the host's clock). A recently expired one is kept, so that using it still
+    /// answers `challenge_expired`.
     fn put(&self, nonce: [u8; 32], issued: Issued) -> Result<(), StoreError> {
-        self.0.lock().map_err(poisoned)?.insert(nonce, issued);
+        let lifetime = rootcard::messages::CHALLENGE_LIFETIME;
+        let cutoff = issued.expires.saturating_sub(lifetime.saturating_mul(2));
+        let mut g = self.0.lock().map_err(poisoned)?;
+        g.retain(|_, i| i.expires >= cutoff);
+        g.insert(nonce, issued);
         Ok(())
     }
 
@@ -296,5 +315,42 @@ impl SessionStore for MemorySessionStore {
     fn remove(&self, token_hash: &[u8; 32]) -> Result<(), StoreError> {
         self.0.lock().map_err(poisoned)?.remove(token_hash);
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::unwrap_used)]
+    use super::*;
+    use rootcard::messages::{CHALLENGE_LIFETIME, Purpose};
+
+    fn issued(expires: i64) -> Issued {
+        Issued {
+            account: "a".into(),
+            purpose: Purpose::Login,
+            expires,
+        }
+    }
+
+    /// Issuing challenges needs no authentication, so the store must not grow without bound.
+    #[test]
+    fn expired_challenges_are_dropped_on_insert() {
+        let store = MemoryChallengeStore::new();
+        let t = 1_800_000_000;
+        for i in 0..100u8 {
+            store.put([i; 32], issued(t + CHALLENGE_LIFETIME)).unwrap();
+        }
+        assert_eq!(store.len(), 100);
+        // One lifetime later the old ones have just expired and are kept (they still answer `challenge_expired`).
+        store.put([200; 32], issued(t + 2 * CHALLENGE_LIFETIME)).unwrap();
+        assert_eq!(store.len(), 101);
+        // Two lifetimes later they are gone.
+        store.put([201; 32], issued(t + 3 * CHALLENGE_LIFETIME + 1)).unwrap();
+        assert_eq!(store.len(), 2);
+        assert!(store.take(&[0; 32]).unwrap().is_none());
+        assert!(store.take(&[201; 32]).unwrap().is_some());
+        // Extreme times do not overflow.
+        store.put([202; 32], issued(i64::MIN)).unwrap();
+        store.put([203; 32], issued(i64::MAX)).unwrap();
     }
 }
