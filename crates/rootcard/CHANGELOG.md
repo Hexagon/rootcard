@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.2 - 2026-11-06
+
 - Host pointers ([HST-23]): `well_known_base(origin, document)` resolves `<origin>/.well-known/rootcard` to the host's
   base URL on that origin (`bad_field`, `unsupported_version`, `wrong_host`), `is_origin(url)`, and the constants
   `WELL_KNOWN_PATH`, `WELL_KNOWN_LIMIT` and `MAX_WELL_KNOWN_APIS`. Shared vectors in `spec/vectors/proof.json`.

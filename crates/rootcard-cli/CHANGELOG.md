@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.2 - 2026-11-06
+
 - `--host` and `--from` accept a bare domain (`https://example.com`) and resolve it through the host pointer
   `/.well-known/rootcard` ([HST-23]) to the host's base URL on that domain (`https://example.com/rootcard`); without a
   pointer the domain itself is the base URL, as before.

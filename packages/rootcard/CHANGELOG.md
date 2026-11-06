@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.2 - 2026-11-06
+
 - Host pointers ([HST-23]): `wellKnownBase(origin, document)`, `isOrigin(url)`, `WELL_KNOWN_PATH`,
   `WELL_KNOWN_LIMIT` and `MAX_WELL_KNOWN_APIS`, equal to the Rust crate's (shared vectors).
 - `keytool.html` resolves a bare domain typed into a host field through `<domain>/.well-known/rootcard`, and says so
