@@ -215,6 +215,8 @@ Planned (details in [docs/PLAN.md](docs/PLAN.md)):
 
 - **Before 1.0:** fuzzing of every parser and verifier, supply-chain checks, getting-started guides, an external review.
 - **Sign-in at other services:** the relying-party flow and `rootcard signin` ([proposal](docs/proposals/signin.md)).
+- **Linked accounts:** show that an identity owns a GitHub account or a domain, checked by anyone
+  ([proposal](docs/proposals/links.md)).
 - **Standard profile keys** such as a display name and a small avatar image, with safe display rules.
 - **Passkeys** as a lock type, for phishing resistance.
 - **Host helpers for JavaScript servers.**
@@ -229,7 +231,7 @@ Planned (details in [docs/PLAN.md](docs/PLAN.md)):
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, server usage, dependencies |
 | [docs/HOST_PROTOCOL.md](docs/HOST_PROTOCOL.md) | Recommended HTTP binding for hosts |
 | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | Goals, attackers, threats, accepted risks |
-| [docs/proposals/](docs/proposals/) | Draft proposals, not normative: [sign-in at other services](docs/proposals/signin.md) |
+| [docs/proposals/](docs/proposals/) | Draft proposals, not normative: [sign-in at other services](docs/proposals/signin.md), [linked accounts](docs/proposals/links.md) |
 | [docs/RELEASING.md](docs/RELEASING.md) | How releases are prepared and published |
 | [docs/DESIGN.md](docs/DESIGN.md) · [docs/PLAN.md](docs/PLAN.md) | Motivation · setup plan |
 

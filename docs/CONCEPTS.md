@@ -131,7 +131,8 @@ identity now.
 **When it is used.** Whenever someone other than the primary host needs to know "is this really `Astra#3F9C`, now?"
 Examples are a service keyed by the account id, linking two identities, or a host checking a peer's user. Logins are
 not proofs: they have their own message and happen only at the primary host (§13.3). A standard sign-in flow at other
-services built on proofs is a proposal ([proposals/signin.md](proposals/signin.md)).
+services built on proofs is a proposal ([proposals/signin.md](proposals/signin.md)), and so is showing that an identity
+owns a GitHub account or a domain ([proposals/links.md](proposals/links.md)).
 
 ## 5. Verification
 
