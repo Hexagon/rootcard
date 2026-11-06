@@ -29,7 +29,9 @@ HOST_PROTOCOL.md §1.3). Requests reach it with paths relative to the base URL (
 `HostConfig::check` at startup: every address must be a base URL without a version segment (SPEC [HST-22]), because the
 address goes into the identities' signed logs as `home.url`. On a domain of its own, use the domain as the base URL
 (`https://id.example.com`); on a domain shared with an application, give the host a path of its own
-(`https://example.com/rootcard`), so its endpoints cannot collide with the application's.
+(`https://example.com/rootcard`), so its endpoints cannot collide with the application's, and route
+`GET /.well-known/rootcard` on that domain to `http::well_known(&host.config, "https://example.com")` (SPEC [HST-23]):
+users can then type `https://example.com`, and the key tool finds `https://example.com/rootcard` from it.
 
 ## License
 

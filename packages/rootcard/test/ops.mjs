@@ -114,6 +114,7 @@ export const ops = {
   },
   check_password: (i) => (vault.checkPassword(i.password, i.username), true),
   check_base_url: (i) => (rc.checkBaseUrl(i.url), true),
+  well_known_base: (i) => rc.wellKnownBase(i.origin, i.document),
   check_data_key: (i) => (rc.checkDataKey(i.key), true),
   set_data: (i) => rc.setData(i.data, i.app, i.key, i.value),
   sign_public: async (i) => {

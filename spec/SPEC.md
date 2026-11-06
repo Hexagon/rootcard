@@ -1080,6 +1080,22 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
   `check_base_url(url)` checks this → `bad_field`. Hosts check their configured addresses with it, and clients and the
   key tool check every host address they are given before using it or putting it into an instance. Verifiers of a log
   do not apply it: [LOG-4] alone defines a valid `home.url`.
+- **[HST-23]** **Host pointer.** So that a user can name a host by its domain when the host's base URL has a path
+  (`https://example.com/rootcard`), the server of an origin MAY answer `GET <origin>/.well-known/rootcard` (RFC 8615)
+  with the canonical JSON `{ "v": 1, "base": "<base URL>", "api": [ "<API version>", … ] }`, where `base` is one of the
+  host's addresses on that origin and `api` lists the API versions it serves. The path carries no API version.
+  `well_known_base(origin, document)` resolves a pointer, checking in order: `origin` is a base URL without a path
+  (`is_origin`) → `bad_field`; the schema ([CJ-11], [CJ-12]) → `bad_field`, `unsupported_version`; `base` passes
+  `check_base_url` ([HST-22]) and `api` holds 1 to 16 distinct version segments → `bad_field`; `base` is on `origin`
+  (the same scheme, host and port; the host compared without regard to ASCII case) → `wrong_host`; `api` lists
+  `API_VERSION` → `unsupported_version`. It returns `base`.
+  - A client resolves only an address the user typed or configured, and only when it is an origin; an address with a
+    path is a base URL already. It fetches the pointer without following redirects and reads at most 4 096 bytes
+    (`WELL_KNOWN_LIMIT`, [CJ-8]). No answer, or a status other than `200`, means there is no pointer, and the origin
+    itself is the base URL. A `200` answer that does not resolve is an error, never a reason to fall back.
+  - The pointer is trusted only as far as the TLS connection to the origin, like the descriptor, and only to find a
+    base URL on that same origin. It is never stored: `home.url` and `url` in login, fetch and change messages are the
+    resolved base URL ([LGN-4]), and an address taken from a verified log (`home.url`) is used as it is, never resolved.
 
 ---
 
@@ -1179,6 +1195,7 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
 | Account file | 5 MiB | [FIL-1] |
 | `host_data` | 16 KiB | [FIL-2] |
 | `home.url` | 256 characters | [LOG-4] |
+| Host pointer | 4 096 bytes, 16 API versions | [HST-23] |
 | Proof `recipient` | 256 bytes | [PRF-3] |
 | Lock `label` | 64 characters | [LCK-2] |
 | Challenge lifetime | 60 s | [CHL-2] |
@@ -1197,8 +1214,8 @@ its code ([CNV-4]).
 | Code | Meaning | Rules |
 |---|---|---|
 | `bad_json` | Not rootcard JSON | CJ-1–CJ-6 |
-| `bad_field` | A structure violates its schema: missing, unknown or mistyped member, bad encoding or length | CJ-11–CJ-13 |
-| `unsupported_version` | A `v` this implementation does not support | CJ-12 |
+| `bad_field` | A structure violates its schema: missing, unknown or mistyped member, bad encoding or length | CJ-11–CJ-13, HST-22, HST-23 |
+| `unsupported_version` | A `v` this implementation does not support, or a host pointer without its API version | CJ-12, HST-23 |
 | `too_large` | A size limit is exceeded | CJ-8, §19 |
 | `bad_base64` | Not canonical unpadded base64url | B64-2 |
 | `bad_base32` | Not valid Crockford base32 | B32-3, B32-4, RK-2 |
@@ -1243,7 +1260,7 @@ its code ([CNV-4]).
 | `challenge_unknown` | An unknown, used or other-purpose nonce | CHL-2 |
 | `challenge_expired` | An expired nonce | CHL-2 |
 | `not_home` | This host is not the primary host | LGN-1, HST-7, HST-9 |
-| `wrong_host` | A challenge, instance, login or fetch names another host or address | LGN-1, FET-1, HST-3, HST-6 |
+| `wrong_host` | A challenge, instance, login or fetch names another host or address, or a host pointer names another origin | LGN-1, FET-1, HST-3, HST-6, HST-23 |
 | `unknown_account` | The host does not know the account | LGN-1 |
 | `unauthorized` | No valid session, or a vault replacement that is not authorized | HST-10, HST-12 |
 | `rate_limited` | Too many requests | HST-16 |

@@ -22,7 +22,10 @@ Before it signs anything, the tool gathers the newest log from the card, the acc
 stops on a fork (SPEC [KT-2], [KT-7]). It talks only to the hosts you name, over HTTPS.
 
 Host addresses are base URLs without the API version (`https://id.example.com` or `https://example.com/rootcard`, never
-`…/v0`); the tool calls `<base URL>/v0/…` itself (HOST_PROTOCOL.md §1.3, SPEC [HST-22]).
+`…/v0`); the tool calls `<base URL>/v0/…` itself (HOST_PROTOCOL.md §1.3, SPEC [HST-22]). A bare domain
+(`https://example.com`) is looked up at `https://example.com/.well-known/rootcard` first: if that names a base URL on the
+domain (`https://example.com/rootcard`), the tool uses it and says so; otherwise the domain is the base URL (SPEC
+[HST-23]).
 
 ## License
 

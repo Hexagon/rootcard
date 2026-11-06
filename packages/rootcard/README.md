@@ -34,7 +34,9 @@ the rare key whose signing key some browsers cannot use (SPEC [CRY-9]). Errors a
 The core makes no requests. Application clients that talk to a host build URLs as `` `${base}/${API_VERSION}/…` ``
 (`API_VERSION` is `"v0"` until 1.0.0, HOST_PROTOCOL.md §1.3) and check host addresses with `checkBaseUrl` (SPEC
 [HST-22]) before using them or putting them into an instance. `keytool.html` does both; a `keytool.html` from 0.1.0
-does not reach hosts of 0.2.0.
+does not reach hosts of 0.2.0. When the user types a bare domain (`isOrigin`), fetch `` `${origin}${WELL_KNOWN_PATH}` ``
+without following redirects and resolve it with `wellKnownBase` (SPEC [HST-23]); without a `200` answer, use the
+domain itself.
 
 ## License
 

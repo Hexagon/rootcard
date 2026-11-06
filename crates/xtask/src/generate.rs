@@ -1988,6 +1988,129 @@ fn proof_vectors(s: &Scenario) -> Vec<V> {
             m().with("url", url),
         ));
     }
+    // Host pointers ([HST-23]): accepted, and every reject in the order of the checks.
+    let pointer = |base: &str, api: &[&str]| {
+        Value::from(
+            m().with("v", 1i64)
+                .with("base", base)
+                .with("api", Value::Array(api.iter().map(|a| Value::from(*a)).collect())),
+        )
+    };
+    let mut many = m().with("v", 1i64).with("base", "https://example.com/rootcard");
+    many.insert(
+        "api",
+        Value::Array((0..17).map(|i| Value::from(format!("v{i}"))).collect()),
+    );
+    for (name, origin, document) in [
+        (
+            "on a path",
+            "https://example.com",
+            pointer("https://example.com/rootcard", &["v0"]),
+        ),
+        (
+            "to itself",
+            "https://example.com",
+            pointer("https://example.com", &["v0"]),
+        ),
+        (
+            "host case",
+            "https://Example.COM",
+            pointer("https://example.com/auth/rootcard", &["v1", "v0"]),
+        ),
+        (
+            "with a port",
+            "http://127.0.0.1:8787",
+            pointer("http://127.0.0.1:8787/rootcard", &["v0"]),
+        ),
+        (
+            "origin with a path",
+            "https://example.com/rootcard",
+            pointer("https://example.com/rootcard", &["v0"]),
+        ),
+        (
+            "origin not a base URL",
+            "example.com",
+            pointer("https://example.com/rootcard", &["v0"]),
+        ),
+        (
+            "not an object",
+            "https://example.com",
+            Value::from("https://example.com/rootcard"),
+        ),
+        (
+            "v 2",
+            "https://example.com",
+            Value::from(m().with("v", 2i64).with("base", "x")),
+        ),
+        (
+            "missing api",
+            "https://example.com",
+            Value::from(m().with("v", 1i64).with("base", "https://example.com/r")),
+        ),
+        (
+            "unknown member",
+            "https://example.com",
+            Value::from(obj(&pointer("https://example.com/rootcard", &["v0"])).with("realms", arr(&[]))),
+        ),
+        (
+            "base with a version",
+            "https://example.com",
+            pointer("https://example.com/v0", &["v0"]),
+        ),
+        (
+            "base with a dot segment",
+            "https://example.com",
+            pointer("https://example.com/v0/..", &["v0"]),
+        ),
+        (
+            "no versions",
+            "https://example.com",
+            pointer("https://example.com/rootcard", &[]),
+        ),
+        ("17 versions", "https://example.com", Value::from(many.clone())),
+        (
+            "duplicate version",
+            "https://example.com",
+            pointer("https://example.com/rootcard", &["v0", "v0"]),
+        ),
+        (
+            "not a version",
+            "https://example.com",
+            pointer("https://example.com/rootcard", &["0"]),
+        ),
+        (
+            "another host",
+            "https://example.com",
+            pointer("https://id.example.net/rootcard", &["v0"]),
+        ),
+        (
+            "a longer host",
+            "https://example.com",
+            pointer("https://example.com.evil.example/rootcard", &["v0"]),
+        ),
+        (
+            "another port",
+            "https://example.com",
+            pointer("https://example.com:8443/rootcard", &["v0"]),
+        ),
+        (
+            "another scheme",
+            "http://localhost:8787",
+            pointer("https://localhost:8787/rootcard", &["v0"]),
+        ),
+        (
+            "without v0",
+            "https://example.com",
+            pointer("https://example.com/rootcard", &["v1"]),
+        ),
+    ] {
+        out.push(v(
+            &format!("host pointer: {name}"),
+            &["HST-23"],
+            "well_known_base",
+            m().with("origin", origin).with("document", document),
+        ));
+    }
     let st1 = verify_log(&s.log1, &opts());
     let Ok(st1) = st1 else { return out };
     let host = format_key(KeyType::Ed25519, &ed25519_public(&HOST_A));

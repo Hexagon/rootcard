@@ -121,6 +121,33 @@ fn body(req: &Request) -> HostResult<Value> {
     Ok(parse_json(&req.body)?)
 }
 
+/// The host pointer ([HST-23], HOST_PROTOCOL.md §2.1) for `GET <origin>/.well-known/rootcard`: `{ "v": 1, "base", "api" }`
+/// with the first configured address on `origin` (the scheme, host and port the request arrived at, such as
+/// `https://example.com`) and the API version this router serves. The path is at the root of the origin, outside every
+/// base URL, so the application routes it to this function itself; [`route`] never sees it. `404` when no configured
+/// address is on `origin`. It answers with `Access-Control-Allow-Origin: *` so that browser clients on other origins
+/// (`keytool.html`) can read it; a `GET` without custom headers needs no preflight.
+pub fn well_known(config: &crate::HostConfig, origin: &str) -> Response {
+    let pointer = |base: &str| -> Value {
+        Map::new()
+            .with("v", 1i64)
+            .with("base", base)
+            .with("api", Value::Array(vec![Value::from(API_VERSION)]))
+            .into()
+    };
+    let found = config
+        .urls
+        .iter()
+        .map(|u| pointer(u))
+        .find(|p| rootcard::well_known_base(origin, p).is_ok());
+    let mut res = match found {
+        Some(p) => Response::json(200, &p),
+        None => error(&not_found()),
+    };
+    res.headers.push(("Access-Control-Allow-Origin".into(), "*".into()));
+    res
+}
+
 /// Route a request to the handlers of `host`. `now` is the host's clock ([HST-21]); `random` fills buffers from a
 /// secure generator (challenge nonces and session tokens).
 pub fn route<S: IdentityStore, C: ChallengeStore, T: SessionStore>(

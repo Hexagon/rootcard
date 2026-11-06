@@ -137,8 +137,35 @@ async function http(method, url, body) {
   return value;
 }
 
-function hostList() {
-  return $("hosts").value.split(",").map((s) => s.trim()).filter(Boolean).map(checkHost);
+/**
+ * A typed host address made into the base URL to use ([HST-23]). An address with a path is a base URL already. For a
+ * bare origin (`https://example.com`) the host pointer at `<origin>/.well-known/rootcard` is asked first: a pointer
+ * names the host's base URL on that origin (`https://example.com/rootcard`), and without one (no answer, or not 200)
+ * the origin itself is the base URL. A pointer that does not resolve is an error, never a silent fallback.
+ */
+async function resolveHost(text) {
+  const typed = checkHost(text);
+  if (!rc.isOrigin(typed)) return typed;
+  const url = `${typed}${rc.WELL_KNOWN_PATH}`;
+  let res;
+  try {
+    res = await fetch(url, { credentials: "omit", referrerPolicy: "no-referrer", cache: "no-store", redirect: "error" });
+  } catch {
+    return typed;
+  }
+  if (res.status !== 200) return typed;
+  try {
+    return rc.wellKnownBase(typed, rc.parseLimited(new Uint8Array(await res.arrayBuffer()), rc.WELL_KNOWN_LIMIT));
+  } catch (e) {
+    throw new Error(`${url} does not point to a rootcard host on ${typed}: ${explain(e)}`);
+  }
+}
+
+async function hostList() {
+  const typed = $("hosts").value.split(",").map((s) => s.trim()).filter(Boolean);
+  const out = [];
+  for (const t of typed) out.push(await resolveHost(t));
+  return out;
 }
 
 /** [KT-2]: the newest log from the card, the account file and the hosts; a fork stops. */
@@ -171,7 +198,7 @@ async function gather() {
     vault = a.vault?.value;
     pub = a.public?.value;
   }
-  const hosts = hostList();
+  const hosts = await hostList();
   const st0 = await rc.verifyLog(log, opts);
   if (st0.instance) hosts.push(st0.instance.home.url);
   const notes = [];
@@ -277,10 +304,10 @@ async function challengeOf(text) {
 const ops = {
   async restore() {
     const { u } = await currentVault();
-    return submitInstance(checkHost($("targetHost").value), { restore: true }, u);
+    return submitInstance(await resolveHost($("targetHost").value), { restore: true }, u);
   },
   async fresh() {
-    return submitInstance(checkHost($("targetHost").value), { fresh: newSlot() }, undefined);
+    return submitInstance(await resolveHost($("targetHost").value), { fresh: newSlot() }, undefined);
   },
   async reset() {
     const { u } = await currentVault();
@@ -537,7 +564,7 @@ function watchHost(input) {
       return;
     }
     try {
-      const bases = typed.map(checkHost);
+      const bases = typed.map(checkHost).map((b) => (rc.isOrigin(b) ? `${b} (or the host its ${rc.WELL_KNOWN_PATH} names)` : b));
       hint.className = "hint good";
       hint.textContent = `✓ Will contact ${bases.join(", ")}`;
       input.removeAttribute("aria-invalid");
@@ -615,8 +642,9 @@ $("create").addEventListener("click", () =>
   run(async () => {
     const realm = $("nRealm").value.trim();
     const username = $("nUser").value.trim();
-    const base = createMode() === "host" ? checkHost($("nHost").value) : "";
-    if (base) rc.checkPassword($("nPassword").value, username);
+    if (createMode() === "host") checkHost($("nHost").value);
+    if (createMode() === "host") rc.checkPassword($("nPassword").value, username);
+    const base = createMode() === "host" ? await resolveHost($("nHost").value) : "";
     const rk = await rc.newRecoveryKey(realm, username, random); // usable in every browser ([CRY-9])
     let card;
     let file;

@@ -4,6 +4,10 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- `--host` and `--from` accept a bare domain (`https://example.com`) and resolve it through the host pointer
+  `/.well-known/rootcard` ([HST-23]) to the host's base URL on that domain (`https://example.com/rootcard`); without a
+  pointer the domain itself is the base URL, as before.
+
 ## 0.3.1 - 2026-11-05
 
 - The crate metadata (`repository`, `homepage`) and the README links point to `github.com/rootcard/rootcard`.

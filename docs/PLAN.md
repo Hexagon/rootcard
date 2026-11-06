@@ -304,6 +304,14 @@ logs the same way.
   changelogs, tag, vectors); CI packages every crate and the npm package on each pull request (dry run)
 - [ ] Documentation: crate docs, `README` per package, a "getting started" for apps and for hosts
 - [ ] External review of the spec and the crypto use before `1.0.0`
+- [x] Host pointer: a host on a path of a shared domain (`https://example.com/rootcard`) can be named by the bare domain.
+  Decided: `GET <origin>/.well-known/rootcard` → `{ v, base, api }` ([HST-23]); resolved only for a typed origin, only
+  to a base URL on the same origin (`wrong_host` otherwise), without redirects, at most 4 096 bytes; never stored, so
+  `home.url` and signed messages keep the resolved base URL ([LGN-4]) and addresses from logs are not resolved.
+  `well_known_base` / `wellKnownBase` and `is_origin` / `isOrigin` in both cores with vectors, `http::well_known` in
+  `rootcard-host`, used by `--host` and `--from` in the key tool and by the host fields of `keytool.html`
+  (THREAT_MODEL.md T46). Cross-origin pointers (a domain that delegates to another host) are not allowed; they would
+  need the client to show the target before registering
 - [ ] HTTP binding: freeze `/v0` as `/v1` for `1.0.0` (HOST_PROTOCOL.md §1.3) and decide how long hosts keep serving
   `/v0`
 - [ ] Decide which "Later" items, if any, are in `1.0.0` (the sign-in flow of docs/proposals/signin.md adds a label and

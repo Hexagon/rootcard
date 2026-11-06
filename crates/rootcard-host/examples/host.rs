@@ -7,10 +7,12 @@
 //!
 //! `ROOTCARD_HOST_URL` sets the base URL (default `http://127.0.0.1:<port>`); it may have a path, such as
 //! `http://127.0.0.1:8787/rootcard`, and then the endpoints are at `http://127.0.0.1:8787/rootcard/v0/…`.
+//! The host pointer `http://127.0.0.1:8787/.well-known/rootcard` ([HST-23]) names that base URL, so the key tool also
+//! accepts the bare origin (`--host http://127.0.0.1:8787`).
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use rootcard::encoding::hex_decode;
-use rootcard_host::http::{Request, route};
+use rootcard_host::http::{Request, route, well_known};
 use rootcard_host::peer::PeerHeaders;
 use rootcard_host::store::{MemoryChallengeStore, MemoryIdentityStore, MemorySessionStore};
 use rootcard_host::{Host, HostConfig, RealmConfig, UsernamePolicy};
@@ -46,6 +48,7 @@ fn main() {
     // The path part of the base URL (`/rootcard` in `http://127.0.0.1:8787/rootcard`): requests arrive with it, and the
     // router expects paths relative to the base URL (`/v0/host`).
     let base_path = url.splitn(4, '/').nth(3).map(|p| format!("/{p}")).unwrap_or_default();
+    let origin = url[..url.len() - base_path.len()].to_string();
     let host = Host::new(
         config,
         MemoryIdentityStore::new(),
@@ -67,6 +70,8 @@ fn main() {
             parts.next().unwrap_or("/").to_string(),
         );
         let mut length = 0usize;
+        // The host pointer ([HST-23]) is at the root of the origin, outside the base URL, so it is routed here.
+        let pointer = method == "GET" && path == rootcard::WELL_KNOWN_PATH;
         let path = match path.strip_prefix(base_path.as_str()) {
             Some(rest) if rest.starts_with('/') || rest.starts_with('?') => rest.to_string(),
             _ if base_path.is_empty() => path,
@@ -113,7 +118,11 @@ fn main() {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs() as i64;
-        let res = route(&host, &req, now, &mut |b| getrandom::fill(b).expect("random"));
+        let res = if pointer {
+            well_known(&host.config, &origin)
+        } else {
+            route(&host, &req, now, &mut |b| getrandom::fill(b).expect("random"))
+        };
         let body = res.body.unwrap_or_default();
         let mut head = format!(
             "HTTP/1.1 {} X\r\nContent-Length: {}\r\nConnection: close\r\n",

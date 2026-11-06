@@ -32,7 +32,9 @@ pub mod recovery;
 pub mod testing;
 pub mod vault;
 
-pub use binding::{API_VERSION, check_base_url};
+pub use binding::{
+    API_VERSION, MAX_WELL_KNOWN_APIS, WELL_KNOWN_LIMIT, WELL_KNOWN_PATH, check_base_url, is_origin, well_known_base,
+};
 pub use error::{Error, Result};
 pub use json::{Map, Value, canonical, parse_json};
 

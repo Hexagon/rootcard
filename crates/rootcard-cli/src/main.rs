@@ -45,6 +45,9 @@ COMMANDS (high power: they ask for the recovery card):
     Every high-power command gathers the newest log from the card, --account F and every
     --from URL host, and stops on a fork ([KT-2]).
 
+    A host URL without a path (https://example.com) is looked up at
+    /.well-known/rootcard, which may name the host's base URL on that domain ([HST-23]).
+
 COMMANDS (no recovery key):
     card --card F [--json]          Print the recovery card (text, or the QR payload)
     inspect F                       Verify an account file, a card or a log and show it
@@ -171,12 +174,56 @@ fn api(base: &str) -> R<String> {
     Ok(format!("{base}/{}", rootcard::API_VERSION))
 }
 
-struct Http(ureq::Agent);
+/// A host address as typed (`--host`, `--from`), made into the base URL to use ([HST-23]). An address with a path is a
+/// base URL already. For a bare origin (`https://example.com`) the host pointer at `<origin>/.well-known/rootcard` is
+/// asked first: a pointer names the host's base URL on that origin (`https://example.com/rootcard`), and without one
+/// (no answer, or not 200; redirects are not followed) the origin itself is the base URL. A pointer that does not
+/// resolve is an error, never a silent fallback.
+fn resolve_host(http: &Http, typed: &str) -> R<String> {
+    api(typed)?;
+    if !rootcard::is_origin(typed) {
+        return Ok(typed.to_string());
+    }
+    let url = format!("{typed}{}", rootcard::WELL_KNOWN_PATH);
+    let Ok(mut res) = http.pointer.get(&url).call() else {
+        return Ok(typed.to_string());
+    };
+    if res.status().as_u16() != 200 {
+        return Ok(typed.to_string());
+    }
+    let limit = rootcard::WELL_KNOWN_LIMIT as u64 + rootcard::WELL_KNOWN_LIMIT as u64 / 4 + 1;
+    let base = res
+        .body_mut()
+        .with_config()
+        .limit(limit)
+        .read_to_vec()
+        .map_err(|e| format!("{url}: {e}"))
+        .and_then(|b| {
+            rootcard::json::parse_limited(&b, rootcard::WELL_KNOWN_LIMIT).map_err(|e| format!("{url}: {}", code(e)))
+        })
+        .and_then(|d| rootcard::well_known_base(typed, &d).map_err(|e| format!("{url}: {}", code(e))))
+        .map_err(|e| format!("{e} (it does not point to a rootcard host on {typed})"))?;
+    eprintln!("{typed}: the host is at {base} ({url})");
+    Ok(base)
+}
+
+struct Http {
+    agent: ureq::Agent,
+    /// For host pointers ([HST-23]): redirects are not followed.
+    pointer: ureq::Agent,
+}
 
 impl Http {
     fn new() -> Self {
         let cfg = ureq::Agent::config_builder().http_status_as_error(false).build();
-        Http(cfg.into())
+        let pointer = ureq::Agent::config_builder()
+            .http_status_as_error(false)
+            .max_redirects(0)
+            .build();
+        Http {
+            agent: cfg.into(),
+            pointer: pointer.into(),
+        }
     }
 
     fn call(&self, method: &str, url: &str, body: Option<&Value>) -> R<(u16, Value)> {
@@ -185,18 +232,18 @@ impl Http {
             return Err(format!("{url}: hosts are reached over https"));
         }
         let res = match (method, body) {
-            ("GET", _) => self.0.get(url).call(),
+            ("GET", _) => self.agent.get(url).call(),
             ("PUT", Some(b)) => self
-                .0
+                .agent
                 .put(url)
                 .header("Content-Type", "application/json")
                 .send(&canonical(b)[..]),
             (_, Some(b)) => self
-                .0
+                .agent
                 .post(url)
                 .header("Content-Type", "application/json")
                 .send(&canonical(b)[..]),
-            (_, None) => self.0.post(url).send(&[][..]),
+            (_, None) => self.agent.post(url).send(&[][..]),
         };
         let mut res = res.map_err(|e| format!("{url}: {e}"))?;
         let status = res.status().as_u16();
@@ -294,7 +341,11 @@ fn gather(args: &Args, http: &Http, extra_hosts: &[String]) -> R<Identity> {
         vault = a.vault.map(|(v, _)| v);
         public = a.public.map(|(p, _)| p);
     }
-    let mut hosts: Vec<String> = args.all("--from");
+    let mut hosts: Vec<String> = args
+        .all("--from")
+        .iter()
+        .map(|h| resolve_host(http, h))
+        .collect::<R<_>>()?;
     hosts.extend_from_slice(extra_hosts);
     if let Ok(st) = verify_log(&log, &opts)
         && let Some(i) = &st.instance
@@ -453,7 +504,8 @@ fn run(cmd: &str, args: &Args) -> R<()> {
             // A recovery key whose signing seed is usable in every browser ([RK-3], [CRY-9]).
             let rk = new_recovery_key(&realm, &username, &mut |b: &mut [u8]| random(b)).map_err(code)?;
             let (card, file, state) = match args.opt("--host") {
-                Some(base) => {
+                Some(typed) => {
+                    let base = resolve_host(&http, &typed)?;
                     let home = host_home(&http, &base)?;
                     let pw = new_password(&username)?;
                     let mut rnd = |b: &mut [u8]| random(b);
@@ -634,7 +686,7 @@ fn run(cmd: &str, args: &Args) -> R<()> {
             Ok(())
         }
         "restore" | "fresh" => {
-            let base = args.req("--host")?;
+            let base = resolve_host(&http, &args.req("--host")?)?;
             let id = gather(args, &http, std::slice::from_ref(&base))?;
             if cmd == "restore" {
                 let (_, u) = current_vault(&id, &http)?;
