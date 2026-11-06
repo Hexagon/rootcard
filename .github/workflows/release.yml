@@ -137,6 +137,20 @@ jobs:
           (cd packages/rootcard && npm pack --pack-destination ../../dist)
           (cd dist && sha256sum -- * > SHA256SUMS && cat SHA256SUMS)
       - name: Upload to the GitHub release
-        run: gh release upload "$TAG" dist/* --clobber
+        run: |
+          for attempt in 1 2 3; do
+            if output="$(gh release upload "$TAG" dist/* --clobber 2>&1)"; then
+              printf '%s\n' "$output"
+              exit 0
+            else
+              status=$?
+            fi
+            printf '%s\n' "$output" >&2
+            if [[ "$output" != *"HTTP 404: Not Found"* || "$attempt" -eq 3 ]]; then
+              exit "$status"
+            fi
+            echo "GitHub release asset upload returned 404; retrying (attempt $((attempt + 1))/3)." >&2
+            sleep "$attempt"
+          done
         env:
           GH_TOKEN: ${{ github.token }}

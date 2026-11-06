@@ -82,7 +82,8 @@ release pull request.
 3. **npm** (environment `release`): `npm publish --provenance` with trusted publishing; the package gets a provenance
    statement that links it to this workflow run and commit.
 4. **assets**: builds the `.crate` files and the npm tarball from the tag and attaches them to the GitHub release with
-   `SHA256SUMS`.
+   `SHA256SUMS`. The upload retries up to twice after transient GitHub upload-endpoint 404 responses; `--clobber`
+   makes retries safe if an earlier attempt uploaded only some assets.
 
 ## 5. After the release
 
