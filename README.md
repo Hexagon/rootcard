@@ -179,8 +179,8 @@ The log, the vault, the recovery card, proofs and verification are explained in 
 
 ## What you get
 
-- **Self-certifying id.** The account id is a hash of a signed inception that names the recovery public key. It cannot be forged
-  without breaking SHA-256 or Ed25519 or stealing a private key. Shown to humans as `Name#XXXX`.
+- **Self-certifying id.** The account id is a hash of a signed inception that names the recovery public key. It cannot
+  be forged without breaking SHA-256 or Ed25519 or stealing a private key. Shown to humans as `Name#XXXX`.
 - **No password verifiers on servers.** The password only unlocks an encrypted vault on the client. Login is a fresh
   challenge signed by the account key, bound to the host, the realm and the current version.
 - **Two power levels.** The password gives *low power* (log in, edit your data, export). Everything that changes who can

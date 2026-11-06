@@ -356,8 +356,8 @@ and entered only in the key tool ([PWR-6]).
   sign_seed      = HKDF(rk, "", frame("rootcard/recovery/sign/v1", ctx))     Ed25519 seed: the recovery signing key
   box_secret     = HKDF(rk, "", frame("rootcard/recovery/box/v1", ctx))      X25519 private key: the recovery lock key
   ```
-  The public recovery signing key, the **recovery public key**, appears in the log as `recovery`. The public recovery lock key is the `box` of the
-  recovery lock (§11.3).
+  The public recovery signing key, the **recovery public key**, appears in the log as `recovery`. The public recovery
+  lock key is the `box` of the recovery lock (§11.3).
 
   *Rationale:* binding the derivation to realm and username makes identities created from the same recovery key
   unlinkable (their recovery public keys differ), and no key is shared between identities. No Argon2id is needed: the
