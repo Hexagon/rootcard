@@ -3,6 +3,8 @@
 Thank you for helping. rootcard is security software, so changes are held to a few strict rules. They are short, and
 the same for people and for coding agents ([AGENTS.md](AGENTS.md) is the complete list).
 
+Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).
+
 ## Security problems
 
 Never in a public issue or pull request. Report them privately as [SECURITY.md](SECURITY.md) describes.

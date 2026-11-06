@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- `package.json` has a `funding` link (GitHub Sponsors), shown by `npm fund`.
+
 ## 0.3.2 - 2026-11-06
 
 - Host pointers ([HST-23]): `wellKnownBase(origin, document)`, `isOrigin(url)`, `WELL_KNOWN_PATH`,

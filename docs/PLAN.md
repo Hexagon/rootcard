@@ -324,8 +324,8 @@ logs the same way.
 - [x] Release preparation for agents (docs/RELEASING.md, AGENTS.md rule 10) and `xtask release-check` (versions,
   changelogs, tag, vectors); CI packages every crate and the npm package on each pull request (dry run)
 - [ ] Documentation: crate docs, `README` per package, a "getting started" for apps and for hosts. Done so far: `CONTRIBUTING.md` (the rules of AGENTS.md for people), issue templates that send security reports to
-  private reporting, and a pull request template. Open: a code of conduct and funding information (`FUNDING.yml`),
-  which need the owner's contact and accounts
+  private reporting, a pull request template, a code of conduct (Contributor Covenant 2.1) and funding information
+  (`.github/FUNDING.yml` and `funding` in the npm package, GitHub Sponsors)
 - [ ] External review of the spec and the crypto use before `1.0.0`
 - [x] Host pointer: a host on a path of a shared domain (`https://example.com/rootcard`) can be named by the bare domain.
   Decided: `GET <origin>/.well-known/rootcard` → `{ v, base, api }` ([HST-23]); resolved only for a typed origin, only

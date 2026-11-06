@@ -18,6 +18,10 @@
     "directory": "packages/rootcard"
   },
   "bugs": "https://github.com/rootcard/rootcard/issues",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/Hexagon"
+  },
   "type": "module",
   "exports": {
     ".": "./src/index.js",
