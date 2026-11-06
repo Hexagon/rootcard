@@ -325,6 +325,8 @@ publishing part was first met by `0.1.0` and has held for every release since.
 - Passkeys (WebAuthn PRF) as a lock type
 - Sign-in at other services (relying parties): the flow, the `rootcard/signin/v1` label and `rootcard signin` in the key
   tool, from [proposals/signin.md](proposals/signin.md); an agent for other command line programs after that
+- Linked accounts (GitHub, domains, other services through a shared registry of service descriptors), checked by any
+  verifier, from [proposals/links.md](proposals/links.md). E-mail is left out: it cannot be proved publicly
 - Standard profile keys (a display name, a small avatar image) with display rules: raster images only, never SVG or
   URLs to load (SPEC [DAT-8] needs a clarification for images)
 - An additional host secret (OPAQUE or a pepper) as a lock layer against offline guessing (THREAT_MODEL.md AR1), and a
