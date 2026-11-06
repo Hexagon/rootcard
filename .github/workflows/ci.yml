@@ -103,9 +103,9 @@ jobs:
       - name: Seed corpus from spec/vectors
         working-directory: fuzz
         run: cargo run --locked --bin seeds
-      - name: Fuzz for a fixed time
+      - name: Fuzz for a fixed time (optimized, with overflow checks and debug assertions)
         working-directory: fuzz
-        run: cargo fuzz run -O ${{ matrix.target }} -- -max_total_time=120 -rss_limit_mb=2048
+        run: cargo fuzz run -O -a ${{ matrix.target }} -- -max_total_time=120 -rss_limit_mb=2048
       - name: Keep the failing input
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

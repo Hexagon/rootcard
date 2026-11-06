@@ -54,20 +54,16 @@ fuzz_target!(|data: &[u8]| {
             assert_eq!(format_key(t, &k), s, "key format is not canonical");
         }
     }
-    if let Ok(h) = parse_handle(s) {
-        let _ = h;
-    }
+    let _ = parse_handle(s);
     let _ = check_account_id(s);
     let _ = check_realm(s);
     if check_username(s).is_ok() {
         let _ = default_username_policy(s);
     }
     let _ = check_url(s);
-    let base = check_base_url(s);
-    if base.is_ok() {
-        assert!(check_url(s).is_ok(), "a base URL that is not a valid url");
+    if is_origin(s) {
+        assert!(check_base_url(s).is_ok(), "an origin that is not a base URL");
     }
-    let _ = is_origin(s);
     let _ = check_data_key(s);
     let _ = check_app_name(s);
     let _ = check_label(s);

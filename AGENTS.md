@@ -43,7 +43,7 @@ cargo run -p xtask -- repo-check          # pinned workflow dependencies, docume
 (cd packages/rootcard && npm test)        # node --test, Node >= 20, no dependencies
 (cd tests/browser && node run.mjs chromium)   # vectors and keytool.html in a browser (needs Playwright; CI runs all three)
 (cd fuzz && cargo fmt --check && cargo clippy --all-targets --locked -- -D warnings)   # the fuzz crate (stable)
-(cd fuzz && cargo run --bin seeds && cargo +nightly fuzz run -O log -- -max_total_time=60)   # after changing a parser or verifier; fuzz/README.md
+(cd fuzz && cargo run --bin seeds && cargo +nightly fuzz run -O -a log -- -max_total_time=60)   # after changing a parser or verifier; fuzz/README.md
 ```
 
 For a release pull request, also `cargo run -p xtask -- release-check --tag vX.Y.Z` and the dry runs in

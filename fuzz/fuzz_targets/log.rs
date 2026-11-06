@@ -3,7 +3,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use rootcard::json::parse_json;
+use rootcard::json::{Value, parse_json};
 use rootcard::log::{LogState, VerifyOptions, compare_logs, verify_log, verify_pending};
 
 fuzz_target!(|data: &[u8]| {
@@ -17,7 +17,19 @@ fuzz_target!(|data: &[u8]| {
         return;
     };
     rootcard_fuzz::check_accepted(events, &state, &options);
-    if let Some(last) = events.last() {
-        let _ = verify_pending(&state, last, state.time);
+    // The last event as a pending one ([LOG-9]) on the state before it.
+    if let Some((last, before)) = events.split_last()
+        && let Ok(prior) = verify_log(before, &options)
+    {
+        let _ = verify_pending(&prior, last, state.time);
+        // Without its receipt, a completed instance is a valid pending one.
+        if let Some(m) = last.as_object()
+            && let Some(Value::Array(sigs)) = m.get("sigs")
+            && let Some((_, owners)) = sigs.split_last()
+        {
+            let mut pending = m.clone();
+            pending.insert("sigs", Value::Array(owners.to_vec()));
+            let _ = verify_pending(&prior, &Value::Object(pending), state.time);
+        }
     }
 });

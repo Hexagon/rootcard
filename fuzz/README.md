@@ -20,12 +20,14 @@ Every target asserts only what the spec promises: a panic is a finding.
 ```bash
 cd fuzz
 cargo run --bin seeds                                    # corpus/<target>/ from spec/vectors (not committed)
-cargo +nightly fuzz run -O log_signed -- -max_total_time=300
-cargo +nightly fuzz run -O log_signed artifacts/log_signed/crash-…   # reproduce a finding
+cargo +nightly fuzz run -O -a log_signed -- -max_total_time=300
+cargo +nightly fuzz run -O -a log_signed artifacts/log_signed/crash-…   # reproduce a finding
 cargo fmt --check && cargo clippy --all-targets --locked -- -D warnings   # stable is enough for these
 ```
 
-`cargo install cargo-fuzz --version 0.13.2 --locked` installs the tool. CI (`fuzz` in `.github/workflows/ci.yml`) runs
+`-a` matters: `-O` alone builds without overflow checks, and an overflow in a time comparison was a real host bug
+(`(time - now).abs()`, fixed with `abs_diff` in the 0.3.0 review). `cargo install cargo-fuzz --version 0.13.2 --locked`
+installs the tool. CI (`fuzz` in `.github/workflows/ci.yml`) runs
 every target for two minutes on each push and pull request, on the dated nightly named there, starting from the seeds,
 and keeps a failing input as a build artifact.
 
@@ -47,5 +49,8 @@ empties a target is noticed.
   plan item.
 - `unlock_vault` and the other functions that run Argon2id: one call takes about a second, too slow to fuzz. Their
   inputs are parsed by functions the targets cover (`verify_vault`, `Contents`).
+- The host's checks after a lock proof or login signature (`fetch`, `login`, the session endpoints): the fuzzer cannot
+  sign with a lock key, so it reaches them only up to the signature. The handlers are covered by the reject-case tests
+  in `crates/rootcard-host/tests`.
 - `cargo deny` and the MSRV job check the main workspace only. This crate adds `libfuzzer-sys`, `arbitrary`, `cc` and
   `jobserver` for testing; nothing from it is shipped.
