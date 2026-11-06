@@ -67,6 +67,21 @@ jobs:
       - name: npm (dry run)
         working-directory: packages/rootcard
         run: npm publish --dry-run
+      - name: Packages are reproducible (the same bytes from a second checkout with other file times)
+        run: |
+          umask 022
+          out="$RUNNER_TEMP/repro"
+          mkdir -p "$out/a" "$out/b"
+          cargo package --workspace --exclude xtask --locked --no-verify
+          cp target/package/*.crate "$out/a/"
+          (cd packages/rootcard && npm pack --pack-destination "$out/a")
+          git clone -q . "$out/copy"
+          find "$out/copy" -path "$out/copy/.git" -prune -o -type f -exec touch -d 2001-02-03T04:05:06 {} +
+          (cd "$out/copy" && CARGO_TARGET_DIR="$out/target" cargo package --workspace --exclude xtask --locked --no-verify)
+          cp "$out"/target/package/*.crate "$out/b/"
+          (cd "$out/copy/packages/rootcard" && npm pack --pack-destination "$out/b")
+          (cd "$out/a" && sha256sum -- * | tee "$out/SHA256SUMS")
+          (cd "$out/b" && sha256sum -c "$out/SHA256SUMS")
 
   msrv:
     name: Rust MSRV

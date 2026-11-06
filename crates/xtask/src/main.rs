@@ -5,7 +5,7 @@
 //! Both modes first check that the label registry in `spec/SPEC.md` is exactly the set of labels generated here.
 //!
 //! `repo-check` checks what must hold on every commit: workflow dependencies pinned to commit SHAs and exact versions,
-//! and the documents that name the current version. `release-check` runs both and the release's own checks.
+//! an npm package with an empty dependency tree, and the documents that name the current version. `release-check` runs both and the release's own checks.
 
 mod generate;
 mod ops;
@@ -305,6 +305,40 @@ fn workflow_problems(name: &str, text: &str) -> Vec<String> {
     problems
 }
 
+/// The `package.json` keys that would give the npm package a dependency tree or run code when it is installed. The
+/// package has zero runtime and zero dev dependencies (AGENTS.md rule 6), so `npm audit` has nothing to audit and none
+/// of these may appear.
+const NPM_FORBIDDEN_KEYS: [&str; 10] = [
+    "dependencies",
+    "devDependencies",
+    "peerDependencies",
+    "optionalDependencies",
+    "bundleDependencies",
+    "bundledDependencies",
+    "overrides",
+    "preinstall",
+    "install",
+    "postinstall",
+];
+
+/// Problems with the npm package's manifest ([`repo_check`]): a key of [`NPM_FORBIDDEN_KEYS`] anywhere in it. Keys are
+/// matched as quoted JSON keys (`"name":`), so the check needs no JSON parser and also catches a nested key.
+fn npm_manifest_problems(name: &str, text: &str) -> Vec<String> {
+    let mut problems = Vec::new();
+    for key in NPM_FORBIDDEN_KEYS {
+        let quoted_key = format!("\"{key}\"");
+        let found = text
+            .match_indices(&quoted_key)
+            .any(|(at, _)| text[at + quoted_key.len()..].trim_start().starts_with(':'));
+        if found {
+            problems.push(format!(
+                "{name}: `{key}` is not allowed: the package has no dependencies and no install scripts"
+            ));
+        }
+    }
+    problems
+}
+
 /// Problems with the documents that name the released version ([`repo_check`]). These are the documents that release
 /// 0.2.0 and 0.2.1 left saying 0.1.0 and "no version has been released".
 fn version_doc_problems(version: &str, readme: &str, security: &str) -> Vec<String> {
@@ -328,8 +362,8 @@ fn version_doc_problems(version: &str, readme: &str, security: &str) -> Vec<Stri
     problems
 }
 
-/// Checks that hold on every commit, not only for a release: pinned workflow dependencies and documents that name the
-/// current version. Run by CI and by [`release_check`].
+/// Checks that hold on every commit, not only for a release: pinned workflow dependencies, an npm package without
+/// dependencies or install scripts, and documents that name the current version. Run by CI and by [`release_check`].
 fn repo_check() -> Result<(), String> {
     let mut problems = Vec::new();
     let dir = repo_dir().join(".github/workflows");
@@ -342,6 +376,14 @@ fn repo_check() -> Result<(), String> {
     for name in names {
         let path = format!(".github/workflows/{name}");
         problems.extend(workflow_problems(&path, &read(&path)?));
+    }
+    for path in ["packages/rootcard/package.json", "tests/browser/package.json"] {
+        if repo_dir().join(path).exists() {
+            problems.extend(npm_manifest_problems(path, &read(path)?));
+        }
+    }
+    if repo_dir().join("packages/rootcard/package-lock.json").exists() {
+        problems.push("packages/rootcard/package-lock.json: the package has no dependencies to lock".to_string());
     }
     let manifest = read("Cargo.toml")?;
     let version =
@@ -515,6 +557,24 @@ mod tests {
             "          toolchain: beta # latest\n".to_string(),
         ] {
             assert_eq!(workflow_problems("w", &bad).len(), 1, "{bad}");
+        }
+    }
+
+    #[test]
+    fn npm_manifest() {
+        let good = r#"{ "name": "rootcard", "scripts": { "test": "node --test", "build": "node tools/x.mjs" },
+                       "description": "no dependencies", "files": ["src/"] }"#;
+        assert!(npm_manifest_problems("p", good).is_empty());
+        for bad in [
+            r#"{ "dependencies": {} }"#,
+            r#"{ "devDependencies" : { "x": "1.0.0" } }"#,
+            r#"{ "optionalDependencies":{} }"#,
+            r#"{ "bundledDependencies": [] }"#,
+            r#"{ "overrides": {} }"#,
+            r#"{ "scripts": { "postinstall": "node x.js" } }"#,
+            r#"{ "scripts": { "install": "node-gyp rebuild" } }"#,
+        ] {
+            assert_eq!(npm_manifest_problems("p", bad).len(), 1, "{bad}");
         }
     }
 
