@@ -81,8 +81,10 @@ release pull request.
    `cargo publish --workspace`, which publishes `rootcard` first and then the crates that depend on it.
 3. **npm** (environment `release`): `npm publish --provenance` with trusted publishing; the package gets a provenance
    statement that links it to this workflow run and commit.
-4. **assets**: builds the `.crate` files and the npm tarball from the tag and attaches them to the GitHub release with
-   `SHA256SUMS`.
+4. **assets**: builds the `.crate` files and the npm tarball from the tag, checks that each is byte for byte the file
+   the registry serves (the `cksum` in the crates.io index, npm's `dist.integrity`), and attaches them to the GitHub
+   release with `SHA256SUMS`. A mismatch fails the job before the upload: the published package was not built from
+   the tag as checked, and the owner investigates before anything else is released.
 
 ## 5. After the release
 
@@ -92,7 +94,13 @@ The owner, or an agent asked to check, confirms:
 - the three crates show the new version on crates.io and their docs build on docs.rs;
 - `npm view rootcard@X.Y.Z` shows the version, the `latest` or `next` tag as intended, and provenance
   (`npm audit signatures` in a project that installs it);
-- the release has the assets and `SHA256SUMS`.
+- the release has the assets and `SHA256SUMS`, and the assets job printed a matching checksum for every package.
+
+Anyone can repeat the reproducibility check: check out the tag in a fresh clone made with `umask 022` (npm records file
+modes in the tarball, so a clone with other permissions packs other bytes), then
+`cargo package --workspace --exclude xtask --locked --no-verify` and `(cd packages/rootcard && npm pack)`, and compare
+the files with `SHA256SUMS` and the registries. The tarballs do not depend on file times or on the npm 10 or 11 that
+packs them. CI checks on every pull request that a second checkout with other file times packs the same bytes.
 
 ## 6. When something goes wrong
 

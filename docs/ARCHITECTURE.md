@@ -15,7 +15,7 @@ How the packages fit together, what runs where, and how a server uses rootcard. 
                  │ crates/rootcard-host   host library   storage traits + handlers (Rust)    │
                  │ crates/rootcard-cli    key tool       binary `rootcard`                   │
                  │ packages/rootcard/keytool.html        key tool page, works from file://   │
-                 │ crates/xtask           vectors, label registry check, release checks      │
+                 │ crates/xtask           vectors, label registry, repo and release checks   │
                  │ fuzz/                  fuzz targets: parsers, verifiers, host router      │
                  └────────────────────────────────────────────────────────────────────────┘
 ```
@@ -226,8 +226,14 @@ Few dependencies, each justified (AGENTS.md rule 6). The budget:
 | `crates/rootcard-host/examples/host.rs` (not published) | `getrandom` (development dependency) |
 | `tests/browser` (not published, CI only) | `playwright` at an exact version, installed in the CI job only: the vectors and `keytool.html` in Chromium, Firefox and WebKit |
 | `crates/rootcard-cli/tests` (not published) | `rootcard-host` by path only, so `cargo publish` drops it: the key tool's end-to-end test runs a host in the test process |
-| `xtask` (not published) | `curve25519-dalek`, `sha2`: only to construct the rejected signature classes of the vectors |
+| `xtask` (not published) | `rootcard`, `zeroize`; `curve25519-dalek`, `sha2`: only to construct the rejected signature classes of the vectors |
 | `fuzz` (not published, its own workspace) | `libfuzzer-sys` (with `arbitrary`, and `cc` to build libFuzzer): the fuzz targets, run with `cargo fuzz` on a dated nightly toolchain in CI. Outside the main workspace, so `cargo deny` and the MSRV job do not cover it; nothing from it is shipped |
+
+The budget is enforced, not only written down. `cargo deny` (`deny.toml`, the CI job `deny`) checks the main
+workspace's licenses, sources, duplicates and RustSec advisories on every pull request, and `advisories.yml` repeats the
+advisory check daily. `xtask repo-check` fails if the npm package (or `tests/browser`) gains a dependency, `overrides`
+or an install script, and pins every tool CI installs. The published packages are reproducible: the release checks that
+crates.io and npm serve exactly what CI builds from the tag (RELEASING.md §4).
 
 None of the core's dependencies is built with its `getrandom` or `rand_core` features: the core draws no randomness.
 Canonical JSON,
@@ -250,7 +256,12 @@ libraries are not (duplicate members, number forms, canonical padding), and they
 | [docs/THREAT_MODEL.md](THREAT_MODEL.md) | Security | Goals, attackers, threats, accepted risks |
 | [docs/HOST_PROTOCOL.md](HOST_PROTOCOL.md) | Binding | Recommended HTTP endpoints for hosts |
 | docs/ARCHITECTURE.md | Overview | This document: components, server usage, dependencies |
-| [docs/RELEASING.md](RELEASING.md) | Process | Preparing and publishing releases |
+| [docs/RELEASING.md](RELEASING.md) | Process | Preparing, publishing and reproducing releases |
+| [docs/proposals/](proposals/) | Drafts | Proposals that are not normative yet (sign-in at other services, linked accounts) |
+| [fuzz/README.md](../fuzz/README.md) | Process | The fuzz targets and how to run them |
+| [CONTRIBUTING.md](../CONTRIBUTING.md) | Rules | AGENTS.md's rules for people, the checks, pull requests |
+| [SECURITY.md](../SECURITY.md) | Policy | Reporting vulnerabilities, supported versions |
+| [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) | Policy | Contributor Covenant 2.1 |
 
 A change to the format updates SPEC (and vectors), then THREAT_MODEL if a threat changes, HOST_PROTOCOL if an endpoint
 changes, and this document if a component or dependency changes, in the same commit.

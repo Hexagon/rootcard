@@ -136,6 +136,36 @@ jobs:
           cp target/package/*-"${{ needs.verify.outputs.version }}".crate dist/
           (cd packages/rootcard && npm pack --pack-destination ../../dist)
           (cd dist && sha256sum -- * > SHA256SUMS && cat SHA256SUMS)
+      - name: The packages built from the tag are the ones the registries serve
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          # The registries can take a few minutes to show a new version; retry before failing.
+          registry() {
+            for attempt in 1 2 3 4 5 6 7 8 9 10; do
+              value="$("$@" || true)"
+              if [ -n "$value" ]; then echo "$value"; return 0; fi
+              sleep 30
+            done
+            return 1
+          }
+          crates_io() {
+            curl -fsS "https://index.crates.io/$(printf %s "$1" | cut -c1-2)/$(printf %s "$1" | cut -c3-4)/$1" |
+              jq -r --arg v "$VERSION" 'select(.vers == $v) | .cksum'
+          }
+          failed=0
+          for file in dist/*.crate; do
+            name="$(basename "$file" "-$VERSION.crate")"
+            expected="$(registry crates_io "$name")" || { echo "$name $VERSION: not in the crates.io index" >&2; exit 1; }
+            actual="$(sha256sum "$file" | cut -d' ' -f1)"
+            if [ "$expected" = "$actual" ]; then echo "$name: $actual (crates.io)"; else
+              echo "$name: built $actual, crates.io serves $expected" >&2; failed=1; fi
+          done
+          expected="$(registry npm view "rootcard@$VERSION" dist.integrity)" || { echo "rootcard@$VERSION: not on npm" >&2; exit 1; }
+          actual="sha512-$(openssl dgst -sha512 -binary "dist/rootcard-$VERSION.tgz" | base64 -w0)"
+          if [ "$expected" = "$actual" ]; then echo "rootcard (npm): $actual"; else
+            echo "rootcard (npm): built $actual, npm serves $expected" >&2; failed=1; fi
+          exit "$failed"
       - name: Upload to the GitHub release
         run: gh release upload "$TAG" dist/* --clobber
         env:

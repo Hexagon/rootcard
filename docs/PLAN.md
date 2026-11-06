@@ -4,7 +4,7 @@ This is the plan for agents that set up the monorepo and build the first release
 phase is done when every acceptance criterion is checked, with tests where possible. Record deviations under the phase.
 
 **Current phase: 6 (hardening and release).** Phases 0 to 5 are done, with the deviations recorded under each. Released:
-0.1.0, 0.2.0, 0.2.1, 0.3.0 (its review items below) and 0.3.1.
+0.1.0, 0.2.0, 0.2.1, 0.3.0 (its review items below), 0.3.1 and 0.3.2.
 
 Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is application-neutral here (labels `rootcard/...`,
 `realm`, *host*). Xigna's own integration plan lives in the Xigna repository.
@@ -308,13 +308,24 @@ logs the same way.
   [HST-23]).
 - [ ] Differential fuzzing of the JS core against the Rust core (same inputs, same result or error code), at least for
   canonical JSON, the encodings and `verify_log`: `cargo fuzz` reaches only Rust
-- [ ] `cargo deny`, `cargo audit`, `npm audit` (empty tree), reproducible npm tarball check
+- [x] `cargo deny`, `cargo audit`, `npm audit` (empty tree), reproducible npm tarball check. Decided: `cargo deny` (CI
+  job `deny`, every pull request) is the advisory check, and the workflow `advisories.yml` runs its RustSec check daily,
+  so an advisory published after a merge is noticed; `cargo audit` reads the same database and is not run as well.
+  `npm audit` has no tree to audit: `xtask repo-check` fails if `packages/rootcard/package.json` or
+  `tests/browser/package.json` gains a dependency key, `overrides` or an install script, or the package a lock file.
+  Reproducible packages: the `.crate` files and the npm tarball do not depend on file times or on npm 10 or 11
+  (CI job `package` packs a second checkout with other file times and compares), and the release's `assets` job fails
+  unless what it builds from the tag is byte for byte what crates.io and npm serve (docs/RELEASING.md §4–5). 0.3.2
+  rebuilt from its tag matches both registries. npm records file modes, so a reproduction needs a checkout made with
+  `umask 022`
 - [x] Release workflow: tag `vX.Y.Z` → crates published in dependency order with crates.io trusted publishing, npm published
   with trusted publishing and `--provenance`, GitHub release with checksums (`.github/workflows/release.yml`, prepared
   ahead of phase 6; the owner's one-time setup is docs/RELEASING.md §2)
 - [x] Release preparation for agents (docs/RELEASING.md, AGENTS.md rule 10) and `xtask release-check` (versions,
   changelogs, tag, vectors); CI packages every crate and the npm package on each pull request (dry run)
-- [ ] Documentation: crate docs, `README` per package, a "getting started" for apps and for hosts
+- [ ] Documentation: crate docs, `README` per package, a "getting started" for apps and for hosts. Done so far: `CONTRIBUTING.md` (the rules of AGENTS.md for people), issue templates that send security reports to
+  private reporting, a pull request template, a code of conduct (Contributor Covenant 2.1) and funding information
+  (`.github/FUNDING.yml` and `funding` in the npm package, GitHub Sponsors)
 - [ ] External review of the spec and the crypto use before `1.0.0`
 - [x] Host pointer: a host on a path of a shared domain (`https://example.com/rootcard`) can be named by the bare domain.
   Decided: `GET <origin>/.well-known/rootcard` → `{ v, base, api }` ([HST-23]); resolved only for a typed origin, only
