@@ -4,7 +4,7 @@ This is the plan for agents that set up the monorepo and build the first release
 phase is done when every acceptance criterion is checked, with tests where possible. Record deviations under the phase.
 
 **Current phase: 6 (hardening and release).** Phases 0 to 5 are done, with the deviations recorded under each. Released:
-0.1.0, 0.2.0, 0.2.1 and 0.3.0 (its review items below).
+0.1.0, 0.2.0, 0.2.1, 0.3.0 (its review items below) and 0.3.1.
 
 Design: [docs/DESIGN.md](DESIGN.md). It started in the Xigna game and is application-neutral here (labels `rootcard/...`,
 `realm`, *host*). Xigna's own integration plan lives in the Xigna repository.
@@ -158,7 +158,7 @@ unpinned actions (the run was green, nothing suggests a compromise). The review 
 
 **Acceptance:** a fresh clone passes all commands in AGENTS.md, and CI is green.
 - [x] All commands pass locally (stable 1.97 and MSRV 1.95, Node 22, `cargo deny check`)
-- [ ] CI green on GitHub (first run on the phase-0 pull request)
+- [x] CI green on GitHub (first run on the phase-0 pull request; green on every release since)
 
 **Deviations**
 - The `./keytool` export is left out of `package.json` until the page exists (phase 5).
@@ -210,7 +210,8 @@ refer to.
 - [x] JS: `canon.js`, `base32.js`, `crypto.js` (WebCrypto wrappers), `blake2b.js`, `argon2.js`
 - [x] `xtask vectors`: generates `spec/vectors/primitives.json`. Both suites check it. RFC 8032, RFC 7748, RFC 5869 and RFC
   9106 vectors pass in both languages
-- [ ] JS Argon2id benchmark (`m = 64 MiB, t = 3`) recorded in the PR: Node, desktop browser, a mid-range phone
+- [ ] JS Argon2id benchmark (`m = 64 MiB, t = 3`) recorded: Node and a desktop browser done (see Deviations), a
+  mid-range phone still open (needs a real device; the owner)
 
 **Acceptance:** identical bytes for every vector in both languages. Argon2id in JS within about 3 s on a mid-range phone, or
 a documented parameter change in the spec.
@@ -221,7 +222,9 @@ a documented parameter change in the spec.
 - The crypto crates are the current majors: `ed25519-dalek` 3, `x25519-dalek` 3, `sha2` 0.11, `hkdf` 0.13, `aes-gcm` 0.11,
   `argon2` 0.6, without their `getrandom` features: the core draws no randomness ([IMP-1]).
 - Argon2id in JS takes about 1.7 s at the minimum lock parameters and 3 s at the default in Node 22 on the development
-  machine. Desktop browsers and a phone are not measured yet; the default may need to move towards the minimum.
+  machine. Measured again on a 4-core 2.1 GHz Xeon cloud VM (median of three runs after a warm-up): Node 22 1.6 s at
+  `KDF_MIN` (46 MiB, `t = 2`) and 3.1 s at `KDF_DEFAULT` (64 MiB, `t = 3`); Chromium 153 1.5 s and 3.0 s. A phone is
+  not measured yet; if it is well over 3 s, the default may need to move towards the minimum.
 - The RFC 9106 vector (with a secret and associated data) is checked by unit tests in both languages; the shared vectors
   use rootcard's own parameters (no secret, no associated data).
 - `testing::TestRandom` (Rust) and `testRandom` (JS) are a deterministic byte stream for vectors: every function that
