@@ -41,6 +41,12 @@ jobs:
       - name: Repository checks (pinned workflow dependencies, documents that name the version)
         if: matrix.os == 'ubuntu-latest'
         run: cargo run -p xtask -- repo-check
+      - name: Fuzz targets (format and clippy; built with libFuzzer in the fuzz job)
+        if: matrix.os == 'ubuntu-latest'
+        working-directory: fuzz
+        run: |
+          cargo fmt --check
+          cargo clippy --all-targets --locked -- -D warnings
 
   package:
     name: Packages build from their tarballs
@@ -74,6 +80,39 @@ jobs:
           toolchain: "1.95"
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - run: cargo check --workspace --all-targets
+
+  fuzz:
+    name: Fuzz (${{ matrix.target }}, 2 min)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [json, text, log, log_signed, documents, host]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable branch
+        with:
+          toolchain: nightly-2026-11-05
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: fuzz
+      - name: cargo-fuzz
+        run: cargo install cargo-fuzz --version 0.13.2 --locked
+      - name: Seed corpus from spec/vectors
+        working-directory: fuzz
+        run: cargo run --locked --bin seeds
+      - name: Fuzz for a fixed time
+        working-directory: fuzz
+        run: cargo fuzz run -O ${{ matrix.target }} -- -max_total_time=120 -rss_limit_mb=2048
+      - name: Keep the failing input
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: fuzz-${{ matrix.target }}
+          path: fuzz/artifacts
+          if-no-files-found: ignore
 
   deny:
     name: cargo deny

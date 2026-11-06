@@ -22,6 +22,7 @@ crates/rootcard         core: canon, base32, id, log, versions, vault, profile, 
 crates/rootcard-cli     the key tool, binary `rootcard`
 crates/rootcard-host    host-side helpers: challenge store, identity store trait, request handlers
 crates/xtask            vector generation, release checks
+fuzz                    cargo fuzz targets for parsers, verifiers and the host router (own workspace, not published)
 packages/rootcard       npm package: plain ES modules, zero dependencies, WebCrypto
 packages/rootcard/keytool.html   standalone key tool page (works from file://)
 tests/browser           the vectors and keytool.html in real browsers (Playwright, CI only, not published)
@@ -41,6 +42,8 @@ cargo run -p xtask -- vectors --check     # Rust output matches spec/vectors
 cargo run -p xtask -- repo-check          # pinned workflow dependencies, documents that name the version
 (cd packages/rootcard && npm test)        # node --test, Node >= 20, no dependencies
 (cd tests/browser && node run.mjs chromium)   # vectors and keytool.html in a browser (needs Playwright; CI runs all three)
+(cd fuzz && cargo fmt --check && cargo clippy --all-targets --locked -- -D warnings)   # the fuzz crate (stable)
+(cd fuzz && cargo run --bin seeds && cargo +nightly fuzz run -O log -- -max_total_time=60)   # after changing a parser or verifier; fuzz/README.md
 ```
 
 For a release pull request, also `cargo run -p xtask -- release-check --tag vX.Y.Z` and the dry runs in
@@ -100,7 +103,8 @@ Run all of them before every commit. CI runs them too.
 
 ### 7. Tests
 - Every rule in the spec has a test that proves it is enforced (accept and reject cases).
-- Parsers and verifiers get fuzz targets (`cargo fuzz`) before 1.0.
+- Parsers and verifiers get fuzz targets (`cargo fuzz`, [fuzz/README.md](fuzz/README.md)); a new parser or verifier gets one
+  in the same commit.
 - Security-relevant fixes get a regression vector.
 
 ### 8. Language and style

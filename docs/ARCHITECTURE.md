@@ -16,6 +16,7 @@ How the packages fit together, what runs where, and how a server uses rootcard. 
                  │ crates/rootcard-cli    key tool       binary `rootcard`                   │
                  │ packages/rootcard/keytool.html        key tool page, works from file://   │
                  │ crates/xtask           vectors, label registry check, release checks      │
+                 │ fuzz/                  fuzz targets: parsers, verifiers, host router      │
                  └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -226,6 +227,7 @@ Few dependencies, each justified (AGENTS.md rule 6). The budget:
 | `tests/browser` (not published, CI only) | `playwright` at an exact version, installed in the CI job only: the vectors and `keytool.html` in Chromium, Firefox and WebKit |
 | `crates/rootcard-cli/tests` (not published) | `rootcard-host` by path only, so `cargo publish` drops it: the key tool's end-to-end test runs a host in the test process |
 | `xtask` (not published) | `curve25519-dalek`, `sha2`: only to construct the rejected signature classes of the vectors |
+| `fuzz` (not published, its own workspace) | `libfuzzer-sys` (with `arbitrary`, and `cc` to build libFuzzer): the fuzz targets, run with `cargo fuzz` on a dated nightly toolchain in CI. Outside the main workspace, so `cargo deny` and the MSRV job do not cover it; nothing from it is shipped |
 
 None of the core's dependencies is built with its `getrandom` or `rand_core` features: the core draws no randomness.
 Canonical JSON,

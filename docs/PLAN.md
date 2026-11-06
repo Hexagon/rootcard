@@ -298,7 +298,16 @@ logs the same way.
 
 ## Phase 6: hardening and release
 
-- [ ] Fuzz targets for every parser and verifier, run in CI for a fixed time
+- [x] Fuzz targets for every parser and verifier, run in CI for a fixed time. `fuzz/` (its own workspace, not
+  published): `json`, `text`, `log`, `log_signed`, `documents` and `host`, seeded from `spec/vectors` by
+  `cargo run --bin seeds`, two minutes each in the CI job `fuzz` on a dated nightly ([fuzz/README.md](../fuzz/README.md)).
+  `log_signed` re-signs mutated logs with known keys, so the fuzzer gets past the signatures to the checks of
+  [LOG-12]; `host` drives `http::route` with a sequence of requests against the vectors' host key. `xtask repo-check`
+  also requires exact versions and `--locked` for `cargo install` and a date for a nightly toolchain. The first runs
+  found no bug in the cores; one assertion was too strict (a host pointer may differ in the case of the host,
+  [HST-23]).
+- [ ] Differential fuzzing of the JS core against the Rust core (same inputs, same result or error code), at least for
+  canonical JSON, the encodings and `verify_log`: `cargo fuzz` reaches only Rust
 - [ ] `cargo deny`, `cargo audit`, `npm audit` (empty tree), reproducible npm tarball check
 - [x] Release workflow: tag `vX.Y.Z` → crates published in dependency order with crates.io trusted publishing, npm published
   with trusted publishing and `--provenance`, GitHub release with checksums (`.github/workflows/release.yml`, prepared

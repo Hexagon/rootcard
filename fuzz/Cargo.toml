@@ -1,0 +1,84 @@
+[package]
+name = "rootcard-fuzz"
+description = "Fuzz targets for the rootcard parsers and verifiers (cargo fuzz; not published)"
+version = "0.0.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+# Its own workspace: the fuzz crate needs a nightly toolchain and libFuzzer, which the main workspace must not.
+[workspace]
+members = ["."]
+
+[dependencies]
+libfuzzer-sys = "0.4.13"
+rootcard = { path = "../crates/rootcard" }
+rootcard-host = { path = "../crates/rootcard-host" }
+zeroize = { version = "1.9.1", default-features = false }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+
+[profile.release]
+debug = 1
+
+[lib]
+test = false
+doctest = false
+
+# Writes the seed corpora from spec/vectors (fuzz/README.md).
+[[bin]]
+name = "seeds"
+path = "src/bin/seeds.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "json"
+path = "fuzz_targets/json.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "text"
+path = "fuzz_targets/text.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "log"
+path = "fuzz_targets/log.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "log_signed"
+path = "fuzz_targets/log_signed.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "documents"
+path = "fuzz_targets/documents.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "host"
+path = "fuzz_targets/host.rs"
+test = false
+doc = false
+bench = false
