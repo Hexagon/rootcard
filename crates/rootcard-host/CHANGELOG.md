@@ -4,6 +4,8 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+## 0.3.2 - 2026-11-06
+
 - `http::well_known(config, origin)` answers the host pointer `GET <origin>/.well-known/rootcard` ([HST-23]) with the
   first configured address on that origin; the application routes the path to it. The example host serves it.
 
