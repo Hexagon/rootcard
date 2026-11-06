@@ -16,7 +16,7 @@ use rootcard::recovery::derive_recovery_keys;
 use rootcard::testing::TestRandom;
 use rootcard::vault::{Kdf, Secret, change_password, regrant, unlock_vault, verify_vault};
 use rootcard_host::Host;
-use rootcard_host::http::{API_VERSION, Request, route};
+use rootcard_host::http::{API_VERSION, Request, route, well_known};
 use rootcard_host::peer::sign_peer_request;
 use rootcard_host::store::{
     HandleKey, IdentityStore, Insert, MemoryChallengeStore, MemoryIdentityStore, MemorySessionStore, Stored,
@@ -54,6 +54,47 @@ fn host_addresses_are_base_urls_without_a_version() {
     let mut none = config([1; 32], "https://a.example");
     none.urls.clear();
     assert!(none.check().is_err());
+}
+
+#[test]
+fn host_pointer_names_the_base_url_on_its_origin() {
+    // [HST-23]: the pointer answers with the first address on the origin it is asked at, and resolves in the core.
+    let mut cfg = config([1; 32], "https://id.example.net");
+    cfg.urls.push("https://example.com/rootcard".into());
+    cfg.urls.push("https://example.com/other".into());
+    let res = well_known(&cfg, "https://example.com");
+    assert_eq!(res.status, 200);
+    assert!(
+        res.headers
+            .contains(&("Access-Control-Allow-Origin".into(), "*".into()))
+    );
+    let doc = rootcard::json::parse_json(&res.body.unwrap()).unwrap();
+    assert_eq!(
+        rootcard::json::canonical(&doc),
+        br#"{"api":["v0"],"base":"https://example.com/rootcard","v":1}"#.to_vec()
+    );
+    assert_eq!(
+        rootcard::well_known_base("https://example.com", &doc),
+        Ok("https://example.com/rootcard".to_string())
+    );
+    let own = well_known(&cfg, "https://id.example.net");
+    let doc = rootcard::json::parse_json(&own.body.unwrap()).unwrap();
+    assert_eq!(
+        doc.as_object().and_then(|m| m.get("base")).and_then(Value::as_str),
+        Some("https://id.example.net")
+    );
+    for other in [
+        "https://example.org",
+        "https://example.com:8443",
+        "https://example.com/rootcard",
+    ] {
+        let res = well_known(&cfg, other);
+        assert_eq!(res.status, 404, "{other}");
+        assert_eq!(
+            err(&rootcard::json::parse_json(&res.body.unwrap()).unwrap()),
+            "unknown_account"
+        );
+    }
 }
 
 #[test]

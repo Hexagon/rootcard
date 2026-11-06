@@ -19,7 +19,9 @@ refer to the specification.
 - **Choosing a base URL.** A host on a domain of its own uses the domain (`https://id.example.com`). A host that shares
   a domain with an application SHOULD use a path of its own, preferably `/rootcard` (`https://example.com/rootcard`,
   endpoints at `https://example.com/rootcard/v0/…`), so that its endpoints cannot collide with the application's. A
-  base URL never ends in a version segment ([HST-22]): the version is added after it (§1.3).
+  base URL never ends in a version segment ([HST-22]): the version is added after it (§1.3). Such a host SHOULD also
+  have the server of its domain answer the host pointer `GET https://example.com/.well-known/rootcard` (§2, [HST-23]),
+  so that users can type the bare domain.
 - **Address binding.** The `url` in login and fetch messages ([LGN-4]) is the base URL the client sent the request to,
   without the API version segment, exactly as configured in the client (for a browser client served by the host,
   derived from `location`). The host compares it with its list of base URLs.
@@ -106,6 +108,21 @@ and addresses: every signature a client relies on is checked against keys in a v
 ```
 A client registering an identity uses `key` and the base URL it is talking to as the new instance's `home` ([CLT-1]).
 The host is the home of an instance whose `home.key` is `key` or one of `retired_keys` ([HST-17]).
+
+### `GET <origin>/.well-known/rootcard`
+
+The **host pointer** ([HST-23], RFC 8615). Unlike every other endpoint it is at the root of an origin, outside every
+base URL and without an API version, so the application serving the origin routes it (`rootcard_host::http::well_known`
+builds the answer). Optional; served by the origin, not looked up by any host.
+```
+{ "v": 1, "base": "<base URL on this origin>", "api": [ "v0" ] }
+```
+`base` is one of the host's addresses on the same scheme, host and port; `api` lists the API versions it serves (1 to
+16). It answers with `Access-Control-Allow-Origin: *` (a plain `GET` needs no preflight), and `404` when no address is
+on the origin. Clients resolve it only for an address the user typed without a path (`https://example.com`), with
+`well_known_base`, do not follow redirects, read at most 4 096 bytes, and use the origin itself when there is no `200`
+answer. The resolved base URL, never the origin, goes into `home.url` and signed messages. The key tool and
+`keytool.html` resolve `--host`, `--from` and their host fields this way.
 
 ### `GET /id/lookup?realm=<realm>&handle=<handle>`
 
@@ -318,6 +335,11 @@ POST /session/password                       → rev
 ```
 
 **Download the identity** ([FIL-2]): `GET /session/export` → the account file.
+
+**Name a host by its domain** ([HST-23]): the user types `https://example.com`; the client asks
+`GET https://example.com/.well-known/rootcard`, gets `{ "base": "https://example.com/rootcard", … }`, and uses that base
+URL from then on (`GET https://example.com/rootcard/v0/host`, and `home.url` at registration). Without a pointer it uses
+`https://example.com` itself.
 
 **Move to another host, or reset a forgotten password** (key tool, [KT-3], [KT-8]):
 ```

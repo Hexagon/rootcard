@@ -374,6 +374,7 @@ pub fn run(op: &str, input: &Map) -> R<Outcome> {
             tryr!(rootcard::check_base_url(i.str("url")?));
             true.into()
         }
+        "well_known_base" => tryr!(rootcard::well_known_base(i.str("origin")?, i.get("document")?)).into(),
         "check_data_key" => {
             tryr!(check_data_key(i.str("key")?));
             true.into()

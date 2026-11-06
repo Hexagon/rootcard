@@ -4,6 +4,9 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- `http::well_known(config, origin)` answers the host pointer `GET <origin>/.well-known/rootcard` ([HST-23]) with the
+  first configured address on that origin; the application routes the path to it. The example host serves it.
+
 ## 0.3.1 - 2026-11-05
 
 - The crate metadata (`repository`, `homepage`) and the README links point to `github.com/rootcard/rootcard`.

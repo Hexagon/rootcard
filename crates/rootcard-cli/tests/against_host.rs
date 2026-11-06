@@ -5,7 +5,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use rootcard::json::{Value, parse_json};
-use rootcard_host::http::{API_VERSION, MAX_BODY, Request, route};
+use rootcard_host::http::{API_VERSION, MAX_BODY, Request, route, well_known};
 use rootcard_host::store::{MemoryChallengeStore, MemoryIdentityStore, MemorySessionStore};
 use rootcard_host::{Host, HostConfig, RealmConfig, UsernamePolicy};
 use std::io::{BufRead, BufReader, Read, Write};
@@ -26,11 +26,13 @@ fn now() -> i64 {
         .as_secs() as i64
 }
 
-/// Start a host on a free loopback port. Returns it (for direct reads) and its base URL. The server thread ends with
-/// the test process.
-fn start_host() -> (Arc<TestHost>, String) {
+/// Start a host on a free loopback port, at the base URL `<origin>/rootcard`, with the host pointer ([HST-23]) at
+/// `<origin>/.well-known/rootcard`. Returns it (for direct reads), the origin and the base URL. The server thread ends
+/// with the test process.
+fn start_host() -> (Arc<TestHost>, String, String) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-    let url = format!("http://127.0.0.1:{}", listener.local_addr().unwrap().port());
+    let origin = format!("http://127.0.0.1:{}", listener.local_addr().unwrap().port());
+    let url = format!("{origin}/rootcard");
     let mut seed = [0u8; 32];
     getrandom::fill(&mut seed).unwrap();
     let config = HostConfig {
@@ -51,6 +53,7 @@ fn start_host() -> (Arc<TestHost>, String) {
         MemorySessionStore::new(),
     ));
     let served = Arc::clone(&host);
+    let served_origin = origin.clone();
     std::thread::spawn(move || {
         for stream in listener.incoming() {
             let Ok(mut stream) = stream else { continue };
@@ -60,9 +63,12 @@ fn start_host() -> (Arc<TestHost>, String) {
                 continue;
             }
             let mut parts = line.split_whitespace();
+            let method = parts.next().unwrap_or("").to_string();
+            let full = parts.next().unwrap_or("/").to_string();
+            let pointer = method == "GET" && full == rootcard::WELL_KNOWN_PATH;
             let mut req = Request {
-                method: parts.next().unwrap_or("").to_string(),
-                path: parts.next().unwrap_or("/").to_string(),
+                method,
+                path: full.strip_prefix("/rootcard").unwrap_or("/").to_string(),
                 ..Request::default()
             };
             let mut length = 0usize;
@@ -84,7 +90,11 @@ fn start_host() -> (Arc<TestHost>, String) {
                 continue;
             }
             req.body = body;
-            let res = route(&*served, &req, now(), &mut |b| getrandom::fill(b).unwrap());
+            let res = if pointer {
+                well_known(&served.config, &served_origin)
+            } else {
+                route(&*served, &req, now(), &mut |b| getrandom::fill(b).unwrap())
+            };
             let body = res.body.unwrap_or_default();
             let mut head = format!(
                 "HTTP/1.1 {} X\r\nContent-Length: {}\r\nConnection: close\r\nContent-Type: application/json\r\n",
@@ -99,7 +109,7 @@ fn start_host() -> (Arc<TestHost>, String) {
             let _ = stream.write_all(&body);
         }
     });
-    (host, url)
+    (host, origin, url)
 }
 
 /// A GET through the router, as a client would see it.
@@ -111,6 +121,20 @@ fn get(host: &TestHost, path: &str) -> (u16, Value) {
     };
     let res = route(host, &req, now(), &mut |b| getrandom::fill(b).unwrap());
     (res.status, parse_json(&res.body.unwrap_or_default()).unwrap())
+}
+
+/// The `home.url` of every instance the host stores for `account`.
+fn home_urls(host: &TestHost, account: &str) -> Vec<String> {
+    let (_, v) = get(host, &format!("/id/{account}/log"));
+    field(&v, "events")
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|e| {
+            let home = field(e, "body").as_object()?.get("home")?.as_object()?.get("url")?;
+            Some(home.as_str()?.to_string())
+        })
+        .collect()
 }
 
 /// The kinds of the events the host stores for `account`, and the instance reasons.
@@ -181,10 +205,11 @@ fn s(p: &Path) -> &str {
 
 #[test]
 fn new_rotate_and_restore_against_a_host() {
-    let (host, url) = start_host();
+    let (host, origin, url) = start_host();
     let dir = scratch("e2e");
 
-    // `new --host`: registration at the host ([CLT-1], [HST-3]); the card and the account file are written.
+    // `new --host`: registration at the host ([CLT-1], [HST-3]); the card and the account file are written. The bare
+    // origin is resolved through the host pointer ([HST-23]), and the instance records the base URL it names.
     rootcard(&[
         "new",
         "--realm",
@@ -192,7 +217,7 @@ fn new_rotate_and_restore_against_a_host() {
         "--username",
         "Astra",
         "--host",
-        &url,
+        &origin,
         "--dir",
         s(&dir),
     ]);
@@ -201,6 +226,7 @@ fn new_rotate_and_restore_against_a_host() {
     let file_json = parse_json(&std::fs::read(&file).unwrap()).unwrap();
     let account = field(&file_json, "account").as_str().unwrap().to_string();
     assert_eq!(stored_kinds(&host, &account), ["incept", "instance:register"]);
+    assert_eq!(home_urls(&host, &account), [url.as_str()]);
     assert_eq!(get(&host, &format!("/id/{account}/locks")).0, 200);
 
     // `rotate-recovery` ([KT-5]): the host adopts the rotation together with the new vault, so the identity still
@@ -212,7 +238,7 @@ fn new_rotate_and_restore_against_a_host() {
         "--card",
         s(&card),
         "--from",
-        &url,
+        &origin,
         "--dir",
         s(&rotated),
     ]);
@@ -253,4 +279,5 @@ fn new_rotate_and_restore_against_a_host() {
     let (status, locks) = get(&host, &format!("/id/{account}/locks"));
     assert_eq!(status, 200, "{locks:?}");
     assert_eq!(field(&locks, "locks").as_array().unwrap().len(), 1);
+    assert_eq!(home_urls(&host, &account), [url.as_str(), url.as_str()]);
 }

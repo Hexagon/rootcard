@@ -210,6 +210,295 @@
     },
     {
       "input": {
+        "document": {
+          "api": ["v0"],
+          "base": "https://example.com/rootcard",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: on a path",
+      "op": "well_known_base",
+      "output": "https://example.com/rootcard",
+      "rules": ["HST-23"]
+    },
+    {
+      "input": {
+        "document": {
+          "api": ["v0"],
+          "base": "https://example.com",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: to itself",
+      "op": "well_known_base",
+      "output": "https://example.com",
+      "rules": ["HST-23"]
+    },
+    {
+      "input": {
+        "document": {
+          "api": ["v1","v0"],
+          "base": "https://example.com/auth/rootcard",
+          "v": 1
+        },
+        "origin": "https://Example.COM"
+      },
+      "name": "host pointer: host case",
+      "op": "well_known_base",
+      "output": "https://example.com/auth/rootcard",
+      "rules": ["HST-23"]
+    },
+    {
+      "input": {
+        "document": {
+          "api": ["v0"],
+          "base": "http://127.0.0.1:8787/rootcard",
+          "v": 1
+        },
+        "origin": "http://127.0.0.1:8787"
+      },
+      "name": "host pointer: with a port",
+      "op": "well_known_base",
+      "output": "http://127.0.0.1:8787/rootcard",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "document": {
+          "api": ["v0"],
+          "base": "https://example.com/rootcard",
+          "v": 1
+        },
+        "origin": "https://example.com/rootcard"
+      },
+      "name": "host pointer: origin with a path",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "document": {
+          "api": ["v0"],
+          "base": "https://example.com/rootcard",
+          "v": 1
+        },
+        "origin": "example.com"
+      },
+      "name": "host pointer: origin not a base URL",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "document": "https://example.com/rootcard",
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: not an object",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "unsupported_version",
+      "input": {
+        "document": {
+          "base": "x",
+          "v": 2
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: v 2",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "document": {
+          "base": "https://example.com/r",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: missing api",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "document": {
+          "api": ["v0"],
+          "base": "https://example.com/rootcard",
+          "realms": [],
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: unknown member",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "document": {
+          "api": ["v0"],
+          "base": "https://example.com/v0",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: base with a version",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "document": {
+          "api": ["v0"],
+          "base": "https://example.com/v0/..",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: base with a dot segment",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "document": {
+          "api": [],
+          "base": "https://example.com/rootcard",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: no versions",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "document": {
+          "api": ["v0","v1","v2","v3","v4","v5","v6","v7","v8","v9","v10","v11","v12","v13","v14","v15","v16"],
+          "base": "https://example.com/rootcard",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: 17 versions",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "document": {
+          "api": ["v0","v0"],
+          "base": "https://example.com/rootcard",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: duplicate version",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "bad_field",
+      "input": {
+        "document": {
+          "api": ["0"],
+          "base": "https://example.com/rootcard",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: not a version",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "wrong_host",
+      "input": {
+        "document": {
+          "api": ["v0"],
+          "base": "https://id.example.net/rootcard",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: another host",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "wrong_host",
+      "input": {
+        "document": {
+          "api": ["v0"],
+          "base": "https://example.com.evil.example/rootcard",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: a longer host",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "wrong_host",
+      "input": {
+        "document": {
+          "api": ["v0"],
+          "base": "https://example.com:8443/rootcard",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: another port",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "wrong_host",
+      "input": {
+        "document": {
+          "api": ["v0"],
+          "base": "https://localhost:8787/rootcard",
+          "v": 1
+        },
+        "origin": "http://localhost:8787"
+      },
+      "name": "host pointer: another scheme",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "error": "unsupported_version",
+      "input": {
+        "document": {
+          "api": ["v1"],
+          "base": "https://example.com/rootcard",
+          "v": 1
+        },
+        "origin": "https://example.com"
+      },
+      "name": "host pointer: without v0",
+      "op": "well_known_base",
+      "rules": ["HST-23"]
+    },
+    {
+      "input": {
         "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
         "host": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
         "lock": "HdQYNrFMhPc",

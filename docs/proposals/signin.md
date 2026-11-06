@@ -171,9 +171,10 @@ The RP answers with its own session (cookie) and a redirect. Errors are shown to
 - **The RP**, not the home, is what a non-browser client needs to discover: `GET
   https://<rp>/.well-known/rootcard-rp` → `{ "v": 1, "signin": { "v0": "<https URL of the RP's sign-in API, v0>" },
   "realms": [ … ] }` (RFC 8615). Listing the API versions lets a client pick the newest one both sides serve.
-- **The home** MAY answer `GET https://<domain>/.well-known/rootcard` with `{ "v": 1, "base": "<base URL>", "api":
-  [ "v0" ] }`, so that a user can name a host by its domain; the descriptor is then at `<base>/v0/host`. It is a
-  convenience only: the address an RP or client relies on is `home.url` in the verified log ([SIN-6]).
+- **The home** MAY answer the host pointer `GET https://<domain>/.well-known/rootcard`, now a rule of the spec
+  ([HST-23], HOST_PROTOCOL.md §2), so that a user can name a host by its domain; the descriptor is then at
+  `<base>/v0/host`. It is a convenience only: the address an RP or client relies on is `home.url` in the verified log
+  ([SIN-6]), which is never resolved through a pointer.
 - **The challenge always comes from the RP.** Freshness is the verifier's own guarantee ([PRF-5]): a nonce issued by
   the home would make the RP trust the home's word that it is fresh and unused, which [HST-14] rules out. The home
   serves the sign-in page; it never issues challenges for RPs.
