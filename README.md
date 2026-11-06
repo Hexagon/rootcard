@@ -210,10 +210,8 @@ bytes for the same inputs.
 
 Planned (details in [docs/PLAN.md](docs/PLAN.md)):
 
-- **0.3.0:** the findings of the 0.2.0 review: host reject-case tests, the shared vectors and `keytool.html` in real
-  browsers, end-to-end tests of the key tools against a host, and hardening of the host library.
-
-- **Before 1.0:** fuzzing of every parser and verifier, supply-chain checks, getting-started guides, an external review.
+- **Before 1.0:** differential fuzzing of the JS core against the Rust core (the Rust parsers, verifiers and host
+  router are fuzzed in CI, [fuzz/](fuzz/README.md)), supply-chain checks, getting-started guides, an external review.
 - **Sign-in at other services:** the relying-party flow and `rootcard signin` ([proposal](docs/proposals/signin.md)).
 - **Linked accounts:** show that an identity owns a GitHub account or a domain, checked by anyone
   ([proposal](docs/proposals/links.md)).

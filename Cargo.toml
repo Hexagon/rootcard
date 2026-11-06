@@ -1,6 +1,8 @@
 [workspace]
 resolver = "3"
 members = ["crates/rootcard", "crates/rootcard-cli", "crates/rootcard-host", "crates/xtask"]
+# Its own workspace: libFuzzer and a nightly toolchain (fuzz/README.md).
+exclude = ["fuzz"]
 
 [workspace.package]
 version = "0.3.1"

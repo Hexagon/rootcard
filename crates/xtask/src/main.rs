@@ -231,7 +231,8 @@ fn has_changelog_section(changelog: &str, version: &str) -> bool {
 }
 
 /// Problems with the third-party code that the workflows run ([`repo_check`]): every `uses:` is pinned to a full commit
-/// SHA with the version in a comment, and every tool installed with npm has an exact version.
+/// SHA with the version in a comment, every tool installed with npm or `cargo install` has an exact version (and
+/// `cargo install` uses `--locked`), and a nightly toolchain is dated.
 fn workflow_problems(name: &str, text: &str) -> Vec<String> {
     let mut problems = Vec::new();
     for (n, line) in text.lines().enumerate() {
@@ -251,6 +252,42 @@ fn workflow_problems(name: &str, text: &str) -> Vec<String> {
                     "{name}:{}: `uses: {target}` must be pinned to a full commit SHA, with the tag in a comment",
                     n + 1
                 ));
+            }
+        }
+        if line.contains("cargo install") {
+            let words: Vec<&str> = line.split_whitespace().collect();
+            let exact = words.windows(2).any(|w| w[0] == "--version" && is_semver(w[1]))
+                || words
+                    .iter()
+                    .any(|w| w.strip_prefix("--version=").is_some_and(is_semver))
+                || words
+                    .iter()
+                    .any(|w| !w.starts_with('-') && w.rsplit_once('@').is_some_and(|(_, v)| is_semver(v)));
+            if !exact || !words.contains(&"--locked") {
+                problems.push(format!(
+                    "{name}:{}: `cargo install` needs an exact `--version` and `--locked`",
+                    n + 1
+                ));
+            }
+        }
+        if let Some(toolchain) = line.strip_prefix("toolchain:") {
+            let toolchain = toolchain.split(" #").next().unwrap_or("").trim().trim_matches('"');
+            if let Some(channel) = ["nightly", "beta"].iter().find(|c| toolchain.starts_with(**c)) {
+                let date = toolchain[channel.len()..].strip_prefix('-').unwrap_or("");
+                let dated = date.len() == 10
+                    && date.bytes().enumerate().all(|(i, b)| {
+                        if i == 4 || i == 7 {
+                            b == b'-'
+                        } else {
+                            b.is_ascii_digit()
+                        }
+                    });
+                if !dated {
+                    problems.push(format!(
+                        "{name}:{}: toolchain `{toolchain}` needs a date (`{channel}-YYYY-MM-DD`)",
+                        n + 1
+                    ));
+                }
             }
         }
         if line.contains("npm install") || line.contains("npx ") {
@@ -453,6 +490,16 @@ mod tests {
             "steps:\n      - uses: actions/checkout@{sha} # v4.4.0\n      - uses: ./local\n        run: npm install -g npm@11.21.2\n"
         );
         assert!(workflow_problems("w", &good).is_empty());
+        for ok in [
+            "        run: cargo install cargo-fuzz --version 0.13.2 --locked\n",
+            "        run: cargo install --locked cargo-fuzz@0.13.2\n",
+            "        run: cargo install --locked --version=0.13.2 cargo-fuzz\n",
+            "          toolchain: nightly-2026-11-05\n",
+            "          toolchain: \"1.95\"\n",
+            "          toolchain: stable\n",
+        ] {
+            assert!(workflow_problems("w", ok).is_empty(), "{ok}");
+        }
         for bad in [
             "      - uses: actions/checkout@v4\n".to_string(),
             format!("      - uses: actions/checkout@{sha}\n"),
@@ -460,6 +507,12 @@ mod tests {
             format!("      - uses: actions/checkout@{} # v4\n", &sha[..39]),
             "        run: npm install -g npm@^11.5.1\n".to_string(),
             "        run: npm install -g npm@latest\n".to_string(),
+            "        run: cargo install cargo-fuzz --locked\n".to_string(),
+            "        run: cargo install cargo-fuzz --version 0.13 --locked\n".to_string(),
+            "        run: cargo install cargo-fuzz --version 0.13.2\n".to_string(),
+            "          toolchain: nightly\n".to_string(),
+            "          toolchain: \"nightly-2026-11\"\n".to_string(),
+            "          toolchain: beta # latest\n".to_string(),
         ] {
             assert_eq!(workflow_problems("w", &bad).len(), 1, "{bad}");
         }
