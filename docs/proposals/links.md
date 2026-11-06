@@ -76,8 +76,8 @@ instances; the profile is re-signed in every instance anyway.
 *Rationale.* The profile is already signed by the account key of the current instance, ordered by `rev` and replaced
 at every new instance. Putting links there gives signing, freshness and revocation without a new structure. The key
 is in the `user.` namespace because the user owns it and because a new prefix would make today's verifiers reject
-profiles that use it ([DAT-4]); whether standard keys get their own namespace is the open question of PLAN.md
-"Standard profile keys" (§12).
+profiles that use it ([DAT-4]). Decided (§12): links do not wait for a namespace for standard keys (PLAN.md "Standard
+profile keys"); if one comes, [LNK-16] moves them.
 
 ### 3.2 Power level
 
@@ -135,7 +135,7 @@ public profile; the tokens at the services stay as they are.
 | Same result everywhere | Guaranteed by vectors | Kept by one shared registry with vectors and one interpreter in both cores; a site that adds its own descriptors gets its own results |
 | Security | Fixed in the spec | The security rules stay normative (§5.2); a descriptor can only do what they allow |
 
-**Recommendation: the convention.** The spec defines what a link is, the token, how a link may be checked and what a
+**Decision: the convention.** The spec defines what a link is, the token, how a link may be checked and what a
 status means. It names no service. A **service registry** next to the spec holds one descriptor per service, as data,
 and both cores contain a small, pure interpreter for descriptors. Sites such as rootcard.org bundle the registry, so
 they show and check the same services in the same way, and a new service is a reviewed data change rather than a
@@ -192,7 +192,7 @@ Step    { "kind": "http-json", "url": "<template>",
 - A descriptor or step kind the interpreter does not know makes that service `unsupported` ([LNK-13]). A new step
   kind is the only spec change a new service can need, and it comes with vectors.
 
-### 5.4 Initial registry entries (examples)
+### 5.4 Initial registry entries
 
 **`github`.** `name`: the login, 1–39 characters `A–Z a–z 0–9 -`, compared case-insensitively. `uid`: required, the
 numeric user id. `ref`: `bio`, or `gist:` followed by 1–64 characters `0–9 a–f`. Display `https://github.com/{name}`.
@@ -283,14 +283,14 @@ rules keep old links valid and old verifiers safe when something new appears.
   length of the id does not matter.
 - **[LNK-16]** **The identity side follows the profile.** Links are signed only through the public profile. When the
   profile gets a new version or key type, links come along with no change here. If standard profile keys later get
-  their own namespace (§12), verifiers read the new key and `user.links` for at least one major version, and prefer
+  their own namespace, verifiers read the new key and `user.links` for at least one major version, and prefer
   the new key when both are present.
 - **[LNK-17]** **Services may disappear.** A service that shuts down or stops answering anonymous reads makes its links
   `not checked` (`fetch_failed`), not `failed`. Its descriptor is then marked `retired` in the registry; verifiers keep
   reporting its links as `unsupported` rather than reusing the name.
-- **Extensions without a format change.** New services (§5.4), new `ref` forms and a root-signed link list (§10) fit
-  these rules: the first two are additions to the registry, and the third would be a separate structure that verifiers
-  combine with `user.links`.
+- **Extensions without a format change.** New services (§5.5) and new `ref` forms are additions to the registry. A
+  separate structure, should one ever be needed, is combined with `user.links` by verifiers that know it and ignored
+  by the rest, as [LNK-13] requires.
 
 ## 7. Displaying links: an identity page such as rootcard.org
 
@@ -337,7 +337,7 @@ an index MAY exist, and every hit is checked as in §6 before it is shown.
 
 ## 8. E-mail addresses: left out
 
-**Recommendation: e-mail addresses are not part of linked accounts, now or as a planned extension.** Nothing about
+**Decision: e-mail addresses are not part of linked accounts, now or as a planned extension.** Nothing about
 e-mail goes into the spec, the cores or the key tool.
 
 - **It cannot be proved publicly.** A link is two-sided (§1): the external account must say which identity it
@@ -380,7 +380,7 @@ None is known.
 
 - **T-L4: A password thief edits links.** Adding a link to the thief's own account makes the identity appear to be
   that account; removing links hides the owner's. Low power, ended by a reset ([PWR-1], AR12). A later option is
-  links signed by the recovery key (§10).
+  links signed by the recovery key, which is not planned (§12).
 - **T-L7: Stale profiles.** A verifier that cannot reach the home may show a link from an older profile copy that the
   owner has since removed ([DAT-9]). The owner removes the token as well (§4.3 step 4), which ends such links for
   everyone who checks.
@@ -408,9 +408,9 @@ None is known.
 |---|---|
 | A signed statement proof ([PRF-5]) at the service instead of a token | **Rejected for the first version.** About 400 bytes (too long for a bio or a single DNS string). An account proof ([PRF-1]) dies with the instance, so every reset or move would break every link; a root proof ([PRF-2]) lasts longer but needs the recovery card for every link and dies at `rotate_recovery`. It adds no security: the service decides who writes at the location, and the profile signature already covers the identity side |
 | A new log event for links | **Rejected.** Links would need the recovery key, and the log would grow with data that is not about keys or hosts |
-| Links signed by the recovery key (a root-signed link list) | **Later.** Stronger against a password thief (T-L4) and works for card-only identities without a profile; needs a new structure and label |
+| Links signed by the recovery key (a root-signed link list) | **Not planned** (§12). Stronger against a password thief (T-L4), but needs a new structure and label for a risk that every profile edit already carries |
 | A central verification service | **Not needed.** Every verifier checks for itself; a service would be one more party to trust (§7.2) |
-| A new profile namespace (`link.` or a standard-key prefix) | **Open** (§12). Cleaner, but today's verifiers reject profiles with unknown prefixes ([DAT-4]), so it needs a profile `v: 2` |
+| A new profile namespace (`link.` or a standard-key prefix) | **Rejected** (§12). Today's verifiers reject profiles with unknown prefixes ([DAT-4]), so it would need a profile `v: 2` for no security gain |
 
 ## 11. Work if adopted
 
@@ -418,8 +418,8 @@ None is known.
    links, 64 KiB, 10 s), §20 codes ([LNK-20]), §21 vectors. No service is named in the spec. THREAT_MODEL: the T-L*
    threats and accepted risks. ARCHITECTURE: the link functions, the interpreter, and that the core does no fetching.
    CONCEPTS: a section on links.
-2. The service registry: one descriptor file per service (`github`, `dns`, `web` first), each with recorded responses
-   (accept and reject for every step) as vectors.
+2. The service registry in `spec/links/`: one descriptor file per service (`github.json`, `dns.json`, `web.json`), each
+   with recorded responses (accept and reject for every step) as vectors.
 3. `spec/vectors/link.json` from `xtask`: tokens, token search (boundaries, several tokens, the 64 KiB limit), valid and
    invalid `user.links` values, field checks, template filling, and the registry's recorded responses. `xtask` also
    checks every descriptor against the format.
@@ -429,13 +429,25 @@ None is known.
    for its own identity pages.
 6. CHANGELOGs under `## Unreleased`.
 
-## 12. Open questions for the owner
+## 12. Decisions
 
-1. Is `user.links` acceptable, or should links wait for a standard-key namespace (PLAN.md "Standard profile keys")?
-2. Agree with the convention (§5.1): a service-neutral spec, a shared registry of descriptors, and an interpreter in
-   both cores? The alternative is hard-coded checks per service in a separate module.
-3. Where does the registry live: in this repository next to `spec/` (one review process, shipped with the packages),
-   or in a repository of its own (services change without rootcard releases)?
-4. Which services go into the first registry: `github`, `dns` and `web` as proposed, or fewer?
-5. Agree to leave e-mail out entirely (§8)?
-6. Should a root-signed link list (§10) be planned, for card-only identities and protection against a password thief?
+1. **The profile key is `user.links`.** It works with every verifier deployed today, the user owns it, and [LNK-16]
+   covers a move if standard keys ever get a namespace of their own. A new prefix would need a profile `v: 2` and gives
+   no security: a client with the password can sign any profile whatever the key is called.
+2. **Services are a convention (§5).** The spec is service-neutral, the registry holds declarative descriptors, and
+   both cores interpret them without I/O. Hard-coded checks in a separate module were rejected: two implementations
+   would drift, and every site would have to trust that module's code per service instead of reviewing data.
+3. **The registry lives in this repository, in `spec/links/`,** and is released with the packages. Verifiers must
+   bundle descriptors anyway ([LNK-19]), so a separate repository would not let services change faster where it
+   matters; it would only add a second review process, and `xtask` could not check descriptors and vectors together.
+   A service whose API changes is fixed in a patch release.
+4. **The first registry has `github`, `dns` and `web`.** GitHub is the case that motivated the proposal; `dns` and
+   `web` cover domains, the answer to e-mail (§8), and need only the `dns-txt` and `http-text` steps. Other services
+   (§5.5) are added later as descriptors only, without a spec change, except Mastodon, which first needs a new field
+   type.
+5. **E-mail is left out (§8),** and not kept as a later item: no design is known in which a viewer can check an address
+   without trusting a third party.
+6. **No root-signed link list.** A password thief who edits links has the same low power as one who edits any other
+   profile data, and the recovery card ends it (AR12). An identity with only a card has no host and no profile to show,
+   so links would not help it. If the threat model changes, a separate structure can still be added without breaking
+   anything ([LNK-13]).
