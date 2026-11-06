@@ -140,8 +140,8 @@ strict Ed25519, a hash or a size ([CRY-3], §17).
 
 - **Logs:** `verify_log` ([LOG-12]) checks the inception, then each event in order: chain, sequence, time, the exact
   signers, key reuse, signatures and receipt. It returns a **log state** with the current recovery public key, the
-  current instance and the version. `extend_log` ([LOG-15]) does the same for new events only, starting from a stored state, so
-  a host never re-checks old signatures.
+  current instance and the version. `extend_log` ([LOG-15]) does the same for new events only, starting from a stored
+  state, so a host never re-checks old signatures.
 - **Everything else** is checked against a log state:
 
   | Function | Checks | Rule |
