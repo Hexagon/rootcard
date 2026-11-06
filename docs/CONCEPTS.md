@@ -20,7 +20,8 @@ password ─Argon2id─HKDF─► lock keys ─unwrap─► vault key ─decrypt
 
 - The **log** is public and says who the identity is and which key is valid now.
 - The **vault** is private and holds the key that does everyday work.
-- The **recovery card** is the backup of the root secret.
+- The **recovery card** is the backup of the root secret. Its public part, the **recovery public key**, is in the log
+  for anyone to see; software labels it as public and never calls it "recovery key" alone ([CLT-8]).
 - **Proofs** and **verification** are how other people and hosts check all of it.
 
 The power split (SPEC §16) runs through all of them. The password unlocks the vault, which is low power. Only the
@@ -138,7 +139,7 @@ Every party verifies everything itself. A host never trusts another host's claim
 strict Ed25519, a hash or a size ([CRY-3], §17).
 
 - **Logs:** `verify_log` ([LOG-12]) checks the inception, then each event in order: chain, sequence, time, the exact
-  signers, key reuse, signatures and receipt. It returns a **log state** with the current recovery key, the current
+  signers, key reuse, signatures and receipt. It returns a **log state** with the current recovery public key, the current
   instance and the version. `extend_log` ([LOG-15]) does the same for new events only, starting from a stored state, so
   a host never re-checks old signatures.
 - **Everything else** is checked against a log state:

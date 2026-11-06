@@ -47,7 +47,9 @@ line tools, built on them, is a **proposal**: [docs/proposals/signin.md](docs/pr
 ### You are in control
 
 Only the **recovery key** can change who can access the identity, where it lives or whether it exists. It is shown once
-at registration and is then kept offline, on the card. The password has low power: log in, edit your data, export.
+at registration and is then kept offline, on the card. Pages that look an identity up may show its *recovery public
+key*: that is public and safe to see. The secret is never shown on, or typed into, a website. The password has low
+power: log in, edit your data, export.
 
 | You have | If you forget the password | If your home server disappears |
 |---|---|---|
@@ -177,7 +179,7 @@ The log, the vault, the recovery card, proofs and verification are explained in 
 
 ## What you get
 
-- **Self-certifying id.** The account id is a hash of a signed inception that names the recovery key. It cannot be forged
+- **Self-certifying id.** The account id is a hash of a signed inception that names the recovery public key. It cannot be forged
   without breaking SHA-256 or Ed25519 or stealing a private key. Shown to humans as `Name#XXXX`.
 - **No password verifiers on servers.** The password only unlocks an encrypted vault on the client. Login is a fresh
   challenge signed by the account key, bound to the host, the realm and the current version.

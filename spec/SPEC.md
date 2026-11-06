@@ -77,6 +77,7 @@ complete on its own: an implementation can be written from this document and `sp
 | **primary host**, **home** | The host named by the current instance. The only host that stores the vault and accepts logins |
 | **client** | Software acting for the user with low power: an application's login page or app |
 | **key tool** | The only software that takes the recovery key as input: the `rootcard` CLI and `keytool.html` |
+| **recovery key**, **recovery public key** | The recovery key is the secret on the recovery card (§6). The recovery public key is the public recovery signing key that the log names ([RK-4]); it is public and is shown as such ([CLT-8]) |
 | **verifier** | Any party checking rootcard data: a host, a client, the key tool, another user |
 | **instance** | One generation of the identity: an account key, a primary host, a vault. Created by an `instance` event |
 | **version** | The last event of a valid log, written `{ seq, hash }` (§10) |
@@ -355,7 +356,7 @@ and entered only in the key tool ([PWR-6]).
   sign_seed      = HKDF(rk, "", frame("rootcard/recovery/sign/v1", ctx))     Ed25519 seed: the recovery signing key
   box_secret     = HKDF(rk, "", frame("rootcard/recovery/box/v1", ctx))      X25519 private key: the recovery lock key
   ```
-  The public recovery signing key appears in the log as `recovery`. The public recovery lock key is the `box` of the
+  The public recovery signing key, the **recovery public key**, appears in the log as `recovery`. The public recovery lock key is the `box` of the
   recovery lock (§11.3).
 
   *Rationale:* binding the derivation to realm and username makes identities created from the same recovery key
@@ -1124,6 +1125,11 @@ hash or a size. Its cost per request is a few Ed25519 verifications and one atom
 - **[CLT-7]** Within its own realm an application MAY show the username alone instead of the handle when its host
   guarantees that the username is unique there ([HST-4]); it shows the handle wherever identities from other hosts can
   appear ([HDL-6]).
+- **[CLT-8]** Software that displays an identity's recovery public key (a client, the key tool, a host's or a lookup
+  page) SHOULD label it as public, for example "Recovery public key", and never as "Recovery key" alone: that name
+  belongs to the secret, and a page that shows a "recovery key" teaches users that one is entered or shown on websites
+  (THREAT_MODEL.md T20). Such a display SHOULD also say that the secret recovery key is only on the recovery card and is
+  entered only in the key tool ([CLT-5]).
 ### 18.2 The key tool
 
 - **[KT-1]** The key tool is the `rootcard` CLI or `keytool.html`. It makes no network request except to hosts the user
