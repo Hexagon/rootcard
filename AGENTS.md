@@ -14,22 +14,26 @@ crates.io and an npm package on npmjs, from one monorepo. Security is the produc
 8. [docs/CONCEPTS.md](docs/CONCEPTS.md): an informative guide to the log, vault, recovery card, proofs and verification.
    It cites SPEC rule ids; update it when a rule it explains changes
 
-## Layout (target)
+## Layout
 
 ```
 Cargo.toml              workspace
-crates/rootcard         core: canon, base32, id, log, versions, vault, profile, proof, file   (pure)
+crates/rootcard         core (pure): json, encoding, crypto, keys, recovery, id, log, vault, profile, messages,
+                        binding, proof, account, file, testing
 crates/rootcard-cli     the key tool, binary `rootcard`
-crates/rootcard-host    host-side helpers: challenge store, identity store trait, request handlers
-crates/xtask            vector generation, release checks
+crates/rootcard-host    host-side helpers: store (challenge and identity stores), http (router), peer
+crates/xtask            vector generation, label registry, repo and release checks
 fuzz                    cargo fuzz targets for parsers, verifiers and the host router (own workspace, not published)
-packages/rootcard       npm package: plain ES modules, zero dependencies, WebCrypto
-packages/rootcard/keytool.html   standalone key tool page (works from file://)
+packages/rootcard       npm package: plain ES modules with the core's module names, zero dependencies, WebCrypto
+packages/rootcard/keytool.html   standalone key tool page (works from file://), built by tools/build-keytool.mjs
 tests/browser           the vectors and keytool.html in real browsers (Playwright, CI only, not published)
 spec/SPEC.md            normative specification
 spec/vectors/*.json     shared test vectors (the facit for every implementation)
 docs/                   plan, design, concepts, architecture, threat model, host protocol, releasing
+docs/proposals/         drafts that are not normative yet (sign-in, linked accounts)
 .github/workflows       ci.yml (every push and PR), release.yml (publishes on a GitHub release), advisories.yml (daily)
+.github/ISSUE_TEMPLATE  issue templates; security reports go to private reporting (SECURITY.md)
+CONTRIBUTING.md         the rules below, for people; CODE_OF_CONDUCT.md, SECURITY.md
 ```
 
 ## Commands
@@ -39,7 +43,7 @@ cargo fmt --all
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 cargo run -p xtask -- vectors --check     # Rust output matches spec/vectors
-cargo run -p xtask -- repo-check          # pinned workflow dependencies, documents that name the version
+cargo run -p xtask -- repo-check          # pinned workflow dependencies, npm without dependencies, documents that name the version
 (cd packages/rootcard && npm test)        # node --test, Node >= 20, no dependencies
 (cd tests/browser && node run.mjs chromium)   # vectors and keytool.html in a browser (needs Playwright; CI runs all three)
 (cd fuzz && cargo fmt --check && cargo clippy --all-targets --locked -- -D warnings)   # the fuzz crate (stable)
@@ -93,7 +97,8 @@ Run all of them before every commit. CI runs them too.
 - The recovery key is never entered in an application client. Only the key tool (CLI or `keytool.html`) asks for it.
 
 ### 6. Dependencies and supply chain
-- The npm package has **zero runtime and zero dev dependencies**. Tests use `node --test`.
+- The npm package has **zero runtime and zero dev dependencies** and no install scripts (`xtask repo-check` enforces
+  it). Tests use `node --test`.
 - New crates need a justification in the PR and must pass `cargo deny` (licenses, advisories, duplicates).
 - Releases are built and published only from CI with trusted publishing (crates.io and npm OIDC) and npm provenance. No
   long-lived tokens in the repository or in CI secrets once trusted publishing is set up.
