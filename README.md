@@ -230,6 +230,7 @@ Planned (details in [docs/PLAN.md](docs/PLAN.md)):
 | [docs/HOST_PROTOCOL.md](docs/HOST_PROTOCOL.md) | Recommended HTTP binding for hosts |
 | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | Goals, attackers, threats, accepted risks |
 | [docs/proposals/](docs/proposals/) | Draft proposals, not normative: [sign-in at other services](docs/proposals/signin.md), [linked accounts](docs/proposals/links.md) |
+| [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md) | How to contribute · how to report a vulnerability |
 | [docs/RELEASING.md](docs/RELEASING.md) | How releases are prepared and published |
 | [docs/DESIGN.md](docs/DESIGN.md) · [docs/PLAN.md](docs/PLAN.md) | Motivation · setup plan |
 

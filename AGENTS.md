@@ -29,7 +29,7 @@ tests/browser           the vectors and keytool.html in real browsers (Playwrigh
 spec/SPEC.md            normative specification
 spec/vectors/*.json     shared test vectors (the facit for every implementation)
 docs/                   plan, design, concepts, architecture, threat model, host protocol, releasing
-.github/workflows       ci.yml (every push and PR), release.yml (publishes on a GitHub release)
+.github/workflows       ci.yml (every push and PR), release.yml (publishes on a GitHub release), advisories.yml (daily)
 ```
 
 ## Commands
