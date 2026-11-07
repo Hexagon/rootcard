@@ -43,10 +43,42 @@ empties a target is noticed.
    returns `https://example.cOm/rootcard` for the origin `https://example.com`, which [HST-23] allows (the host is
    compared without regard to ASCII case).
 
+## The JS core: differential test
+
+`cargo fuzz` reaches only Rust, so the JS core is checked against the Rust core instead (AGENTS.md rule 2):
+
+```bash
+cargo run --release -p xtask -- differential --cases 100000 --seed 7   # needs Node >= 20
+```
+
+`xtask` takes the inputs of the shared vectors, mutates them with a seeded generator and runs each through the vector
+operations of `crates/xtask/src/ops.rs`; `tests/differential/run.mjs` runs the same cases through
+`packages/rootcard/test/ops.mjs` and requires the same output or the same error code. The mutations follow how the core
+reads each member: bytes for canonical JSON (with JSON-aware edits and boundary tokens such as `\ud800` and
+`9007199254740992`), signatures, keys and ciphertexts; text with boundary characters (controls, combining marks,
+look-alikes of base32, separators) for the encodings, names, handles and addresses; JSON edits and values spliced from
+other vectors for documents; and event lists for logs, re-signed with the re-signer of `log_signed`
+(`crates/xtask/src/resign.rs`, included here by path) so the mutations reach the checks behind the signatures. 32
+operations are covered: canonical JSON, the decoders, keys, recovery keys, Ed25519 verification, X25519, AES-GCM
+decryption, names, handles, extended tags, `verify_log`, `extend_log`, `verify_pending`, `compare_logs`, vaults,
+`vault_change`, password rules, base URLs, host pointers, data keys, `set_data`, public profiles, logins, proofs,
+account files and recovery cards.
+
+A case the operation's harness cannot read (a member it needs is gone) is dropped; a Rust panic is a finding
+(`target/differential/rust-panics.jsonl`), and so is a JS exception that is not a `RootcardError`. Disagreements go to
+`target/differential/mismatches.jsonl`. The same seed gives the same cases. CI (`differential` in
+`.github/workflows/ci.yml`) runs 100 000 cases on each push and pull request with a new seed each run, named in the
+log, and keeps the disagreements as a build artifact.
+
+Limits: documents other than logs (vaults, profiles, proofs, login requests, cards) are not re-signed, so a mutated
+document mostly stops at its signature. The order of the checks before it is still compared, and accepting paths are
+covered by the vectors. The first runs found a Rust panic in `extended_tags` on ids shorter than a tag or with
+characters of more than one byte, and a JS core that counted UTF-16 units there; both now count characters
+([HDL-6], regression vectors in `log.json`). They also found that the JS core limited a login request's `lock` to 16
+UTF-16 units where Rust allows 16 bytes; both now count bytes ([LGN-1], regression vector in `proof.json`).
+
 ## Not covered here
 
-- The JS core: `cargo fuzz` reaches only Rust. Differential fuzzing of `packages/rootcard` against the Rust core is a
-  plan item.
 - `unlock_vault` and the other functions that run Argon2id: one call takes about a second, too slow to fuzz. Their
   inputs are parsed by functions the targets cover (`verify_vault`, `Contents`).
 - The host's checks after a lock proof or login signature (`fetch`, `login`, the session endpoints): the fuzzer cannot

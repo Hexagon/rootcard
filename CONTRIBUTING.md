@@ -44,9 +44,10 @@ cargo test --workspace
 cargo run -p xtask -- vectors --check
 cargo run -p xtask -- repo-check
 (cd packages/rootcard && npm test)          # Node >= 20
+cargo run --release -p xtask -- differential --cases 20000   # the JS core against the Rust core
 ```
 
-The browser tests (`tests/browser`) and the fuzzers (`fuzz/`) run in CI; how to run them locally is in
+The browser tests (`tests/browser`), the fuzzers (`fuzz/`) and a longer differential run run in CI; how to run them locally is in
 [AGENTS.md](AGENTS.md).
 
 ## Pull requests

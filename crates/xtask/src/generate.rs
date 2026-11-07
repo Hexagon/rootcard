@@ -923,6 +923,20 @@ fn log_vectors(s: &Scenario) -> Vec<V> {
         "extended_tags",
         m().with("ids", ids(&["3F9CKAA"])),
     ));
+    // Regressions found by the differential test: ids shorter than a tag, and characters of more than one byte, made
+    // the Rust core slice inside a string and panic. Extended tags count characters, not bytes or UTF-16 units.
+    out.push(v(
+        "extended tags of an id shorter than a tag",
+        &["HDL-1", "HDL-6"],
+        "extended_tags",
+        m().with("ids", ids(&["3F9CKAA", "3F", "3F9CXAA"])),
+    ));
+    out.push(v(
+        "extended tags count characters",
+        &["HDL-1", "HDL-6"],
+        "extended_tags",
+        m().with("ids", ids(&["3F9C\u{e9}A", "3F9C\u{e9}B", "\u{1f600}F9CXY"])),
+    ));
 
     // Valid logs.
     out.push(v(
@@ -2207,6 +2221,23 @@ fn proof_vectors(s: &Scenario) -> Vec<V> {
             "login_verify",
             log_input(&s.log1)
                 .with("request", set(req.clone(), "url", "https://evil.example"))
+                .with("lock_key", rk.as_str()),
+        ));
+        // Regression found by the differential test: the JS core counted UTF-16 units, so 9 characters of 2 bytes
+        // passed there and failed in Rust.
+        out.push(v(
+            "login request with a lock id of more than 16 bytes",
+            &["LGN-1"],
+            "login_verify",
+            log_input(&s.log1)
+                .with(
+                    "request",
+                    set(
+                        req.clone(),
+                        "lock",
+                        "\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}",
+                    ),
+                )
                 .with("lock_key", rk.as_str()),
         ));
     }

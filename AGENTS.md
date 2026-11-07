@@ -22,11 +22,12 @@ crates/rootcard         core (pure): json, encoding, crypto, keys, recovery, id,
                         binding, proof, account, file, testing
 crates/rootcard-cli     the key tool, binary `rootcard`
 crates/rootcard-host    host-side helpers: store (challenge and identity stores), http (router), peer
-crates/xtask            vector generation, label registry, repo and release checks
+crates/xtask            vector generation, label registry, repo and release checks, differential test of the JS core
 fuzz                    cargo fuzz targets for parsers, verifiers and the host router (own workspace, not published)
 packages/rootcard       npm package: plain ES modules with the core's module names, zero dependencies, WebCrypto
 packages/rootcard/keytool.html   standalone key tool page (works from file://), built by tools/build-keytool.mjs
 tests/browser           the vectors and keytool.html in real browsers (Playwright, CI only, not published)
+tests/differential      the JS side of the differential test (`xtask differential`, not published)
 spec/SPEC.md            normative specification
 spec/vectors/*.json     shared test vectors (the facit for every implementation)
 docs/                   plan, design, concepts, architecture, threat model, host protocol, releasing
@@ -46,6 +47,7 @@ cargo run -p xtask -- vectors --check     # Rust output matches spec/vectors
 cargo run -p xtask -- repo-check          # pinned workflow dependencies, npm without dependencies, documents that name the version
 (cd packages/rootcard && npm test)        # node --test, Node >= 20, no dependencies
 (cd tests/browser && node run.mjs chromium)   # vectors and keytool.html in a browser (needs Playwright; CI runs all three)
+cargo run --release -p xtask -- differential --cases 20000   # JS core against Rust core on mutated inputs; fuzz/README.md
 (cd fuzz && cargo fmt --check && cargo clippy --all-targets --locked -- -D warnings)   # the fuzz crate (stable)
 (cd fuzz && cargo run --bin seeds && cargo +nightly fuzz run -O -a log -- -max_total_time=60)   # after changing a parser or verifier; fuzz/README.md
 ```
@@ -109,7 +111,8 @@ Run all of them before every commit. CI runs them too.
 ### 7. Tests
 - Every rule in the spec has a test that proves it is enforced (accept and reject cases).
 - Parsers and verifiers get fuzz targets (`cargo fuzz`, [fuzz/README.md](fuzz/README.md)); a new parser or verifier gets one
-  in the same commit.
+  in the same commit, and an entry in the differential test's `OPS` (`crates/xtask/src/differential.rs`) if it has a
+  vector operation.
 - Security-relevant fixes get a regression vector.
 
 ### 8. Language and style

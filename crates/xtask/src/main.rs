@@ -5,10 +5,16 @@
 //! Both modes first check that the label registry in `spec/SPEC.md` is exactly the set of labels generated here.
 //!
 //! `repo-check` checks what must hold on every commit: workflow dependencies pinned to commit SHAs and exact versions,
-//! an npm package with an empty dependency tree, and the documents that name the current version. `release-check` runs both and the release's own checks.
+//! an npm package with an empty dependency tree, and the documents that name the current version. `release-check` runs
+//! both and the release's own checks.
+//!
+//! `differential [--cases N] [--seed S]` runs the JS core against the Rust core on mutated vector inputs and requires
+//! the same output or error code ([`differential`]).
 
+mod differential;
 mod generate;
 mod ops;
+mod resign;
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -460,9 +466,11 @@ fn main() -> ExitCode {
         ["repo-check"] => repo_check(),
         ["release-check"] => release_check(None).map(|v| println!("{v}")),
         ["release-check", "--tag", tag] => release_check(Some(tag)).map(|v| println!("{v}")),
+        ["differential", options @ ..] => differential::differential(options),
         _ => Err("usage: cargo run -p xtask -- vectors [--check | --update]\n       \
                   cargo run -p xtask -- repo-check\n       \
-                  cargo run -p xtask -- release-check [--tag vX.Y.Z]"
+                  cargo run -p xtask -- release-check [--tag vX.Y.Z]\n       \
+                  cargo run -p xtask -- differential [--cases N] [--seed S]"
             .into()),
     };
     match result {

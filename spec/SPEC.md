@@ -787,7 +787,7 @@ Both start with a **challenge** from the primary host.
    → `wrong_host`, and `challenge.version` = its version → `stale_version` (it then fetches the newer log and restarts).
 5. The client signs the **login message** twice, with the account key (`sig`) and with the `auth` key of the lock it
    unlocked (`lock_sig`; the recovery signing key for the `recovery` lock), and sends `{ account, nonce, version, url,
-   lock, sig, lock_sig }`:
+   lock, sig, lock_sig }`, where `lock` is the lock id, 1 to 16 bytes of UTF-8 (→ `bad_field`):
    ```
    message  = frame("rootcard/login/v1",
                 { "account": …, "host": "ed25519:<home.key>", "lock": "<lock id>", "nonce": …, "realm": …,
