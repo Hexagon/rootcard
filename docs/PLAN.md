@@ -359,6 +359,34 @@ publishing part was first met by `0.1.0` and has held for every release since.
   Appendix A)
 - Host helpers for JavaScript servers (`rootcard/host`), if there is demand; the JS core already verifies everything a
   host checks
+- A Python package on PyPI (`rootcard`) for hosts and relying parties, after `1.0.0` (the spec, the external review and
+  the frozen `/v1` binding come first, so a third registry does not follow 0.x breaking changes). Proposed, open for the
+  owner:
+  - **A binding, not a third implementation.** A thin PyO3 wrapper over `crates/rootcard` with `default-features =
+    false`, built with maturin, in `crates/rootcard-py` (or `packages/rootcard-py`). A pure-Python core would need a
+    third byte-exact copy of canonical JSON, the encodings and every rule, and Python has no Ed25519 of its own: the
+    `cryptography` package does not check what `verify_strict` checks (small-order keys), so the missing checks would
+    be written by hand, close to what AGENTS.md rule 3 forbids. The binding keeps one implementation to review
+  - **Verification only.** The "always" rows of ARCHITECTURE.md §4: `parse_json`, `canonical`, `account_id`,
+    `parse_handle`, `verify_log`, `verify_pending`, `compare_logs`, `current_instance`, the message verifications,
+    `verify_proof`, `verify_public`, `verify_vault`, `check_base_url`, `well_known_base`. No vault cryptography, no
+    recovery key, no signing with account keys; like the cores, it does no I/O and takes time as an argument
+  - **API.** snake_case names as in Rust; JSON values passed as `bytes` (parsed strictly by the core, never by
+    Python's `json`) or as `dict` and returned as `dict`; errors raised as one exception class carrying the SPEC §20
+    code. Type stubs (`.pyi`) in the package
+  - **Tests.** The shared vectors in `spec/vectors/` run against the wheel (pytest or `unittest` in CI), so the binding
+    cannot drift from the facit ([CNV-4])
+  - **Supply chain.** New build dependencies `pyo3` (runtime of the extension) and `maturin` (CI only, exact version),
+    justified in the pull request and checked by `cargo deny`; no Python runtime dependencies. Published only from
+    `release.yml` with PyPI trusted publishing and attestations, under the same tag and version as the other packages
+    (RELEASING.md). Wheels: abi3 for one minimum Python, Linux (manylinux and musllinux, x86-64 and arm64), macOS and
+    Windows, plus an sdist
+  - **To decide first:** whether wheels can be made reproducible like the `.crate` files and the npm tarball
+    (RELEASING.md §4–5), or what is checked instead (rebuild in a second job and compare); the minimum Python version;
+    whether `rootcard-host` (the router) is exposed as well or only the core. `xtask repo-check` and `release-check` must
+    learn the new package (version, changelog, pins) in the same change
+  - Go (a module) is the alternative after this, on demand: cgo bindings are unusual there and Go's Ed25519 is not
+    strict in the required way, so it would be a third native implementation
 - Post-quantum key types (ML-DSA, ML-KEM) by new type tags
 - Federation of public logs between hosts
 - First application: Xigna (its integration plan is in the Xigna repository)
