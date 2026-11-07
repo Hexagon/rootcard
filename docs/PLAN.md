@@ -360,33 +360,67 @@ publishing part was first met by `0.1.0` and has held for every release since.
 - Host helpers for JavaScript servers (`rootcard/host`), if there is demand; the JS core already verifies everything a
   host checks
 - A Python package on PyPI (`rootcard`) for hosts and relying parties, after `1.0.0` (the spec, the external review and
-  the frozen `/v1` binding come first, so a third registry does not follow 0.x breaking changes). Proposed, open for the
-  owner:
+  the frozen `/v1` binding come first, so a third registry does not follow 0.x breaking changes). The name `rootcard` is
+  free on PyPI; reserving it belongs with D2. Proposed, with the open points worked out by a prototype (a PyO3 module
+  over `crates/rootcard`, built with maturin):
   - **A binding, not a third implementation.** A thin PyO3 wrapper over `crates/rootcard` with `default-features =
-    false`, built with maturin, in `crates/rootcard-py` (or `packages/rootcard-py`). A pure-Python core would need a
-    third byte-exact copy of canonical JSON, the encodings and every rule, and Python has no Ed25519 of its own: the
-    `cryptography` package does not check what `verify_strict` checks (small-order keys), so the missing checks would
-    be written by hand, close to what AGENTS.md rule 3 forbids. The binding keeps one implementation to review
-  - **Verification only.** The "always" rows of ARCHITECTURE.md §4: `parse_json`, `canonical`, `account_id`,
-    `parse_handle`, `verify_log`, `verify_pending`, `compare_logs`, `current_instance`, the message verifications,
-    `verify_proof`, `verify_public`, `verify_vault`, `check_base_url`, `well_known_base`. No vault cryptography, no
-    recovery key, no signing with account keys; like the cores, it does no I/O and takes time as an argument
-  - **API.** snake_case names as in Rust; JSON values passed as `bytes` (parsed strictly by the core, never by
-    Python's `json`) or as `dict` and returned as `dict`; errors raised as one exception class carrying the SPEC §20
-    code. Type stubs (`.pyi`) in the package
-  - **Tests.** The shared vectors in `spec/vectors/` run against the wheel (pytest or `unittest` in CI), so the binding
-    cannot drift from the facit ([CNV-4])
-  - **Supply chain.** New build dependencies `pyo3` (runtime of the extension) and `maturin` (CI only, exact version),
-    justified in the pull request and checked by `cargo deny`; no Python runtime dependencies. Published only from
-    `release.yml` with PyPI trusted publishing and attestations, under the same tag and version as the other packages
-    (RELEASING.md). Wheels: abi3 for one minimum Python, Linux (manylinux and musllinux, x86-64 and arm64), macOS and
-    Windows, plus an sdist
-  - **To decide first:** whether wheels can be made reproducible like the `.crate` files and the npm tarball
-    (RELEASING.md §4–5), or what is checked instead (rebuild in a second job and compare); the minimum Python version;
-    whether `rootcard-host` (the router) is exposed as well or only the core. `xtask repo-check` and `release-check` must
-    learn the new package (version, changelog, pins) in the same change
+    false`, in `crates/rootcard-py`: a workspace member with `publish = false`, so `cargo deny`, clippy and the MSRV job
+    cover it and `cargo publish` skips it. A pure-Python core would need a third byte-exact copy of canonical JSON, the
+    encodings and every rule, and Python has no Ed25519 of its own: the `cryptography` package does not check what
+    `verify_strict` checks (small-order keys), so the missing checks would be written by hand, close to what AGENTS.md
+    rule 3 forbids. The binding keeps one implementation to review
+  - **No unsafe code of our own.** PyO3 (0.30) compiles under `#![forbid(unsafe_code)]` with edition 2024: its macros
+    keep their unsafe code inside PyO3. Rule 3 holds for the new crate without an exception
+  - **Verification only, the core only.** The "always" rows of ARCHITECTURE.md §4: `parse_json`, `canonical`,
+    `account_id`, `parse_handle`, `verify_log`, `verify_pending`, `compare_logs`, `current_instance`, the message
+    verifications, `verify_proof`, `verify_public`, `verify_vault`, `check_base_url`, `well_known_base`. No vault
+    cryptography, no recovery key, no signing with account keys; like the cores, it does no I/O and takes time as an
+    argument. `rootcard-host` is not exposed: its stores would be Python callbacks across the boundary that must keep
+    [HST-19]'s atomic swap, which is a design of its own. Python host helpers are a later item, on demand, like
+    `rootcard/host` for JavaScript
+  - **API.** snake_case names as in Rust. JSON goes in as `bytes` or `str` and is parsed by the core, never by Python's
+    `json` (which accepts duplicate members and other forms the core rejects); results come back as `dict`. Errors are
+    one exception class, `rootcard.Error(ValueError)`, with `.code` from SPEC §20 (`Error::code`). Type stubs (`.pyi`)
+    in the package
+  - **Python versions.** One abi3 wheel per platform for CPython 3.11 and later (`abi3-py311`): 3.10 reached its end of
+    life in October 2026. The minimum moves with Python's support window, like the MSRV rule (D4)
+  - **Tests.** The shared vectors in `spec/vectors/` run against the built wheel with `unittest` (no test dependency),
+    on the minimum and the newest Python, so the binding cannot drift from the facit ([CNV-4])
+  - **Supply chain.** New dependencies: `pyo3` (with `pyo3-ffi`, `pyo3-macros`, `pyo3-build-config`, `target-lexicon`,
+    `heck`, `once_cell`, `libc`; all MIT or Apache-2.0, so `deny.toml` needs no new license) and `maturin` in CI only, at
+    an exact version. `pyo3-macros` brings `syn` 3 beside the workspace's `syn` 2 (a `multiple-versions` warning, not
+    an error). No Python runtime dependencies. Published only from `release.yml` with PyPI trusted publishing and
+    attestations, under the same tag and version as the other packages (RELEASING.md). Wheels for Linux (manylinux and
+    musllinux, x86-64 and arm64), macOS (x86-64 and arm64) and Windows (x86-64), plus an sdist
+  - **Reproducible wheels.** Two release builds of the prototype from checkouts at different paths and with different
+    file times gave byte-identical Linux wheels, with three settings: `SOURCE_DATE_EPOCH` (from the tagged commit),
+    `--remap-path-prefix` for the checkout and the cargo home, and maturin's Rust SBOM turned off
+    (`[tool.maturin.sbom] rust = false`), because it records the checkout's absolute path. A path-free SBOM can be
+    added with `--sbom-include` if wanted. CI builds Linux wheels in a manylinux image pinned by digest, so the
+    release's `assets` job can rebuild them from the tag and compare with what PyPI serves, as for the `.crate` files
+    and the npm tarball (RELEASING.md §4). macOS and Windows wheels are compared with a second build in the same run;
+    whether they reproduce across runner images is untested, and if they do not, the release says so
+  - **In the same change:** `xtask repo-check` (the `maturin` pin, no Python dependencies in `pyproject.toml`) and
+    `release-check` (version in `pyproject.toml` and `Cargo.toml`, a `CHANGELOG.md` for the package), RELEASING.md,
+    ARCHITECTURE.md §1 and §5, and the README's package list. No new fuzz target: the binding adds no parser or
+    verifier, it calls the core's
   - Go (a module) is the alternative after this, on demand: cgo bindings are unusual there and Go's Ed25519 is not
     strict in the required way, so it would be a third native implementation
+- C++ was evaluated and is not planned. Hosts and relying parties are rarely written in C++; the users would be native
+  clients (desktop applications, games), which need the full core with the vault. The ways in:
+  - a C++ implementation: a third copy of every rule, in a language without memory safety, for the parsers that face
+    untrusted input. libsodium has every primitive (Ed25519 that rejects small-order keys and non-canonical signatures,
+    X25519, Argon2id, HKDF, SHA-256) except AES-256-GCM on processors without AES instructions, and NFC would need ICU.
+    Rejected: it gives up what the Rust core is for
+  - a C ABI over the Rust core (with `cbindgen` and a header-only C++ wrapper), or `cxx`: both need unsafe code in our
+    crate. The prototype confirmed that `#[unsafe(no_mangle)]` and a `cxx::bridge` both fail `#![forbid(unsafe_code)]`,
+    so this needs an exception to rule 3 for one small, audited `rootcard-ffi` crate
+  - C++ has no registry with trusted publishing or provenance (vcpkg and Conan take recipes, not signed builds), so it
+    could not meet rule 6 as crates.io, npm and PyPI do; the C ABI would ship as release assets with `SHA256SUMS`
+
+  If native clients appear, the step is a C ABI (`rootcard-ffi`), not C++ itself: the same library also serves Swift,
+  Kotlin (JNI), C# and Go (cgo). Mobile clients (Swift and Kotlin, through UniFFI or the C ABI) are the likelier first
+  users than C++. Until then, native clients can use the npm package in a web view, which already has WebCrypto
 - Post-quantum key types (ML-DSA, ML-KEM) by new type tags
 - Federation of public logs between hosts
 - First application: Xigna (its integration plan is in the Xigna repository)
