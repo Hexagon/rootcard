@@ -390,6 +390,24 @@
     },
     {
       "input": {
+        "ids": ["3F9CKAA","3F","3F9CXAA"]
+      },
+      "name": "extended tags of an id shorter than a tag",
+      "op": "extended_tags",
+      "output": ["3F9C-","3F-","3F9C-"],
+      "rules": ["HDL-1","HDL-6"]
+    },
+    {
+      "input": {
+        "ids": ["3F9CéA","3F9CéB","😀F9CXY"]
+      },
+      "name": "extended tags count characters",
+      "op": "extended_tags",
+      "output": ["3F9C-éA","3F9C-éB","😀F9C-XY"],
+      "rules": ["HDL-1","HDL-6"]
+    },
+    {
+      "input": {
         "events": [
           {
             "body": {

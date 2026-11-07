@@ -971,6 +971,75 @@
       "rules": ["LGN-4"]
     },
     {
+      "error": "bad_field",
+      "input": {
+        "events": [
+          {
+            "body": {
+              "realm": "global",
+              "recovery": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+              "username": "Astra"
+            },
+            "kind": "incept",
+            "seq": 0,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "LyJMpX2eTQ1IFcIdFoYYR2m94pF1_b0vyAGO_VcVdsdOgCshPbRkr8pBuhW4mc3MiYcwDcVp0ZsnZ_c_9mSQAQ"
+              }
+            ],
+            "v": 1
+          },
+          {
+            "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+            "body": {
+              "account_key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+              "home": {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "url": "https://a.example"
+              },
+              "reason": "register"
+            },
+            "kind": "instance",
+            "prev": "X5FomJyNITymdUxhyurpjA-qJq7wa5BPZM5ssU1Vpq8",
+            "seq": 1,
+            "sigs": [
+              {
+                "key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+                "sig": "37EyhhZclEXq943SMOgpEkTl-avLSswbVOwf1hj8ITY8UJunzajJJdY4OdH42R0cfUj5Y12L-lnCJJd1OimxDg"
+              },
+              {
+                "key": "ed25519:hUG237D22KcAeXcC79oHSHjxX8OyTKdpmh8vmLD8qiA",
+                "sig": "fbvmcbySSraxOFP0vUR1oBqB1hLyRf7IveFGhpPaXExDtC5246xyZueLEVQBlLcuWQWyExFDVfBGjUttS0SPCg"
+              },
+              {
+                "key": "ed25519:vHy8tWNjdfodgkNNRmck2SN39TuYBpXdSdJtDOEiBaU",
+                "sig": "0NpJpk8JZLUocNrFp64jtEFQBYzfm8CYThWIEfcz0B_Ke6SFUQKUUekoLvMJHu8IPJz6F9urvbvy-DLYOBIjAg"
+              }
+            ],
+            "time": 1800000000,
+            "v": 1
+          }
+        ],
+        "lock_key": "ed25519:AYGF85DR2TW8vaBleS_hZt9coMNbiz6Ucd74JrIhK8I",
+        "request": {
+          "account": "52WWGVFV9RWKHKHN9T45S1C9RRVX8MRCRWY292PGG6F4HKQYE1B0",
+          "lock": "ééééééééé",
+          "lock_sig": "oz7Pl8qwtxRGsqjmwZIgbQqCUgdUReQL5sLweVjJbYU5npTge7_X3FF_cvIReBphpOKkiK4U6qzpzAypvUo6Cg",
+          "nonce": "nzar2BAJLRUdCErvYaKQ65jTM0f7Vxrz2K-7uA0WEFE",
+          "sig": "TS0U8BQr1AkPUMePE2CVJEiAniiH9yqnShXaeRpN-mRvNgChpsnJhuZV2irLKOE9JTm0PeREizsMd_wSzlHhBg",
+          "url": "https://a.example",
+          "version": {
+            "hash": "oh9kjrQk1H7kQSBprJA3t2qZ8nHeiqRjPaGnh7_hLgk",
+            "seq": 1
+          }
+        }
+      },
+      "name": "login request with a lock id of more than 16 bytes",
+      "op": "login_verify",
+      "rules": ["LGN-1"]
+    },
+    {
       "input": {
         "by": "account",
         "challenge": "7e26a1b5762012acfa73917ee75568e283a1c6db4fe2e17a8da80c2c43965340",

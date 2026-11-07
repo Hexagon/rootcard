@@ -306,8 +306,16 @@ logs the same way.
   also requires exact versions and `--locked` for `cargo install` and a date for a nightly toolchain. The first runs
   found no bug in the cores; one assertion was too strict (a host pointer may differ in the case of the host,
   [HST-23]).
-- [ ] Differential fuzzing of the JS core against the Rust core (same inputs, same result or error code), at least for
-  canonical JSON, the encodings and `verify_log`: `cargo fuzz` reaches only Rust
+- [x] Differential fuzzing of the JS core against the Rust core (same inputs, same result or error code), at least for
+  canonical JSON, the encodings and `verify_log`: `cargo fuzz` reaches only Rust. Decided: `cargo run -p xtask --
+  differential` mutates the shared vectors' inputs with a seeded generator, runs them through the vector operations of
+  both cores (`ops.rs`, `ops.mjs`, with `tests/differential/run.mjs` for Node) and requires the same output or error
+  code, for 32 operations from canonical JSON to proofs and account files. Logs are re-signed with the fuzz target's
+  re-signer (moved to `crates/xtask/src/resign.rs`). CI job `differential`, 100 000 cases with a new seed per run
+  ([fuzz/README.md](../fuzz/README.md)). The first runs found a Rust panic in `extended_tags` on ids shorter than a tag
+  or with multi-byte characters, and JS counting UTF-16 units there; both cores now count characters ([HDL-6],
+  regression vectors). JS also limited a login request's `lock` to 16 UTF-16 units instead of 16 bytes; it counts
+  bytes now, and SPEC [LGN-1] step 5 states the limit. Other signed documents are not re-signed, so their mutations mostly stop at the signature
 - [x] `cargo deny`, `cargo audit`, `npm audit` (empty tree), reproducible npm tarball check. Decided: `cargo deny` (CI
   job `deny`, every pull request) is the advisory check, and the workflow `advisories.yml` runs its RustSec check daily,
   so an advisory published after a merge is noticed; `cargo audit` reads the same database and is not run as well.

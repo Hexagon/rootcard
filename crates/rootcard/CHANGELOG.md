@@ -4,6 +4,11 @@ All notable changes to this package are recorded here.
 
 ## Unreleased
 
+- `id::extended_tags` no longer panics on ids shorter than a tag or with characters of more than one byte, and
+  `id::tag` takes the first 4 characters of any string: both count characters, as [HDL-6] says (found by the new
+  differential test against the JS core; regression vectors in `spec/vectors/log.json`). Account ids are ASCII, so
+  their tags do not change.
+
 ## 0.3.2 - 2026-11-06
 
 - Host pointers ([HST-23]): `well_known_base(origin, document)` resolves `<origin>/.well-known/rootcard` to the host's

@@ -78,7 +78,10 @@ pub fn inception(keys: &RecoveryKeys, realm: &str, username: &str) -> Result<Map
 
 /// The tag of an account id: its first 4 characters ([HDL-1]).
 pub fn tag(account: &str) -> &str {
-    account.get(..4).unwrap_or(account)
+    match account.char_indices().nth(4) {
+        Some((end, _)) => &account[..end],
+        None => account,
+    }
 }
 
 /// `username + "#" + tag` ([HDL-1]).
@@ -161,17 +164,25 @@ pub fn extended_tags(ids: &[String]) -> Vec<String> {
     if distinct.len() < 2 {
         return ids.iter().map(|id| tag(id).to_string()).collect();
     }
-    let max = distinct.iter().map(|s| s.len()).min().unwrap_or(4);
+    // Characters, not bytes ([HDL-6]): account ids are ASCII, but the function takes any strings and must not panic.
+    let chars: Vec<Vec<char>> = distinct.iter().map(|s| s.chars().collect()).collect();
+    let max = chars.iter().map(Vec::len).min().unwrap_or(4);
     let mut n = 5;
     while n < max {
-        let prefixes: Vec<&str> = distinct.iter().map(|s| &s[..n]).collect();
+        let prefixes: Vec<&[char]> = chars.iter().map(|c| &c[..n]).collect();
         if prefixes.iter().enumerate().all(|(i, p)| !prefixes[i + 1..].contains(p)) {
             break;
         }
         n += 1;
     }
     let n = n.min(max);
-    ids.iter().map(|id| format!("{}-{}", &id[..4], &id[4..n])).collect()
+    ids.iter()
+        .map(|id| {
+            let head: String = id.chars().take(4).collect();
+            let rest: String = id.chars().skip(4).take(n.saturating_sub(4)).collect();
+            format!("{head}-{rest}")
+        })
+        .collect()
 }
 
 #[cfg(test)]

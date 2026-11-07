@@ -131,6 +131,10 @@ export const ops = {
   login_sign: async (i) => rc.signLogin(await stateOf(i), i.challenge, i.url, i.lock, hx(i.account_seed), hx(i.lock_seed)),
   login_verify: async (i) => {
     const st = await stateOf(i);
+    // The Rust core parses the request, then takes the lock key parsed: the same order here, so a malformed key fails
+    // the same way.
+    rc.parseLoginRequest(i.request);
+    rc.parseKey(i.lock_key, "ed25519");
     await rc.verifyLogin(i.request, st.realm, st.instance.home.key, st.instance.account_key, i.lock_key);
     return true;
   },
